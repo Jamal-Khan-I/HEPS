@@ -20,8 +20,8 @@ public class AuthService {
 
     private AuthService() {
         this.userDao = new UserDaoImpl();
-        // Default to Admin (Demo) session for demonstration
-        this.currentUser = new User(1, "admin", "", "Admin (Demo)", Role.ADMIN, null);
+        // Default to Administrator session
+        this.currentUser = new User(1, "admin", "", "Administrator", Role.ADMIN, null);
     }
 
     public static synchronized AuthService getInstance() {

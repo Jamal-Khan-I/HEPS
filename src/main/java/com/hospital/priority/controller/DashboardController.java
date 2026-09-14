@@ -95,7 +95,9 @@ public class DashboardController implements Initializable {
             lblTotalWaiting.setText(String.valueOf(stats.get("totalWaiting")));
             lblCriticalWaiting.setText(String.valueOf(stats.get("criticalWaiting")));
             lblInTreatment.setText(String.valueOf(stats.get("inTreatment")));
-            lblCompletedToday.setText(String.valueOf(stats.get("completedToday")));
+            if (lblCompletedToday != null) {
+                lblCompletedToday.setText(String.valueOf(stats.get("completedToday")));
+            }
 
             Patient nextPatient = (Patient) stats.get("nextPatient");
             updateNextPatientBanner(nextPatient);
@@ -120,17 +122,17 @@ public class DashboardController implements Initializable {
 
             lblNextToken.setText(patient.getTokenNo());
             lblNextName.setText(patient.getFullName());
-            lblNextAge.setText("(Age: " + patient.getAge() + ", " + patient.getGender() + ")");
-            lblNextSymptoms.setText("Chief Symptoms: " + patient.getSymptoms());
-            lblNextArrival.setText("Triage Arrival: " + patient.getFormattedArrivalTime());
+            lblNextAge.setText("(Age " + patient.getAge() + ", " + patient.getGender() + ")");
+            lblNextSymptoms.setText(patient.getSymptoms());
+            lblNextArrival.setText("Arrived: " + patient.getFormattedArrivalTime());
             btnServeNextQuick.setDisable(false);
         } else {
             lblNextBadge.setText("EMPTY");
             lblNextBadge.getStyleClass().setAll("badge", "badge-low");
             lblNextToken.setText("---");
-            lblNextName.setText("All Caught Up! No Patients Waiting");
+            lblNextName.setText("No Patients Waiting");
             lblNextAge.setText("");
-            lblNextSymptoms.setText("Emergency triage queue is currently clear.");
+            lblNextSymptoms.setText("There are no patients currently awaiting treatment.");
             lblNextArrival.setText("");
             btnServeNextQuick.setDisable(true);
         }
@@ -140,25 +142,24 @@ public class DashboardController implements Initializable {
     private void handleServeNext(ActionEvent event) {
         Patient head = queueService.peekNext();
         if (head == null) {
-            showInfo("Queue Empty", "There are no waiting patients currently in the emergency queue.");
+            showInfo("Queue Empty", "There are no waiting patients currently in the queue.");
             return;
         }
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirm Patient Triage Admission");
-        confirm.setHeaderText("Serve Highest Priority Patient (Queue Head)");
-        confirm.setContentText("Admit Patient: " + head.getFullName() + " (" + head.getTokenNo() + ")\n"
-                + "Urgency: " + head.getEmergencyLevel() + "\n"
-                + "Symptoms: " + head.getSymptoms() + "\n\n"
-                + "Change status to IN_TREATMENT and open treatment record?");
+        confirm.setTitle("Begin Treatment");
+        confirm.setHeaderText("Admit Patient to Treatment");
+        confirm.setContentText("Admit " + head.getFullName() + " (" + head.getTokenNo() + ") into treatment bay?\n\n"
+                + "Priority: " + head.getEmergencyLevel() + "\n"
+                + "Presenting Complaint: " + head.getSymptoms());
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                String doctorName = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Physician";
+                String doctorName = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Clinician";
                 Patient served = queueService.serveNext(doctorName);
                 refreshData();
-                showInfo("Patient Admitted", "Patient " + served.getFullName() + " (" + served.getTokenNo() + ") is now IN TREATMENT.\nAdmitted by: " + doctorName);
+                showInfo("Treatment Started", served.getFullName() + " (" + served.getTokenNo() + ") is now in treatment.");
             } catch (Exception e) {
                 showError("Admission Failed", e.getMessage());
             }

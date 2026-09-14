@@ -1,91 +1,131 @@
 /* ==========================================================
-   HOSPITAL EMERGENCY PRIORITY SYSTEM (HEPS)
-   Modern Healthcare Desktop UI Design System
+   HOSPITAL EMERGENCY DEPARTMENT — PATIENT PRIORITY SYSTEM
+   Clinical Workstation Desktop Interface Design System
    ========================================================== */
 
 .root {
-    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    -fx-font-size: 14px;
+    -fx-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -fx-font-size: 13px;
     -fx-background-color: #F8FAFC;
     -fx-text-fill: #1E293B;
 }
 
-/* ---------------- TOP HEADER BAR ---------------- */
+/* ---------------- COMPACT LIGHT HEADER ---------------- */
 .header-bar {
-    -fx-background-color: #0F172A;
-    -fx-padding: 12px 24px;
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 10px 24px;
     -fx-alignment: CENTER_LEFT;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0, 0, 2);
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.brand-icon {
+    -fx-background-color: #0284C7;
+    -fx-background-radius: 4px;
+    -fx-min-width: 24px;
+    -fx-min-height: 24px;
+    -fx-max-width: 24px;
+    -fx-max-height: 24px;
+    -fx-alignment: CENTER;
+}
+
+.brand-icon-text {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
 }
 
 .header-title {
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #0F172A;
 }
 
 .header-subtitle {
     -fx-font-size: 11px;
-    -fx-text-fill: #94A3B8;
+    -fx-text-fill: #64748B;
+    -fx-font-weight: 500;
 }
 
-.header-badge {
-    -fx-background-color: #1E293B;
-    -fx-background-radius: 20px;
-    -fx-padding: 6px 14px;
-    -fx-text-fill: #38BDF8;
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-}
-
-.header-clock {
-    -fx-text-fill: #E2E8F0;
+.header-user-badge {
+    -fx-text-fill: #334155;
     -fx-font-size: 13px;
     -fx-font-weight: 600;
 }
 
-/* ---------------- SIDEBAR NAVIGATION ---------------- */
+.btn-signout {
+    -fx-background-color: transparent;
+    -fx-text-fill: #64748B;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-padding: 5px 12px;
+    -fx-cursor: hand;
+}
+
+.btn-signout:hover {
+    -fx-background-color: #F1F5F9;
+    -fx-text-fill: #0F172A;
+    -fx-border-color: #CBD5E1;
+}
+
+/* ---------------- NEUTRAL NARROW SIDEBAR ---------------- */
 .sidebar {
-    -fx-background-color: #1E293B;
-    -fx-padding: 20px 12px;
-    -fx-pref-width: 240px;
-    -fx-min-width: 240px;
-    -fx-spacing: 8px;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 0 1px 0 0;
+    -fx-padding: 16px 10px;
+    -fx-pref-width: 216px;
+    -fx-min-width: 216px;
+    -fx-max-width: 216px;
+    -fx-spacing: 4px;
 }
 
 .nav-button {
     -fx-background-color: transparent;
-    -fx-text-fill: #94A3B8;
-    -fx-font-size: 14px;
+    -fx-text-fill: #475569;
+    -fx-font-size: 13px;
     -fx-font-weight: 600;
     -fx-alignment: CENTER_LEFT;
-    -fx-padding: 12px 18px;
-    -fx-background-radius: 8px;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
-    -fx-pref-width: 216px;
+    -fx-pref-width: 196px;
 }
 
 .nav-button:hover {
-    -fx-background-color: #334155;
-    -fx-text-fill: #FFFFFF;
+    -fx-background-color: #F1F5F9;
+    -fx-text-fill: #0F172A;
 }
 
 .nav-button-active {
-    -fx-background-color: #0284C7;
-    -fx-text-fill: #FFFFFF;
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(2, 132, 199, 0.4), 8, 0, 0, 2);
+    -fx-background-color: #E0F2FE;
+    -fx-text-fill: #0369A1;
+    -fx-font-weight: 700;
 }
 
-/* ---------------- CONTENT PANE ---------------- */
+.sidebar-footer {
+    -fx-padding: 10px 14px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.sidebar-version {
+    -fx-font-size: 11px;
+    -fx-text-fill: #94A3B8;
+}
+
+/* ---------------- WORKSPACE CONTENT AREA ---------------- */
 .content-area {
     -fx-background-color: #F8FAFC;
-    -fx-padding: 24px;
+    -fx-padding: 20px 24px;
 }
 
 .view-title {
-    -fx-font-size: 22px;
-    -fx-font-weight: bold;
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
     -fx-text-fill: #0F172A;
 }
 
@@ -94,85 +134,101 @@
     -fx-text-fill: #64748B;
 }
 
-/* ---------------- CARDS & CONTAINERS ---------------- */
-.card {
+/* ---------------- CLINICAL PANELS & CARDS ---------------- */
+.panel {
     -fx-background-color: #FFFFFF;
-    -fx-background-radius: 12px;
-    -fx-padding: 20px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 8, 0, 0, 2);
+    -fx-background-radius: 8px;
     -fx-border-color: #E2E8F0;
     -fx-border-width: 1px;
-    -fx-border-radius: 12px;
+    -fx-border-radius: 8px;
+    -fx-padding: 16px;
 }
 
-.card-stat {
+.card {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 8px;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-padding: 16px;
+}
+
+/* Operational Summary Cards */
+.summary-card {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 8px;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-padding: 14px 18px;
     -fx-pref-width: 220px;
-    -fx-spacing: 6px;
+    -fx-spacing: 4px;
 }
 
-.stat-label {
+.summary-label {
     -fx-font-size: 12px;
-    -fx-text-fill: #64748B;
     -fx-font-weight: 600;
-    -fx-text-transform: uppercase;
+    -fx-text-fill: #64748B;
 }
 
-.stat-value {
-    -fx-font-size: 32px;
-    -fx-font-weight: bold;
+.summary-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
     -fx-text-fill: #0F172A;
 }
 
-.stat-critical {
+.summary-value-critical {
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
     -fx-text-fill: #DC2626;
 }
 
-.stat-urgent {
-    -fx-text-fill: #EA580C;
+.summary-subtext {
+    -fx-font-size: 11px;
+    -fx-text-fill: #94A3B8;
 }
 
-.stat-active {
-    -fx-text-fill: #0284C7;
+/* Next Patient Panel */
+.next-patient-card {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 8px;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-padding: 16px 20px;
 }
 
-.stat-done {
-    -fx-text-fill: #16A34A;
-}
-
-/* ---------------- CALLOUT BANNER ---------------- */
-.banner-next-patient {
-    -fx-background-color: linear-gradient(to right, #0F766E, #0284C7);
-    -fx-background-radius: 12px;
-    -fx-padding: 20px 24px;
-    -fx-effect: dropshadow(gaussian, rgba(2, 132, 199, 0.25), 12, 0, 0, 4);
-}
-
-.banner-title {
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #BAE6FD;
+.next-patient-header {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #0369A1;
     -fx-text-transform: uppercase;
 }
 
-.banner-patient-name {
-    -fx-font-size: 24px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #FFFFFF;
+.next-patient-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #0F172A;
 }
 
-.banner-patient-details {
-    -fx-font-size: 14px;
-    -fx-text-fill: #E0F2FE;
+.next-patient-meta {
+    -fx-font-size: 12px;
+    -fx-text-fill: #64748B;
 }
 
-/* ---------------- BUTTONS ---------------- */
+.next-patient-complaint {
+    -fx-font-size: 13px;
+    -fx-text-fill: #334155;
+}
+
+/* ---------------- ACTION BUTTONS ---------------- */
 .btn-primary {
     -fx-background-color: #0284C7;
     -fx-text-fill: #FFFFFF;
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
-    -fx-padding: 10px 20px;
-    -fx-background-radius: 8px;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
 }
 
@@ -180,18 +236,17 @@
     -fx-background-color: #0369A1;
 }
 
-.btn-serve {
+.btn-critical {
     -fx-background-color: #DC2626;
     -fx-text-fill: #FFFFFF;
-    -fx-font-weight: bold;
-    -fx-font-size: 15px;
-    -fx-padding: 12px 24px;
-    -fx-background-radius: 8px;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(220, 38, 38, 0.4), 8, 0, 0, 2);
 }
 
-.btn-serve:hover {
+.btn-critical:hover {
     -fx-background-color: #B91C1C;
 }
 
@@ -200,75 +255,84 @@
     -fx-text-fill: #334155;
     -fx-border-color: #CBD5E1;
     -fx-border-width: 1px;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
     -fx-font-weight: 600;
-    -fx-padding: 9px 18px;
+    -fx-font-size: 13px;
+    -fx-padding: 8px 14px;
     -fx-cursor: hand;
 }
 
 .btn-secondary:hover {
     -fx-background-color: #F1F5F9;
+    -fx-border-color: #94A3B8;
 }
 
 .btn-success {
-    -fx-background-color: #16A34A;
+    -fx-background-color: #059669;
     -fx-text-fill: #FFFFFF;
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
-    -fx-padding: 10px 20px;
-    -fx-background-radius: 8px;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
 }
 
 .btn-success:hover {
-    -fx-background-color: #15803D;
+    -fx-background-color: #047857;
 }
 
 /* ---------------- FORM INPUTS ---------------- */
 .form-label {
-    -fx-font-size: 13px;
+    -fx-font-size: 12px;
     -fx-font-weight: 600;
     -fx-text-fill: #334155;
+}
+
+.form-note {
+    -fx-font-size: 12px;
+    -fx-text-fill: #64748B;
 }
 
 .text-field, .combo-box, .text-area {
     -fx-background-color: #FFFFFF;
     -fx-border-color: #CBD5E1;
     -fx-border-width: 1px;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
-    -fx-padding: 9px 12px;
-    -fx-font-size: 14px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 7px 10px;
+    -fx-font-size: 13px;
     -fx-text-fill: #0F172A;
 }
 
 .text-field:focused, .combo-box:focused, .text-area:focused {
     -fx-border-color: #0284C7;
-    -fx-effect: dropshadow(gaussian, rgba(2, 132, 199, 0.25), 4, 0, 0, 0);
+    -fx-background-color: #FFFFFF;
 }
 
-/* ---------------- TABLE VIEW ---------------- */
+/* ---------------- CLEAN CLINICAL TABLE VIEW ---------------- */
 .table-view {
     -fx-background-color: #FFFFFF;
-    -fx-background-radius: 10px;
+    -fx-background-radius: 8px;
     -fx-border-color: #E2E8F0;
     -fx-border-width: 1px;
-    -fx-border-radius: 10px;
+    -fx-border-radius: 8px;
 }
 
 .table-view .column-header-background {
-    -fx-background-color: #F1F5F9;
-    -fx-background-radius: 10px 10px 0 0;
+    -fx-background-color: #F8FAFC;
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 0 0 1px 0;
 }
 
 .table-view .column-header {
     -fx-background-color: transparent;
-    -fx-padding: 12px 10px;
+    -fx-padding: 10px 8px;
 }
 
 .table-view .column-header .label {
-    -fx-font-weight: bold;
+    -fx-font-weight: 600;
     -fx-text-fill: #475569;
     -fx-font-size: 12px;
 }
@@ -277,16 +341,15 @@
     -fx-background-color: #FFFFFF;
     -fx-border-color: #F1F5F9;
     -fx-border-width: 0 0 1px 0;
-    -fx-padding: 4px 0;
+    -fx-padding: 2px 0;
 }
 
 .table-row-cell:odd {
-    -fx-background-color: #F8FAFC;
+    -fx-background-color: #FAFAFA;
 }
 
 .table-row-cell:selected {
-    -fx-background-color: #E0F2FE;
-    -fx-table-cell-border-color: transparent;
+    -fx-background-color: #F0F9FF;
 }
 
 .table-row-cell:selected .text {
@@ -307,12 +370,12 @@
     -fx-border-width: 0px;
 }
 
-/* ---------------- BADGES ---------------- */
+/* ---------------- CLINICAL PRIORITY BADGES ---------------- */
 .badge {
-    -fx-background-radius: 16px;
-    -fx-padding: 4px 12px;
+    -fx-background-radius: 4px;
+    -fx-padding: 3px 8px;
     -fx-font-size: 11px;
-    -fx-font-weight: bold;
+    -fx-font-weight: 700;
     -fx-alignment: CENTER;
 }
 
@@ -320,7 +383,7 @@
     -fx-background-color: #FEE2E2;
     -fx-text-fill: #DC2626;
     -fx-border-color: #FCA5A5;
-    -fx-border-radius: 16px;
+    -fx-border-radius: 4px;
     -fx-border-width: 1px;
 }
 
@@ -328,7 +391,7 @@
     -fx-background-color: #FFEDD5;
     -fx-text-fill: #EA580C;
     -fx-border-color: #FDBA74;
-    -fx-border-radius: 16px;
+    -fx-border-radius: 4px;
     -fx-border-width: 1px;
 }
 
@@ -336,7 +399,7 @@
     -fx-background-color: #FEF3C7;
     -fx-text-fill: #D97706;
     -fx-border-color: #FCD34D;
-    -fx-border-radius: 16px;
+    -fx-border-radius: 4px;
     -fx-border-width: 1px;
 }
 
@@ -344,59 +407,39 @@
     -fx-background-color: #DCFCE7;
     -fx-text-fill: #16A34A;
     -fx-border-color: #86EFAC;
-    -fx-border-radius: 16px;
+    -fx-border-radius: 4px;
     -fx-border-width: 1px;
 }
 
+/* ---------------- PATIENT STATUS PILLS ---------------- */
 .status-waiting {
-    -fx-background-color: #EFF6FF;
-    -fx-text-fill: #2563EB;
+    -fx-background-color: #F1F5F9;
+    -fx-text-fill: #475569;
+    -fx-border-color: #CBD5E1;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
 }
 
-.status-treatment {
-    -fx-background-color: #F3E8FF;
-    -fx-text-fill: #7C3AED;
+.status-in-treatment {
+    -fx-background-color: #E0F2FE;
+    -fx-text-fill: #0369A1;
+    -fx-border-color: #BAE6FD;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
 }
 
 .status-completed {
-    -fx-background-color: #ECFDF5;
-    -fx-text-fill: #059669;
+    -fx-background-color: #DCFCE7;
+    -fx-text-fill: #15803D;
+    -fx-border-color: #86EFAC;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
 }
 
 .status-cancelled {
     -fx-background-color: #F1F5F9;
-    -fx-text-fill: #64748B;
-}
-
-/* ---------------- MODAL / DIALOG ---------------- */
-.dialog-pane {
-    -fx-background-color: #FFFFFF;
-    -fx-padding: 20px;
-}
-
-.dialog-pane .header-panel {
-    -fx-background-color: #0F172A;
-}
-
-/* ---------------- VIVA CARD ---------------- */
-.viva-topic-box {
-    -fx-background-color: #F8FAFC;
+    -fx-text-fill: #94A3B8;
     -fx-border-color: #E2E8F0;
+    -fx-border-radius: 4px;
     -fx-border-width: 1px;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
-    -fx-padding: 16px;
-    -fx-spacing: 8px;
-}
-
-.viva-q {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #0F766E;
-}
-
-.viva-a {
-    -fx-font-size: 13px;
-    -fx-text-fill: #334155;
-    -fx-line-spacing: 2px;
 }

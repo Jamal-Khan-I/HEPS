@@ -6,118 +6,111 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="14.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.hospital.priority.controller.RegisterPatientController">
 
-    <!-- Header -->
-    <HBox alignment="CENTER_LEFT" spacing="16.0">
-        <VBox spacing="2.0">
-            <Label styleClass="view-title" text="Emergency Patient Registration &amp; Triage" />
-            <Label styleClass="view-subtitle" text="Register incoming emergency patient, assign clinical urgency, and enqueue into PriorityQueue" />
-        </VBox>
-    </HBox>
+    <!-- PAGE HEADER -->
+    <VBox spacing="2.0">
+        <Label styleClass="view-title" text="Register Patient" />
+        <Label styleClass="view-subtitle" text="Record patient details and assign treatment priority." />
+    </VBox>
 
-    <HBox spacing="16.0" VBox.vgrow="ALWAYS">
-        <!-- Main Form Card -->
-        <VBox styleClass="card" spacing="14.0" HBox.hgrow="ALWAYS">
-            <Label text="PATIENT CLINICAL &amp; DEMOGRAPHIC DETAILS" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0F766E;" />
+    <!-- CENTERED REGISTRATION FORM CARD -->
+    <VBox alignment="TOP_CENTER" VBox.vgrow="ALWAYS">
+        <VBox styleClass="panel" maxWidth="840.0" spacing="18.0">
 
-            <GridPane hgap="14.0" vgap="10.0">
-                <columnConstraints>
-                    <ColumnConstraints minWidth="130.0" prefWidth="140.0" />
-                    <ColumnConstraints hgrow="ALWAYS" minWidth="200.0" />
-                </columnConstraints>
+            <!-- Group 1: Personal Details -->
+            <VBox spacing="10.0">
+                <Label text="Personal Details" style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #0F172A;" />
 
-                <!-- Full Name -->
-                <Label styleClass="form-label" text="Full Name *:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-                <TextField fx:id="txtFullName" promptText="e.g. Ramesh Chandra (Demo)" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+                <GridPane hgap="16.0" vgap="12.0">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0" />
+                        <ColumnConstraints percentWidth="50.0" />
+                    </columnConstraints>
 
-                <!-- Age & Gender -->
-                <Label styleClass="form-label" text="Age (Years) *:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-                <HBox spacing="12.0" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnIndex="1">
-                    <TextField fx:id="txtAge" prefWidth="110.0" promptText="e.g. 42" />
-                    <Region prefWidth="16.0" />
-                    <Label styleClass="form-label" text="Gender *:" />
-                    <ComboBox fx:id="cmbGender" prefWidth="150.0" promptText="Select Gender" />
-                </HBox>
+                    <!-- Full Name -->
+                    <VBox spacing="4.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label styleClass="form-label" text="Full Name" />
+                        <TextField fx:id="txtFullName" promptText="e.g. Ramesh Chandra" />
+                    </VBox>
 
-                <!-- Contact Phone -->
-                <Label styleClass="form-label" text="Contact Phone *:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
-                <TextField fx:id="txtPhone" promptText="e.g. +91 98000 00013" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+                    <!-- Contact Phone -->
+                    <VBox spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label styleClass="form-label" text="Contact Number" />
+                        <TextField fx:id="txtPhone" promptText="10-digit phone number" />
+                    </VBox>
 
-                <!-- Emergency Urgency Level -->
-                <Label styleClass="form-label" text="Emergency Level *:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-                <HBox alignment="CENTER_LEFT" spacing="12.0" GridPane.rowIndex="3" GridPane.columnIndex="1">
-                    <ComboBox fx:id="cmbEmergencyLevel" prefWidth="220.0" promptText="Select Emergency Priority" />
-                    <Label fx:id="lblLevelDescription" style="-fx-text-fill: #64748B; -fx-font-size: 12px; -fx-font-style: italic;" text="Select a priority category" />
-                </HBox>
+                    <!-- Age -->
+                    <VBox spacing="4.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label styleClass="form-label" text="Age" />
+                        <TextField fx:id="txtAge" promptText="Years" />
+                    </VBox>
 
-                <!-- Symptoms / Notes -->
-                <Label styleClass="form-label" text="Clinical Symptoms *:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
-                <TextArea fx:id="txtSymptoms" prefRowCount="3" promptText="Describe presenting complaint, observed distress level, or triage vitals..."
-                          GridPane.rowIndex="4" GridPane.columnIndex="1" wrapText="true" />
-            </GridPane>
-
-            <!-- Status Alert / Feedback -->
-            <Label fx:id="lblFormMessage" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 4px 0;" text="" visible="false" />
-
-            <!-- Action Buttons -->
-            <HBox alignment="CENTER_RIGHT" spacing="12.0">
-                <Button onAction="#handleClearForm" styleClass="btn-secondary" text="Clear Form" />
-                <Button fx:id="btnRegister" onAction="#handleRegisterPatient" styleClass="btn-primary" text="Register &amp; Enqueue Patient" />
-            </HBox>
-        </VBox>
-
-        <!-- Right Side: Token Notice & Triage Reference -->
-        <VBox prefWidth="340.0" spacing="14.0">
-            <!-- Next Token Card -->
-            <VBox styleClass="card" style="-fx-background-color: #0F172A; -fx-border-color: #334155; -fx-padding: 16px;" spacing="8.0">
-                <Label text="TRIAGE TOKEN ASSIGNMENT" style="-fx-text-fill: #94A3B8; -fx-font-size: 11px; -fx-font-weight: bold;" />
-                <Label fx:id="lblPreviewToken" text="Token generated after successful registration."
-                       style="-fx-text-fill: #38BDF8; -fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" />
-                <Label text="Unique sequential token assigned automatically upon database persistence."
-                       style="-fx-text-fill: #94A3B8; -fx-font-size: 11px;" wrapText="true" />
+                    <!-- Gender -->
+                    <VBox spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label styleClass="form-label" text="Gender" />
+                        <ComboBox fx:id="cmbGender" maxWidth="Infinity" />
+                    </VBox>
+                </GridPane>
             </VBox>
 
-            <!-- Demo Priority Reference Card -->
-            <VBox styleClass="card" spacing="8.0" style="-fx-padding: 16px;">
-                <Label text="Demo priority reference - emergency level is selected by authorized staff."
-                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #334155;" wrapText="true" />
+            <!-- Group 2: Visit Details -->
+            <VBox spacing="10.0">
+                <Label text="Visit Details" style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #0F172A;" />
 
-                <VBox spacing="6.0">
-                    <HBox alignment="CENTER_LEFT" spacing="8.0">
-                        <Label styleClass="badge, badge-critical" text="CRITICAL" minWidth="75.0" style="-fx-alignment: CENTER;" />
-                        <Label text="Severe airway obstruction, unresponsive patient, acute respiratory distress"
-                               style="-fx-font-size: 11px; -fx-text-fill: #334155;" wrapText="true" />
-                    </HBox>
-                    <HBox alignment="CENTER_LEFT" spacing="8.0">
-                        <Label styleClass="badge, badge-high" text="HIGH" minWidth="75.0" style="-fx-alignment: CENTER;" />
-                        <Label text="Severe uncontrolled hemorrhage, major open fracture, altered consciousness"
-                               style="-fx-font-size: 11px; -fx-text-fill: #334155;" wrapText="true" />
-                    </HBox>
-                    <HBox alignment="CENTER_LEFT" spacing="8.0">
-                        <Label styleClass="badge, badge-medium" text="MEDIUM" minWidth="75.0" style="-fx-alignment: CENTER;" />
-                        <Label text="Moderate acute distress, suspected simple fracture, high fever without delirium"
-                               style="-fx-font-size: 11px; -fx-text-fill: #334155;" wrapText="true" />
-                    </HBox>
-                    <HBox alignment="CENTER_LEFT" spacing="8.0">
-                        <Label styleClass="badge, badge-low" text="LOW" minWidth="75.0" style="-fx-alignment: CENTER;" />
-                        <Label text="Minor superficial abrasion, routine dressing change, mild limb sprain"
-                               style="-fx-font-size: 11px; -fx-text-fill: #334155;" wrapText="true" />
-                    </HBox>
+                <GridPane hgap="16.0" vgap="12.0">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0" />
+                        <ColumnConstraints percentWidth="50.0" />
+                    </columnConstraints>
+
+                    <!-- Emergency Level -->
+                    <VBox spacing="4.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <HBox alignment="CENTER_LEFT" spacing="6.0">
+                            <Label styleClass="form-label" text="Emergency Level" />
+                            <Label text="ℹ" style="-fx-text-fill: #0284C7; -fx-font-size: 11px; -fx-cursor: hand;">
+                                <tooltip>
+                                    <Tooltip text="Critical: immediate life threat&#10;High: severe emergency/fracture&#10;Medium: acute distress/pain&#10;Low: minor condition" />
+                                </tooltip>
+                            </Label>
+                        </HBox>
+                        <ComboBox fx:id="cmbEmergencyLevel" maxWidth="Infinity" />
+                    </VBox>
+
+                    <!-- Priority Level Clinical Note -->
+                    <VBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label styleClass="form-label" text="Priority Criteria" />
+                        <Label fx:id="lblLevelDescription" styleClass="form-note" wrapText="true" />
+                    </VBox>
+                </GridPane>
+
+                <VBox spacing="4.0">
+                    <Label styleClass="form-label" text="Presenting Complaint" />
+                    <TextArea fx:id="txtSymptoms" prefRowCount="3"
+                              promptText="Describe presenting symptoms, clinical observation, or injury mechanism..."
+                              wrapText="true" />
                 </VBox>
-
-                <Region prefHeight="4.0" />
-                <Label text="PriorityQueue ordering: Higher urgency always served first (CRITICAL > HIGH > MEDIUM > LOW); equal urgency ordered by earlier arrival time."
-                       style="-fx-font-size: 11px; -fx-text-fill: #64748B; -fx-font-style: italic;" wrapText="true" />
             </VBox>
+
+            <!-- Quiet note & Actions -->
+            <HBox alignment="CENTER_LEFT" spacing="12.0" style="-fx-padding: 8px 0 0 0;">
+                <Label fx:id="lblPreviewToken" styleClass="form-note" text="A token number is assigned after registration." />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button onAction="#handleClearForm" styleClass="btn-secondary" text="Clear" />
+                <Button fx:id="btnRegister" onAction="#handleRegisterPatient" styleClass="btn-primary" text="Register Patient" />
+            </HBox>
+
+            <!-- Hidden compatibility label -->
+            <Label fx:id="lblFormMessage" visible="false" managed="false" />
         </VBox>
-    </HBox>
+    </VBox>
 
 </VBox>

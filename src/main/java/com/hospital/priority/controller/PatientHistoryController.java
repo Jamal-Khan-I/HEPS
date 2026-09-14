@@ -95,7 +95,7 @@ public class PatientHistoryController implements Initializable {
                     setGraphic(null);
                     setText(null);
                 } else {
-                    Label badge = new Label(item.getDisplayName().toUpperCase());
+                    Label badge = new Label(item.getDisplayName());
                     badge.getStyleClass().addAll("badge", item.getCssClass());
                     setGraphic(badge);
                     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
@@ -112,6 +112,10 @@ public class PatientHistoryController implements Initializable {
 
         cmbStatusFilter.setItems(FXCollections.observableArrayList("ALL", "WAITING", "IN_TREATMENT", "COMPLETED", "CANCELLED"));
         cmbStatusFilter.setValue("ALL");
+
+        txtSearch.textProperty().addListener((obs, oldV, newV) -> handleSearch(null));
+        cmbLevelFilter.valueProperty().addListener((obs, oldV, newV) -> handleSearch(null));
+        cmbStatusFilter.valueProperty().addListener((obs, oldV, newV) -> handleSearch(null));
     }
 
     private void setupSelection() {
@@ -120,7 +124,7 @@ public class PatientHistoryController implements Initializable {
                 displayPatientDetails(selected);
                 btnCompleteTreatmentAction.setDisable(selected.getStatus() != PatientStatus.IN_TREATMENT);
             } else {
-                lblSelectedTokenAndName.setText("Select any patient above to inspect full clinical history");
+                lblSelectedTokenAndName.setText("Select a patient above to inspect clinical history.");
                 lblDetailStatus.setVisible(false);
                 lblDetailSymptoms.setText("-");
                 lblDetailTreatmentNotes.setText("No patient selected.");
@@ -132,9 +136,9 @@ public class PatientHistoryController implements Initializable {
 
     private void displayPatientDetails(Patient patient) {
         lblSelectedTokenAndName.setText("[" + patient.getTokenNo() + "] " + patient.getFullName() + 
-                " (Age: " + patient.getAge() + ", " + patient.getGender() + " | Phone: " + patient.getPhone() + ")");
+                " (Age " + patient.getAge() + ", " + patient.getGender() + " • Phone: " + patient.getPhone() + ")");
         lblDetailStatus.setVisible(true);
-        lblDetailStatus.setText(patient.getStatus().getDisplayName().toUpperCase());
+        lblDetailStatus.setText(patient.getStatus().getDisplayName());
         lblDetailStatus.getStyleClass().setAll("badge", patient.getStatus().getCssClass());
 
         lblDetailSymptoms.setText(patient.getSymptoms());
@@ -151,7 +155,7 @@ public class PatientHistoryController implements Initializable {
                 sb.append("Clinical Notes: ").append(rec.getTreatmentNotes() != null ? rec.getTreatmentNotes() : "No notes added.");
                 lblDetailTreatmentNotes.setText(sb.toString());
             } else {
-                lblDetailTreatmentNotes.setText("No treatment record created yet (Patient is " + patient.getStatus().getDisplayName() + ").");
+                lblDetailTreatmentNotes.setText("No treatment record recorded yet (" + patient.getStatus().getDisplayName() + ").");
             }
         } catch (Exception e) {
             lblDetailTreatmentNotes.setText("Error loading treatment record: " + e.getMessage());
@@ -189,19 +193,19 @@ public class PatientHistoryController implements Initializable {
     private void handleCompleteSelected(ActionEvent event) {
         Patient selected = historyTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showInfo("Select Patient", "Please select a patient with status 'IN TREATMENT' from the table.");
+            showInfo("Select Patient", "Please select an 'In Treatment' patient from the table.");
             return;
         }
 
         if (selected.getStatus() != PatientStatus.IN_TREATMENT) {
-            showInfo("Not In Treatment", "Only patients currently 'IN TREATMENT' can have their treatment marked as completed.");
+            showInfo("Not In Treatment", "Only patients currently in treatment can be completed.");
             return;
         }
 
         // Dialog for entering Doctor name and Treatment Notes
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Complete Treatment & Clinical Discharge");
-        dialog.setHeaderText("Discharge Patient: " + selected.getFullName() + " (" + selected.getTokenNo() + ")");
+        dialog.setTitle("Complete Treatment");
+        dialog.setHeaderText("Complete Treatment: " + selected.getFullName() + " (" + selected.getTokenNo() + ")");
 
         ButtonType btnSubmit = new ButtonType("Complete Treatment", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnSubmit, ButtonType.CANCEL);
@@ -209,14 +213,14 @@ public class PatientHistoryController implements Initializable {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.setStyle("-fx-padding: 20px;");
+        grid.setStyle("-fx-padding: 16px;");
 
         TextField txtDoctor = new TextField();
-        String defaultDoctor = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Staff On Duty (Demo)";
+        String defaultDoctor = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Clinician";
         txtDoctor.setText(defaultDoctor);
 
         TextArea txtNotes = new TextArea();
-        txtNotes.setPromptText("Enter diagnosis, administered medications, surgery/sutures, and discharge instructions...");
+        txtNotes.setPromptText("Enter clinical observations, administered procedures, and discharge notes...");
         txtNotes.setPrefRowCount(4);
         txtNotes.setWrapText(true);
 

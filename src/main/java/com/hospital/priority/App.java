@@ -47,7 +47,7 @@ public class App extends Application {
             Scene scene = new Scene(root, 1200, 780);
             scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
-            primaryStage.setTitle("Hospital Emergency Priority System | Emergency Triage & Queue Management");
+            primaryStage.setTitle("Emergency Department | Patient Priority System");
             primaryStage.setMinWidth(1080);
             primaryStage.setMinHeight(680);
             primaryStage.setScene(scene);

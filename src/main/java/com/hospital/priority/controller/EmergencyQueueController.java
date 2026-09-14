@@ -129,11 +129,12 @@ public class EmergencyQueueController implements Initializable {
         queueTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, selected) -> {
             if (selected != null && selected.getStatus() == PatientStatus.WAITING) {
                 lblSelectedInfo.setText("[" + selected.getTokenNo() + "] " + selected.getFullName()
-                        + " | Urgency: " + selected.getEmergencyLevel() + " | Position #" + selected.getQueuePosition()
-                        + " | Symptoms: " + selected.getSymptoms());
+                        + " • Priority: " + selected.getEmergencyLevel()
+                        + " • Arrived: " + selected.getFormattedArrivalTime()
+                        + " • Complaint: " + selected.getSymptoms());
                 btnServeSelected.setDisable(false);
             } else {
-                lblSelectedInfo.setText("Select a WAITING patient in the table to admit via manual clinician override.");
+                lblSelectedInfo.setText("Select a patient in the table to view details or begin treatment.");
                 btnServeSelected.setDisable(true);
             }
         });
@@ -159,24 +160,21 @@ public class EmergencyQueueController implements Initializable {
         }
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirm Serving Patient (Queue Head)");
-        confirm.setHeaderText("Call Highest Priority Waiting Patient");
-        confirm.setContentText("Admit Head of Queue into Treatment:\n"
-                + "Patient: " + head.getFullName() + " (" + head.getTokenNo() + ")\n"
-                + "Urgency: " + head.getEmergencyLevel() + " (Position #1)\n"
-                + "Symptoms: " + head.getSymptoms() + "\n\n"
-                + "Change status to IN_TREATMENT and open treatment record in MySQL?");
+        confirm.setTitle("Begin Treatment");
+        confirm.setHeaderText("Begin Treatment for Next Patient");
+        confirm.setContentText("Admit " + head.getFullName() + " (" + head.getTokenNo() + ") into treatment bay?\n\n"
+                + "Priority: " + head.getEmergencyLevel() + " (Position #1)\n"
+                + "Presenting Complaint: " + head.getSymptoms());
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                String doc = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Doctor";
+                String doc = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Clinician";
                 Patient served = queueService.serveNext(doc);
                 refreshQueue();
-                showInfoAlert("Patient Called into Treatment", "Patient " + served.getFullName() + " (" + served.getTokenNo()
-                        + ") is now IN TREATMENT.\nAdmitted by: " + doc);
+                showInfoAlert("Treatment Started", served.getFullName() + " (" + served.getTokenNo() + ") is now in treatment.");
             } catch (Exception e) {
-                showErrorAlert("Error Serving Patient", e.getMessage());
+                showErrorAlert("Error Starting Treatment", e.getMessage());
             }
         }
     }
@@ -185,26 +183,23 @@ public class EmergencyQueueController implements Initializable {
     private void handleServeSelected(ActionEvent event) {
         Patient selected = queueTable.getSelectionModel().getSelectedItem();
         if (selected == null || selected.getStatus() != PatientStatus.WAITING) {
-            showInfoAlert("No Waiting Patient Selected", "Please select a WAITING patient from the queue table.");
+            showInfoAlert("No Patient Selected", "Please select a waiting patient from the queue table.");
             return;
         }
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirm Manual Clinician Override");
-        confirm.setHeaderText("Admit Selected Patient (Manual Clinician Override)");
-        confirm.setContentText("You are admitting:\n"
-                + "[" + selected.getTokenNo() + "] " + selected.getFullName() + "\n"
-                + "Urgency Level: " + selected.getEmergencyLevel() + " (Queue Pos #" + selected.getQueuePosition() + ")\n"
-                + "Symptoms: " + selected.getSymptoms() + "\n\n"
-                + "Purpose: This action overrides standard queue head order to immediately admit this specific waiting patient.\n\n"
-                + "Change status to IN_TREATMENT, create treatment record, and remove from active waiting queue?");
+        confirm.setTitle("Begin Treatment");
+        confirm.setHeaderText("Admit Selected Patient to Treatment");
+        confirm.setContentText("Admit " + selected.getFullName() + " (" + selected.getTokenNo() + ") into treatment bay?\n\n"
+                + "Priority: " + selected.getEmergencyLevel() + " (Position #" + selected.getQueuePosition() + ")\n"
+                + "Presenting Complaint: " + selected.getSymptoms());
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                String doc = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Doctor";
+                String doc = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Clinician";
                 
-                // 1. Remove from in-memory PriorityQueue
+                // 1. Remove from active queue
                 queueService.removeFromQueue(selected);
                 
                 // 2. Update model and MySQL status
@@ -215,16 +210,15 @@ public class EmergencyQueueController implements Initializable {
                 TreatmentRecord rec = new TreatmentRecord(
                         selected.getPatientId(),
                         doc,
-                        "Admitted via clinician selection override from triage queue.",
+                        "Admitted to emergency treatment bay.",
                         LocalDateTime.now()
                 );
                 treatmentRecordDao.insert(rec);
 
                 refreshQueue();
-                showInfoAlert("Patient Admitted", "Patient " + selected.getFullName() + " (" + selected.getTokenNo()
-                        + ") has been admitted to treatment via manual clinician override.");
+                showInfoAlert("Treatment Started", selected.getFullName() + " (" + selected.getTokenNo() + ") is now in treatment.");
             } catch (Exception e) {
-                showErrorAlert("Error Admitting Patient", e.getMessage());
+                showErrorAlert("Error Starting Treatment", e.getMessage());
             }
         }
     }

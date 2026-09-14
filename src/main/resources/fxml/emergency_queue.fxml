@@ -11,60 +11,58 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="14.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.hospital.priority.controller.EmergencyQueueController">
 
-    <!-- Header & Primary Action -->
+    <!-- HEADER & PRIMARY ACTION -->
     <HBox alignment="CENTER_LEFT" spacing="16.0">
         <VBox spacing="2.0">
-            <Label styleClass="view-title" text="Live Emergency Triage Queue" />
-            <Label styleClass="view-subtitle" text="Active waiting patients ordered strictly by PriorityQueue priority rules (CRITICAL &gt; HIGH &gt; MEDIUM &gt; LOW)" />
+            <Label styleClass="view-title" text="Emergency Queue" />
+            <Label styleClass="view-subtitle" text="Patients awaiting treatment, ordered by urgency." />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
 
-        <!-- SERVE NEXT PATIENT ACTION -->
-        <Button fx:id="btnServeHead" onAction="#handleServeNext" styleClass="btn-serve" text="SERVE NEXT PATIENT (HEAD)" />
+        <!-- BEGIN NEXT PATIENT (PRIMARY RED ACTION) -->
+        <Button fx:id="btnServeHead" onAction="#handleServeNext" styleClass="btn-critical" text="Begin Next Patient" />
     </HBox>
 
-    <!-- SEARCH & FILTER CONTROLS -->
-    <HBox alignment="CENTER_LEFT" styleClass="card" spacing="14.0" style="-fx-padding: 12px 18px;">
-        <Label styleClass="form-label" text="Search Queue:" />
-        <TextField fx:id="txtSearch" prefWidth="240.0" promptText="Filter by Token, Name, Symptoms..." />
+    <!-- COMPACT FILTER ROW -->
+    <HBox alignment="CENTER_LEFT" styleClass="panel" spacing="12.0" style="-fx-padding: 10px 16px;">
+        <Label styleClass="form-label" text="Search:" />
+        <TextField fx:id="txtSearch" prefWidth="240.0" promptText="Search token, patient name, complaint..." />
 
-        <Label styleClass="form-label" text="Filter Urgency:" />
-        <ComboBox fx:id="cmbFilterPriority" prefWidth="160.0" promptText="All Priorities" />
+        <Label styleClass="form-label" text="Urgency:" />
+        <ComboBox fx:id="cmbFilterPriority" prefWidth="150.0" />
 
         <Region HBox.hgrow="ALWAYS" />
 
-        <!-- Queue Summary Counter -->
-        <Label fx:id="lblQueueCounter" text="Showing 0 Patients" style="-fx-font-weight: bold; -fx-text-fill: #0F766E;" />
-
-        <Button onAction="#refreshQueue" styleClass="btn-secondary" text="Refresh Queue" />
+        <Label fx:id="lblQueueCounter" text="0 Patients Waiting" style="-fx-font-weight: 600; -fx-text-fill: #475569;" />
+        <Button onAction="#refreshQueue" styleClass="btn-secondary" text="Refresh" />
     </HBox>
 
-    <!-- MAIN QUEUE TABLE VIEW -->
-    <TableView fx:id="queueTable" VBox.vgrow="ALWAYS" prefHeight="380.0">
+    <!-- QUEUE TABLE VIEW -->
+    <TableView fx:id="queueTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colPosition" prefWidth="65.0" text="Queue #" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colToken" prefWidth="130.0" text="Token No" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colName" prefWidth="180.0" text="Patient Full Name" />
-            <TableColumn fx:id="colAge" prefWidth="60.0" text="Age" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colPriority" prefWidth="120.0" text="Emergency Level" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colSymptoms" prefWidth="320.0" text="Clinical Symptoms / Presenting Complaint" />
-            <TableColumn fx:id="colArrival" prefWidth="170.0" text="Arrival Time" style="-fx-alignment: CENTER;" />
+            <TableColumn fx:id="colPosition" prefWidth="55.0" text="#" style="-fx-alignment: CENTER;" />
+            <TableColumn fx:id="colToken" prefWidth="120.0" text="Token" style="-fx-alignment: CENTER;" />
+            <TableColumn fx:id="colName" prefWidth="180.0" text="Patient Name" />
+            <TableColumn fx:id="colAge" prefWidth="55.0" text="Age" style="-fx-alignment: CENTER;" />
+            <TableColumn fx:id="colPriority" prefWidth="110.0" text="Priority" style="-fx-alignment: CENTER;" />
+            <TableColumn fx:id="colSymptoms" prefWidth="320.0" text="Presenting Complaint" />
+            <TableColumn fx:id="colArrival" prefWidth="160.0" text="Arrival Time" style="-fx-alignment: CENTER;" />
         </columns>
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
         </columnResizePolicy>
     </TableView>
 
-    <!-- SELECTED PATIENT QUICK INSPECT BAR -->
-    <HBox alignment="CENTER_LEFT" styleClass="card" spacing="16.0" style="-fx-padding: 12px 18px; -fx-background-color: #F1F5F9;">
-        <Label text="MANUAL CLINICIAN OVERRIDE:" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #475569;" />
-        <Label fx:id="lblSelectedInfo" text="Select a WAITING patient in the table to admit via manual clinician override."
-               style="-fx-font-size: 13px; -fx-text-fill: #1E293B; -fx-font-weight: 600;" HBox.hgrow="ALWAYS" wrapText="true" />
+    <!-- SELECTED PATIENT ACTION DRAWER -->
+    <HBox alignment="CENTER_LEFT" styleClass="panel" spacing="16.0" style="-fx-padding: 12px 18px; -fx-background-color: #FFFFFF;">
+        <Label text="Selected:" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #0F172A;" />
+        <Label fx:id="lblSelectedInfo" text="Select a patient in the table to view details or begin treatment."
+               style="-fx-font-size: 13px; -fx-text-fill: #334155;" HBox.hgrow="ALWAYS" wrapText="true" />
         <Region HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnServeSelected" onAction="#handleServeSelected" styleClass="btn-primary" text="Admit Selected to Treatment" />
+        <Button fx:id="btnServeSelected" onAction="#handleServeSelected" styleClass="btn-primary" text="Begin Treatment" />
     </HBox>
 
 </VBox>

@@ -55,7 +55,7 @@ public class RegisterPatientController implements Initializable {
 
         // Set initial description
         lblLevelDescription.setText("Moderate acute distress, suspected fracture, persistent fever");
-        lblPreviewToken.setText("Token generated after successful registration.");
+        lblPreviewToken.setText("A token number is assigned after registration.");
     }
 
     @FXML
@@ -78,11 +78,11 @@ public class RegisterPatientController implements Initializable {
             }
 
             Alert successAlert = new Alert(Alert.AlertType.CONFIRMATION);
-            successAlert.setTitle("Patient Registered & Enqueued");
-            successAlert.setHeaderText("Success! Emergency Token Assigned: " + registered.getTokenNo());
+            successAlert.setTitle("Patient Registered");
+            successAlert.setHeaderText("Patient Registered: " + registered.getTokenNo());
             successAlert.setContentText("Patient: " + registered.getFullName() + "\n"
-                    + "Urgency: " + registered.getEmergencyLevel() + "\n"
-                    + "Position in Triage: Enqueued in PriorityQueue\n\n"
+                    + "Priority: " + registered.getEmergencyLevel() + "\n"
+                    + "Status: Added to waiting queue\n\n"
                     + "Would you like to view the Emergency Queue now?");
 
             ButtonType btnViewQueue = new ButtonType("View Emergency Queue", ButtonBar.ButtonData.YES);
@@ -113,7 +113,7 @@ public class RegisterPatientController implements Initializable {
         txtPhone.clear();
         cmbEmergencyLevel.setValue(EmergencyLevel.MEDIUM);
         txtSymptoms.clear();
-        lblPreviewToken.setText("Token generated after successful registration.");
+        lblPreviewToken.setText("A token number is assigned after registration.");
         lblFormMessage.setVisible(false);
         txtFullName.requestFocus();
     }
