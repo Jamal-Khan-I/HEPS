@@ -2,6 +2,7 @@ package com.hospital.priority.model;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -25,7 +26,7 @@ public class Patient {
     // Transient helper for UI queue display
     private int queuePosition;
 
-    private static final DateTimeFormatter DISPLAY_TIME_FMT = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+    public static final DateTimeFormatter DISPLAY_TIME_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", Locale.ENGLISH);
 
     public Patient() {
         this.status = PatientStatus.WAITING;

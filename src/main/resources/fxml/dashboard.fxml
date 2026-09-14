@@ -50,7 +50,7 @@
     <!-- NEXT PATIENT PANEL -->
     <VBox fx:id="nextPatientBanner" styleClass="panel, next-patient-card" spacing="8.0">
         <HBox alignment="CENTER_LEFT" spacing="12.0">
-            <Label styleClass="next-patient-header" text="Next Patient for Admission" />
+            <Label styleClass="next-patient-header" text="Next Patient to Treat" />
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="lblNextBadge" styleClass="badge, badge-critical" text="CRITICAL" />
         </HBox>
@@ -85,7 +85,7 @@
                 <TableColumn fx:id="colPos" prefWidth="50.0" text="#" style="-fx-alignment: CENTER;" />
                 <TableColumn fx:id="colToken" prefWidth="120.0" text="Token" style="-fx-alignment: CENTER;" />
                 <TableColumn fx:id="colName" prefWidth="170.0" text="Patient Name" />
-                <TableColumn fx:id="colAge" prefWidth="50.0" text="Age" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colAge" minWidth="55.0" prefWidth="60.0" text="Age" style="-fx-alignment: CENTER;" />
                 <TableColumn fx:id="colPriority" prefWidth="105.0" text="Priority" style="-fx-alignment: CENTER;" />
                 <TableColumn fx:id="colSymptoms" prefWidth="300.0" text="Presenting Complaint" />
                 <TableColumn fx:id="colArrival" prefWidth="150.0" text="Arrival Time" style="-fx-alignment: CENTER;" />

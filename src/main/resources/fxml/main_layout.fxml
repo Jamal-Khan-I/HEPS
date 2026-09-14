@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
 <BorderPane prefHeight="750.0" prefWidth="1200.0" stylesheets="@../css/style.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -39,15 +40,31 @@
     <!-- NEUTRAL NARROW SIDEBAR -->
     <left>
         <VBox styleClass="sidebar">
-            <Button fx:id="btnNavOverview" onAction="#showOverview" styleClass="nav-button, nav-button-active" text="⊞  Overview" />
-            <Button fx:id="btnNavRegister" onAction="#showRegisterPatient" styleClass="nav-button" text="＋  Register Patient" />
-            <Button fx:id="btnNavQueue" onAction="#showEmergencyQueue" styleClass="nav-button" text="≡  Emergency Queue" />
-            <Button fx:id="btnNavRecords" onAction="#showPatientRecords" styleClass="nav-button" text="▤  Patient Records" />
+            <Button fx:id="btnNavOverview" onAction="#showOverview" styleClass="nav-button, nav-button-active" text="Overview" graphicTextGap="10">
+                <graphic>
+                    <SVGPath content="M3 3h7v7H3zm11 0h7v7h-7zm-11 11h7v7H3zm11 0h7v7h-7z" styleClass="nav-icon" />
+                </graphic>
+            </Button>
+            <Button fx:id="btnNavRegister" onAction="#showRegisterPatient" styleClass="nav-button" text="Register Patient" graphicTextGap="10">
+                <graphic>
+                    <SVGPath content="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z" styleClass="nav-icon" />
+                </graphic>
+            </Button>
+            <Button fx:id="btnNavQueue" onAction="#showEmergencyQueue" styleClass="nav-button" text="Emergency Queue" graphicTextGap="10">
+                <graphic>
+                    <SVGPath content="M3 5h18v2.5H3zm0 5.75h18v2.5H3zm0 5.75h18v2.5H3z" styleClass="nav-icon" />
+                </graphic>
+            </Button>
+            <Button fx:id="btnNavRecords" onAction="#showPatientRecords" styleClass="nav-button" text="Patient Records" graphicTextGap="10">
+                <graphic>
+                    <SVGPath content="M4 2h10l6 6v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm9 1.5V8h4.5M6 12h12v2H6zm0 4h9v2H6z" styleClass="nav-icon" />
+                </graphic>
+            </Button>
 
             <Region VBox.vgrow="ALWAYS" />
 
             <HBox styleClass="sidebar-footer">
-                <Label text="v1.0 • Clinical Workstation" styleClass="sidebar-version" />
+                <Label text="v1.0" styleClass="sidebar-version" />
             </HBox>
         </VBox>
     </left>

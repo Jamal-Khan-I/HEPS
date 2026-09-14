@@ -23,13 +23,13 @@
         <Region HBox.hgrow="ALWAYS" />
 
         <!-- BEGIN NEXT PATIENT (PRIMARY RED ACTION) -->
-        <Button fx:id="btnServeHead" onAction="#handleServeNext" styleClass="btn-critical" text="Begin Next Patient" />
+        <Button fx:id="btnServeHead" onAction="#handleServeNext" styleClass="btn-critical" text="Begin Treatment" />
     </HBox>
 
     <!-- COMPACT FILTER ROW -->
     <HBox alignment="CENTER_LEFT" styleClass="panel" spacing="12.0" style="-fx-padding: 10px 16px;">
         <Label styleClass="form-label" text="Search:" />
-        <TextField fx:id="txtSearch" prefWidth="240.0" promptText="Search token, patient name, complaint..." />
+        <TextField fx:id="txtSearch" prefWidth="250.0" promptText="Search token or patient" />
 
         <Label styleClass="form-label" text="Urgency:" />
         <ComboBox fx:id="cmbFilterPriority" prefWidth="150.0" />

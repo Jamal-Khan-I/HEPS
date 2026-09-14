@@ -107,6 +107,20 @@
     -fx-font-weight: 700;
 }
 
+.nav-icon {
+    -fx-fill: #64748B;
+    -fx-scale-x: 0.75;
+    -fx-scale-y: 0.75;
+}
+
+.nav-button:hover .nav-icon {
+    -fx-fill: #0F172A;
+}
+
+.nav-button-active .nav-icon {
+    -fx-fill: #0284C7;
+}
+
 .sidebar-footer {
     -fx-padding: 10px 14px;
     -fx-alignment: CENTER_LEFT;
@@ -282,6 +296,21 @@
     -fx-background-color: #047857;
 }
 
+.button:disabled, .btn-primary:disabled, .btn-critical:disabled, .btn-secondary:disabled {
+    -fx-opacity: 0.5;
+    -fx-cursor: default;
+}
+
+.btn-success:disabled {
+    -fx-background-color: #E2E8F0;
+    -fx-text-fill: #94A3B8;
+    -fx-border-color: #CBD5E1;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-opacity: 0.7;
+    -fx-cursor: default;
+}
+
 /* ---------------- FORM INPUTS ---------------- */
 .form-label {
     -fx-font-size: 12px;
@@ -317,6 +346,7 @@
     -fx-border-color: #E2E8F0;
     -fx-border-width: 1px;
     -fx-border-radius: 8px;
+    -fx-fixed-cell-size: 38px;
 }
 
 .table-view .column-header-background {
@@ -368,6 +398,11 @@
 
 .table-row-cell:empty .table-cell {
     -fx-border-width: 0px;
+    -fx-background-color: transparent;
+}
+
+.table-row-cell:empty:selected {
+    -fx-background-color: transparent;
 }
 
 /* ---------------- CLINICAL PRIORITY BADGES ---------------- */
@@ -420,7 +455,7 @@
     -fx-border-width: 1px;
 }
 
-.status-in-treatment {
+.status-in-treatment, .status-treatment {
     -fx-background-color: #E0F2FE;
     -fx-text-fill: #0369A1;
     -fx-border-color: #BAE6FD;

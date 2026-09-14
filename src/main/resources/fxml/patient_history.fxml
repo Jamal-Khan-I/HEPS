@@ -21,7 +21,7 @@
             <Label styleClass="view-subtitle" text="Search and review patient visits." />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnCompleteTreatmentAction" onAction="#handleCompleteSelected" styleClass="btn-success" text="Complete Treatment" />
+        <Button fx:id="btnCompleteTreatmentAction" disable="true" onAction="#handleCompleteSelected" styleClass="btn-success" text="Complete Treatment" />
     </HBox>
 
     <!-- SINGLE COMPACT FILTER ROW -->

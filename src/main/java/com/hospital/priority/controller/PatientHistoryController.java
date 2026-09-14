@@ -150,7 +150,7 @@ public class PatientHistoryController implements Initializable {
                 StringBuilder sb = new StringBuilder();
                 sb.append("Attending Doctor: ").append(rec.getDoctorName() != null ? rec.getDoctorName() : "N/A").append("\n");
                 if (rec.getCompletedAt() != null) {
-                    sb.append("Completed At: ").append(rec.getCompletedAt()).append("\n");
+                    sb.append("Completed At: ").append(rec.getCompletedAt().format(Patient.DISPLAY_TIME_FMT)).append("\n");
                 }
                 sb.append("Clinical Notes: ").append(rec.getTreatmentNotes() != null ? rec.getTreatmentNotes() : "No notes added.");
                 lblDetailTreatmentNotes.setText(sb.toString());
@@ -176,6 +176,8 @@ public class PatientHistoryController implements Initializable {
         try {
             List<Patient> results = patientService.searchPatients(term, level, status);
             historyList.setAll(results);
+            historyTable.getSelectionModel().clearSelection();
+            btnCompleteTreatmentAction.setDisable(true);
         } catch (Exception e) {
             showError("Search Error", "Could not fetch patient records: " + e.getMessage());
         }

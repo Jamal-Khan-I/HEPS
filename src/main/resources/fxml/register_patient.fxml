@@ -87,7 +87,7 @@
 
                     <!-- Priority Level Clinical Note -->
                     <VBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <Label styleClass="form-label" text="Priority Criteria" />
+                        <Label styleClass="form-label" text="Priority Guidance" />
                         <Label fx:id="lblLevelDescription" styleClass="form-note" wrapText="true" />
                     </VBox>
                 </GridPane>

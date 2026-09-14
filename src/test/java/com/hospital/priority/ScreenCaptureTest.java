@@ -37,6 +37,7 @@ public class ScreenCaptureTest {
         try {
             Platform.startup(() -> {
                 try {
+                    captureView("/fxml/main_layout.fxml", "screen_full_app.png");
                     captureView("/fxml/dashboard.fxml", "screen_overview.png");
                     captureView("/fxml/register_patient.fxml", "screen_register_patient.png");
                     captureView("/fxml/emergency_queue.fxml", "screen_emergency_queue.png");
@@ -51,6 +52,7 @@ public class ScreenCaptureTest {
             // Toolkit already started
             Platform.runLater(() -> {
                 try {
+                    captureView("/fxml/main_layout.fxml", "screen_full_app.png");
                     captureView("/fxml/dashboard.fxml", "screen_overview.png");
                     captureView("/fxml/register_patient.fxml", "screen_register_patient.png");
                     captureView("/fxml/emergency_queue.fxml", "screen_emergency_queue.png");
