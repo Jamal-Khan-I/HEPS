@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="750.0" prefWidth="1180.0" stylesheets="@../css/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.hospital.priority.controller.MainController">
+
+    <!-- TOP HEADER -->
+    <top>
+        <HBox alignment="CENTER_LEFT" styleClass="header-bar" spacing="16.0">
+            <VBox spacing="2.0">
+                <Label styleClass="header-title" text="HOSPITAL EMERGENCY PRIORITY SYSTEM" />
+                <Label styleClass="header-subtitle" text="Emergency Triage &amp; Queue Management | Hospital Operations" />
+            </VBox>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <!-- Live Clock -->
+            <Label fx:id="clockLabel" styleClass="header-clock" text="14-09-2026 12:00:00" />
+
+            <!-- User Badge -->
+            <Label fx:id="userBadgeLabel" styleClass="header-badge" text="Logged in as: Admin (Demo)" />
+
+            <!-- Switch User / Logout Button -->
+            <Button fx:id="btnSwitchUser" onAction="#handleSwitchUser" styleClass="btn-secondary" text="Switch User" />
+        </HBox>
+    </top>
+
+    <!-- LEFT SIDEBAR NAVIGATION -->
+    <left>
+        <VBox styleClass="sidebar" spacing="10.0">
+            <Label text="NAVIGATION" style="-fx-text-fill: #64748B; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 0 0 4px 8px;" />
+
+            <Button fx:id="btnNavDashboard" onAction="#showDashboard" styleClass="nav-button, nav-button-active" text="Dashboard" />
+            <Button fx:id="btnNavRegister" onAction="#showRegisterPatient" styleClass="nav-button" text="Register Patient" />
+            <Button fx:id="btnNavQueue" onAction="#showEmergencyQueue" styleClass="nav-button" text="Emergency Queue" />
+            <Button fx:id="btnNavHistory" onAction="#showPatientHistory" styleClass="nav-button" text="Patient History" />
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <!-- Queue Counter Widget -->
+            <VBox styleClass="card" style="-fx-background-color: #0F172A; -fx-border-color: #334155; -fx-padding: 12px;" spacing="4.0">
+                <Label text="TRIAGE STATUS" style="-fx-text-fill: #94A3B8; -fx-font-size: 10px; -fx-font-weight: bold;" />
+                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                    <Label fx:id="sidebarWaitingCount" text="0" style="-fx-text-fill: #38BDF8; -fx-font-size: 20px; -fx-font-weight: bold;" />
+                    <Label text="Patients Waiting" style="-fx-text-fill: #CBD5E1; -fx-font-size: 11px;" />
+                </HBox>
+                <HBox alignment="CENTER_LEFT" spacing="6.0">
+                    <Label fx:id="sidebarCriticalCount" text="0" style="-fx-text-fill: #F87171; -fx-font-size: 14px; -fx-font-weight: bold;" />
+                    <Label text="Critical Urgency" style="-fx-text-fill: #94A3B8; -fx-font-size: 10px;" />
+                </HBox>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- DYNAMIC CENTER CONTENT AREA -->
+    <center>
+        <StackPane fx:id="contentArea" styleClass="content-area">
+            <!-- Child views loaded here dynamically -->
+        </StackPane>
+    </center>
+
+</BorderPane>

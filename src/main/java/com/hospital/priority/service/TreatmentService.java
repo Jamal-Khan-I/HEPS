@@ -1,0 +1,81 @@
+package com.hospital.priority.service;
+
+import com.hospital.priority.dao.PatientDao;
+import com.hospital.priority.dao.TreatmentRecordDao;
+import com.hospital.priority.dao.impl.PatientDaoImpl;
+import com.hospital.priority.dao.impl.TreatmentRecordDaoImpl;
+import com.hospital.priority.exception.DatabaseOperationException;
+import com.hospital.priority.exception.InvalidPatientDataException;
+import com.hospital.priority.exception.PatientNotFoundException;
+import com.hospital.priority.model.Patient;
+import com.hospital.priority.model.PatientStatus;
+import com.hospital.priority.model.TreatmentRecord;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Service managing treatment lifecycle, medical documentation,
+ * and patient discharge.
+ */
+public class TreatmentService {
+
+    private static TreatmentService instance;
+    private final TreatmentRecordDao treatmentRecordDao;
+    private final PatientDao patientDao;
+    private final QueueService queueService;
+
+    private TreatmentService() {
+        this.treatmentRecordDao = new TreatmentRecordDaoImpl();
+        this.patientDao = new PatientDaoImpl();
+        this.queueService = QueueService.getInstance();
+    }
+
+    public static synchronized TreatmentService getInstance() {
+        if (instance == null) {
+            instance = new TreatmentService();
+        }
+        return instance;
+    }
+
+    /**
+     * Completes consultation/procedure for an in-treatment patient:
+     * 1. Records doctor notes and completion timestamp.
+     * 2. Sets patient status to COMPLETED in database.
+     * 3. Ensures active queue synchronization.
+     */
+    public void completeTreatment(int patientId, String doctorName, String treatmentNotes)
+            throws InvalidPatientDataException, PatientNotFoundException, DatabaseOperationException {
+
+        if (doctorName == null || doctorName.trim().isEmpty()) {
+            throw new InvalidPatientDataException("Attending doctor name is required to complete treatment.");
+        }
+        if (treatmentNotes == null || treatmentNotes.trim().isEmpty()) {
+            throw new InvalidPatientDataException("Clinical treatment notes are required before discharge.");
+        }
+
+        Optional<Patient> patientOpt = patientDao.findById(patientId);
+        if (patientOpt.isEmpty()) {
+            throw new PatientNotFoundException("Patient ID " + patientId + " not found.");
+        }
+
+        Patient patient = patientOpt.get();
+
+        // 1. Update or create completed treatment record
+        treatmentRecordDao.completeTreatmentByPatientId(patientId, doctorName.trim(), treatmentNotes.trim());
+
+        // 2. Mark patient as COMPLETED
+        patientDao.updateStatus(patientId, PatientStatus.COMPLETED);
+
+        // 3. Ensure removed from waiting queue if still there
+        queueService.removeFromQueue(patient);
+    }
+
+    public Optional<TreatmentRecord> getTreatmentForPatient(int patientId) throws DatabaseOperationException {
+        return treatmentRecordDao.findByPatientId(patientId);
+    }
+
+    public List<TreatmentRecord> getAllTreatmentRecords() throws DatabaseOperationException {
+        return treatmentRecordDao.findAll();
+    }
+}

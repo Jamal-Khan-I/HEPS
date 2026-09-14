@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.hospital.priority.controller.AboutVivaController">
+
+    <VBox spacing="20.0" style="-fx-padding: 10px 10px 40px 10px;">
+
+        <!-- Header -->
+        <VBox spacing="4.0">
+            <Label styleClass="view-title" text="Project Architecture &amp; Viva Voce Technical Guide" />
+            <Label styleClass="view-subtitle" text="CSE203: Object-Oriented Programming using Java | Academic Reference for Faculty Evaluation" />
+        </VBox>
+
+        <!-- TOPIC 1: DSA & PRIORITY QUEUE -->
+        <VBox styleClass="card" spacing="12.0">
+            <Label text="1. DATA STRUCTURES &amp; ALGORITHMS (DSA) IMPLEMENTATION" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #0F766E;" />
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="Q: Why use PriorityQueue instead of standard LinkedList or ArrayList?" />
+                <Label styleClass="viva-a" text="A: In a hospital triage system, patients arrive in random order, but patients with critical emergencies (cardiac arrest, stroke) must be treated ahead of low-urgency patients, regardless of arrival order. PriorityQueue implements a binary Min-Heap in Java Collections, providing O(log N) insertion and O(1) access to the highest-priority patient. Standard ArrayList would require O(N log N) sorting after every new arrival, making PriorityQueue asymptotically superior." />
+            </VBox>
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="Q: How is the triage priority decided? Explain the comparator logic." />
+                <Label styleClass="viva-a" text="A: The dedicated class PatientPriorityComparator implements Comparator&lt;Patient&gt; with a 3-tier comparison:&#10;1. Urgency Level: CRITICAL (rank 1) &gt; HIGH (rank 2) &gt; MEDIUM (rank 3) &gt; LOW (rank 4). Lower rank number comes first.&#10;2. FIFO on Tie: If urgency levels are identical, earlier arrival timestamp takes precedence.&#10;3. Deterministic Tie-Breaker: If both urgency and arrival time match, the smaller unique token number comes first." />
+            </VBox>
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="Q: Why does QueueService create a sorted snapshot for the TableView instead of directly binding PriorityQueue?" />
+                <Label styleClass="viva-a" text="A: By specification in the Java Collections Framework, iterating over a PriorityQueue using an iterator or for-each loop does NOT guarantee traversing elements in sorted order; it only guarantees the head element is the minimum (heap root). To display the queue accurately from position #1 to #N in JavaFX, QueueService copies the elements into a List and sorts it using the comparator before binding to the UI." />
+            </VBox>
+        </VBox>
+
+        <!-- TOPIC 2: OBJECT-ORIENTED PROGRAMMING (OOP) CONCEPTS -->
+        <VBox styleClass="card" spacing="12.0">
+            <Label text="2. OBJECT-ORIENTED PROGRAMMING (OOP) CONCEPTS" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #0F766E;" />
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="1. Encapsulation:" />
+                <Label styleClass="viva-a" text="• Demonstrated in Patient, TreatmentRecord, and User domain classes with private member variables and controlled public getters/setters. Validation logic in ValidationUtil guards domain integrity before state mutation." />
+            </VBox>
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="2. Abstraction:" />
+                <Label styleClass="viva-a" text="• DAO interfaces (PatientDao, TreatmentRecordDao, UserDao) define abstract database contracts, hiding low-level JDBC SQL syntax from services and controllers." />
+            </VBox>
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="3. Polymorphism:" />
+                <Label styleClass="viva-a" text="• Interface Polymorphism: PatientDaoImpl implements PatientDao; PatientPriorityComparator implements java.util.Comparator&lt;Patient&gt;.&#10;• Method Overriding: compare(), toString(), equals(), and hashCode() are overridden." />
+            </VBox>
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="4. Exception Handling Hierarchy:" />
+                <Label styleClass="viva-a" text="• Custom application exceptions inherit from java.lang.Exception:&#10;  - InvalidPatientDataException: Input &amp; validation errors&#10;  - PatientNotFoundException: Missing triage or queue record&#10;  - DatabaseOperationException: Checked JDBC/SQL persistence exceptions" />
+            </VBox>
+        </VBox>
+
+        <!-- TOPIC 3: DATABASE & ARCHITECTURE -->
+        <VBox styleClass="card" spacing="12.0">
+            <Label text="3. MULTI-LAYERED ARCHITECTURE &amp; JDBC PERSISTENCE" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #0F766E;" />
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="Q: What is the layered architecture flow?" />
+                <Label styleClass="viva-a" text="JavaFX Views (FXML + CSS) ⇄ Controllers ⇄ Service Layer (PatientService, QueueService) ⇄ Model Layer + PriorityQueue ⇄ DAO Layer (PatientDao) ⇄ JDBC (PreparedStatements) ⇄ MySQL Server 8" />
+            </VBox>
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="Q: How are SQL injection attacks prevented?" />
+                <Label styleClass="viva-a" text="A: Every SQL query in the DAO layer is executed strictly using java.sql.PreparedStatement with parameterized placeholders (?). User input is treated purely as data literals, never concatenated into SQL execution strings." />
+            </VBox>
+
+            <VBox styleClass="viva-topic-box" spacing="6.0">
+                <Label styleClass="viva-q" text="Q: How does the application maintain sync between memory and MySQL?" />
+                <Label styleClass="viva-a" text="A: On application boot, QueueService loads all WAITING patients from MySQL into the PriorityQueue. When a new patient registers, the record is inserted into MySQL and enqueued into memory. When served, the head is polled from PriorityQueue and updated in MySQL to IN_TREATMENT inside the same operation." />
+            </VBox>
+        </VBox>
+
+        <!-- TOPIC 4: TEAM CONTRIBUTION TEMPLATE (PER COURSE PDF) -->
+        <VBox styleClass="card" spacing="12.0">
+            <Label text="4. TEAM ROLE ALLOCATION (ALIGNED WITH CSE203 RUBRIC)" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #0F766E;" />
+
+            <VBox spacing="8.0">
+                <Label text="• Team Coordinator: Manages project timeline, viva preparation, and git repository branches." style="-fx-font-size: 13px; -fx-text-fill: #1E293B;" />
+                <Label text="• JavaFX Lead: Designed FXML responsive layouts, CSS modern hospital design system, and controller bindings." style="-fx-font-size: 13px; -fx-text-fill: #1E293B;" />
+                <Label text="• Core Java &amp; OOP Lead: Built domain models, encapsulation, custom exception hierarchies, and service layer." style="-fx-font-size: 13px; -fx-text-fill: #1E293B;" />
+                <Label text="• DSA &amp; Database Lead: Implemented PriorityQueue&lt;Patient&gt;, PatientPriorityComparator, MySQL schema, and JDBC DAOs." style="-fx-font-size: 13px; -fx-text-fill: #1E293B;" />
+            </VBox>
+        </VBox>
+
+    </VBox>
+</ScrollPane>

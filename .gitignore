@@ -1,0 +1,22 @@
+# Maven Build Output
+target/
+*.jar
+*.war
+*.ear
+
+# IDE & Editor Specific Files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Local Environment & Credentials
+src/main/resources/config.properties
+*.log
+*.tmp
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
