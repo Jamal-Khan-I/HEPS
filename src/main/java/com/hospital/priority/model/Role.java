@@ -5,8 +5,10 @@ package com.hospital.priority.model;
  */
 public enum Role {
     ADMIN("Administrator"),
-    RECEPTIONIST("Triage Receptionist"),
-    DOCTOR("Emergency Physician");
+    RECEPTIONIST("Receptionist"),
+    TRIAGE_NURSE("Triage nurse"),
+    DOCTOR("Doctor"),
+    CHARGE_NURSE("Charge nurse");
 
     private final String title;
 

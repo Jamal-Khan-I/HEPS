@@ -18,8 +18,8 @@ public class TreatmentRecordDaoImpl implements TreatmentRecordDao {
 
     @Override
     public int insert(TreatmentRecord record) throws DatabaseOperationException {
-        String sql = "INSERT INTO treatment_records (patient_id, doctor_name, treatment_notes, admitted_at, completed_at) " +
-                     "VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO treatment_records (patient_id, doctor_name, treatment_notes, disposition, admitted_at, completed_at) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -27,11 +27,12 @@ public class TreatmentRecordDaoImpl implements TreatmentRecordDao {
             stmt.setInt(1, record.getPatientId());
             stmt.setString(2, record.getDoctorName() != null ? record.getDoctorName() : "Attending ER Doctor");
             stmt.setString(3, record.getTreatmentNotes());
-            stmt.setTimestamp(4, Timestamp.valueOf(record.getAdmittedAt() != null ? record.getAdmittedAt() : LocalDateTime.now()));
+            stmt.setString(4, record.getDisposition() != null ? record.getDisposition() : "DISCHARGED_HOME");
+            stmt.setTimestamp(5, Timestamp.valueOf(record.getAdmittedAt() != null ? record.getAdmittedAt() : LocalDateTime.now()));
             if (record.getCompletedAt() != null) {
-                stmt.setTimestamp(5, Timestamp.valueOf(record.getCompletedAt()));
+                stmt.setTimestamp(6, Timestamp.valueOf(record.getCompletedAt()));
             } else {
-                stmt.setNull(5, Types.TIMESTAMP);
+                stmt.setNull(6, Types.TIMESTAMP);
             }
 
             int affected = stmt.executeUpdate();
@@ -72,7 +73,12 @@ public class TreatmentRecordDaoImpl implements TreatmentRecordDao {
 
     @Override
     public boolean completeTreatmentByPatientId(int patientId, String doctorName, String treatmentNotes) throws DatabaseOperationException {
-        String sql = "UPDATE treatment_records SET doctor_name = ?, treatment_notes = ?, completed_at = ? " +
+        return completeTreatmentByPatientId(patientId, doctorName, treatmentNotes, "DISCHARGED_HOME");
+    }
+
+    @Override
+    public boolean completeTreatmentByPatientId(int patientId, String doctorName, String treatmentNotes, String disposition) throws DatabaseOperationException {
+        String sql = "UPDATE treatment_records SET doctor_name = ?, treatment_notes = ?, disposition = ?, completed_at = ? " +
                      "WHERE patient_id = ? AND completed_at IS NULL ORDER BY record_id DESC LIMIT 1";
 
         try (Connection conn = DBConnection.getConnection();
@@ -80,8 +86,9 @@ public class TreatmentRecordDaoImpl implements TreatmentRecordDao {
 
             stmt.setString(1, doctorName);
             stmt.setString(2, treatmentNotes);
-            stmt.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
-            stmt.setInt(4, patientId);
+            stmt.setString(3, disposition != null ? disposition : "DISCHARGED_HOME");
+            stmt.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setInt(5, patientId);
 
             int rows = stmt.executeUpdate();
             if (rows > 0) {
@@ -89,7 +96,7 @@ public class TreatmentRecordDaoImpl implements TreatmentRecordDao {
             }
 
             // If no active record existed yet, create a completed one directly
-            TreatmentRecord newRec = new TreatmentRecord(patientId, doctorName, treatmentNotes, LocalDateTime.now());
+            TreatmentRecord newRec = new TreatmentRecord(patientId, doctorName, treatmentNotes, disposition, LocalDateTime.now());
             newRec.setCompletedAt(LocalDateTime.now());
             insert(newRec);
             return true;
@@ -166,6 +173,15 @@ public class TreatmentRecordDaoImpl implements TreatmentRecordDao {
         Timestamp compTs = rs.getTimestamp("completed_at");
         LocalDateTime completedAt = compTs != null ? compTs.toLocalDateTime() : null;
 
-        return new TreatmentRecord(id, patientId, doctor, notes, admittedAt, completedAt);
+        String disposition = "DISCHARGED_HOME";
+        try {
+            String dispVal = rs.getString("disposition");
+            if (dispVal != null && !dispVal.trim().isEmpty()) {
+                disposition = dispVal;
+            }
+        } catch (SQLException ignored) {
+        }
+
+        return new TreatmentRecord(id, patientId, doctor, notes, disposition, admittedAt, completedAt);
     }
 }

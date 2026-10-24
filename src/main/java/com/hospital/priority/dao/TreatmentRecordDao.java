@@ -16,6 +16,7 @@ public interface TreatmentRecordDao {
     boolean completeTreatment(int recordId, String doctorName, String treatmentNotes) throws DatabaseOperationException;
 
     boolean completeTreatmentByPatientId(int patientId, String doctorName, String treatmentNotes) throws DatabaseOperationException;
+    boolean completeTreatmentByPatientId(int patientId, String doctorName, String treatmentNotes, String disposition) throws DatabaseOperationException;
 
     Optional<TreatmentRecord> findById(int recordId) throws DatabaseOperationException;
 

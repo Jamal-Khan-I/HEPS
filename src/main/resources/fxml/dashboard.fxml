@@ -3,97 +3,144 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
-<VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.hospital.priority.controller.DashboardController">
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" stylesheets="@../css/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.hospital.priority.controller.DashboardController">
 
-    <!-- PAGE HEADER -->
-    <HBox alignment="CENTER_LEFT" spacing="16.0">
-        <VBox spacing="2.0">
-            <Label styleClass="view-title" text="Overview" />
-            <Label styleClass="view-subtitle" text="Emergency department activity" />
-        </VBox>
-        <Region HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnQuickRegister" onAction="#handleQuickRegister" styleClass="btn-primary" text="Register Patient" />
-        <Button onAction="#refreshData" styleClass="btn-secondary" text="Refresh" />
-    </HBox>
+    <VBox spacing="18.0" style="-fx-padding: 0 4px 20px 0;">
 
-    <!-- 3 COMPACT SUMMARY CARDS ONLY -->
-    <HBox spacing="14.0">
-        <!-- Card 1: Waiting -->
-        <VBox styleClass="summary-card" HBox.hgrow="ALWAYS">
-            <Label styleClass="summary-label" text="WAITING" />
-            <Label fx:id="lblTotalWaiting" styleClass="summary-value" text="0" />
-            <Label styleClass="summary-subtext" text="Patients awaiting triage or care" />
-        </VBox>
-
-        <!-- Card 2: Critical -->
-        <VBox styleClass="summary-card" HBox.hgrow="ALWAYS">
-            <Label styleClass="summary-label" text="CRITICAL" />
-            <Label fx:id="lblCriticalWaiting" styleClass="summary-value-critical" text="0" />
-            <Label styleClass="summary-subtext" text="Requiring immediate resuscitation" />
-        </VBox>
-
-        <!-- Card 3: In Treatment -->
-        <VBox styleClass="summary-card" HBox.hgrow="ALWAYS">
-            <Label styleClass="summary-label" text="IN TREATMENT" />
-            <Label fx:id="lblInTreatment" styleClass="summary-value" text="0" />
-            <Label styleClass="summary-subtext" text="Currently in emergency treatment bays" />
-        </VBox>
-    </HBox>
-
-    <!-- NEXT PATIENT PANEL -->
-    <VBox fx:id="nextPatientBanner" styleClass="panel, next-patient-card" spacing="8.0">
-        <HBox alignment="CENTER_LEFT" spacing="12.0">
-            <Label styleClass="next-patient-header" text="Next Patient to Treat" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblNextBadge" styleClass="badge, badge-critical" text="CRITICAL" />
-        </HBox>
-
-        <HBox alignment="CENTER_LEFT" spacing="20.0">
-            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
-                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                    <Label fx:id="lblNextToken" style="-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #0369A1;" text="TK-2026-0005" />
-                    <Label fx:id="lblNextName" styleClass="next-patient-name" text="Vikramaditya Rao" />
-                    <Label fx:id="lblNextAge" styleClass="next-patient-meta" text="(Age 54, Male)" />
-                    <Label fx:id="lblNextArrival" styleClass="next-patient-meta" text="• Arrived 09:15" />
+        <!-- 1. TOP KPI STRIP (PAGE 2) -->
+        <HBox spacing="14.0">
+            <!-- Waiting KPI -->
+            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="4.0">
+                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                    <SVGPath content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
+                             style="-fx-stroke: #0284C7; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                    <Label text="Waiting" styleClass="kpi-label" />
                 </HBox>
-                <Label fx:id="lblNextSymptoms" styleClass="next-patient-complaint"
-                       text="Sudden facial weakness, difficulty speaking, right-side mobility deficit"
-                       wrapText="true" maxHeight="38.0" />
+                <Label fx:id="lblKpiWaiting" text="6" styleClass="kpi-value" />
+                <Label fx:id="lblKpiWaitingSub" text="avg 12 min to triage" styleClass="kpi-subtext" />
             </VBox>
 
-            <Button fx:id="btnServeNextQuick" onAction="#handleServeNext" styleClass="btn-critical" text="Begin Treatment" />
+            <!-- Critical KPI -->
+            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="4.0">
+                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                    <SVGPath content="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14h-2v-2h2zm0-4h-2V7h2z"
+                             style="-fx-fill: #B91C1C;" />
+                    <Label text="Critical" styleClass="kpi-label" />
+                </HBox>
+                <Label fx:id="lblKpiCritical" text="2" styleClass="kpi-value" style="-fx-text-fill: #B91C1C;" />
+                <Label fx:id="lblKpiCriticalSub" text="in resus bays" styleClass="kpi-subtext" />
+            </VBox>
+
+            <!-- SLA Breaches KPI -->
+            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="4.0">
+                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                    <SVGPath content="M5 22h14M5 2h14M17 22v-4.17a3 3 0 0 0-.88-2.12L12 12l-4.12 3.71A3 3 0 0 0 7 17.83V22M7 2v4.17a3 3 0 0 0 .88 2.12L12 12l4.12-3.71A3 3 0 0 0 17 6.17V2"
+                             style="-fx-stroke: #C2410C; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                    <Label text="SLA breaches" styleClass="kpi-label" />
+                </HBox>
+                <Label fx:id="lblKpiBreaches" text="1" styleClass="kpi-value" style="-fx-text-fill: #C2410C;" />
+                <Label fx:id="lblKpiBreachesSub" text="2 near limit" styleClass="kpi-subtext" />
+            </VBox>
+
+            <!-- Bed Occupancy KPI -->
+            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="4.0">
+                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                    <SVGPath content="M3 7v11M3 14h18M21 7v11M7 10h10a4 4 0 0 1 4 4v0H3v0a4 4 0 0 1 4-4z"
+                             style="-fx-stroke: #0D9488; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                    <Label text="Bed use" styleClass="kpi-label" />
+                </HBox>
+                <Label fx:id="lblKpiBedUse" text="9/12" styleClass="kpi-value" style="-fx-text-fill: #0D9488;" />
+                <Label fx:id="lblKpiBedUseSub" text="75% occupied" styleClass="kpi-subtext" />
+            </VBox>
         </HBox>
-    </VBox>
 
-    <!-- COMPACT WAITING QUEUE TABLE PREVIEW -->
-    <VBox styleClass="panel" spacing="10.0" VBox.vgrow="ALWAYS">
-        <HBox alignment="CENTER_LEFT" spacing="12.0">
-            <Label text="Waiting Queue Preview" style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #0F172A;" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Button onAction="#handleViewFullQueue" styleClass="btn-secondary" text="View Full Queue" />
+        <!-- 2. PIPELINE STRIP (PAGE 2) -->
+        <HBox alignment="CENTER_LEFT" styleClass="pipeline-strip">
+            <Label fx:id="lblPipeRegistered" text="1 Registered" styleClass="pipeline-step-text" />
+            <Label text="›" styleClass="pipeline-arrow" />
+            <Label fx:id="lblPipeTriaged" text="2 Triaged" styleClass="pipeline-step-text" />
+            <Label text="›" styleClass="pipeline-arrow" />
+            <Label fx:id="lblPipeWaiting" text="3 Waiting" styleClass="pipeline-step-text" />
+            <Label text="›" styleClass="pipeline-arrow" />
+            <Label fx:id="lblPipeInTreatment" text="5 In treatment" styleClass="pipeline-step-text" />
+            <Label text="›" styleClass="pipeline-arrow" />
+            <Label fx:id="lblPipeDisposition" text="2 Disposition" styleClass="pipeline-step-text" />
         </HBox>
 
-        <TableView fx:id="previewTable" prefHeight="260.0" VBox.vgrow="ALWAYS">
-            <columns>
-                <TableColumn fx:id="colPos" prefWidth="50.0" text="#" style="-fx-alignment: CENTER;" />
-                <TableColumn fx:id="colToken" prefWidth="120.0" text="Token" style="-fx-alignment: CENTER;" />
-                <TableColumn fx:id="colName" prefWidth="170.0" text="Patient Name" />
-                <TableColumn fx:id="colAge" minWidth="55.0" prefWidth="60.0" text="Age" style="-fx-alignment: CENTER;" />
-                <TableColumn fx:id="colPriority" prefWidth="105.0" text="Priority" style="-fx-alignment: CENTER;" />
-                <TableColumn fx:id="colSymptoms" prefWidth="300.0" text="Presenting Complaint" />
-                <TableColumn fx:id="colArrival" prefWidth="150.0" text="Arrival Time" style="-fx-alignment: CENTER;" />
-            </columns>
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
-        </TableView>
-    </VBox>
+        <!-- 3. NEXT PATIENT TO TREAT CARD (PAGE 2 - MIN-HEAP PEEK) -->
+        <VBox fx:id="cardNextPatient" styleClass="card" spacing="12.0"
+              style="-fx-border-color: #E5EAF1 #E5EAF1 #E5EAF1 #B91C1C; -fx-border-width: 1px 1px 1px 4px;">
 
-</VBox>
+            <!-- Header Row -->
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Label text="Next patient to treat" style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
+                <Label fx:id="lblNextPriorityBadge" text="Critical" styleClass="badge, badge-critical" />
+                <Label fx:id="lblNextBay" text="Bay 1 · Resus" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0F172A;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="lblNextTarget" text="Target: immediate" style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
+            </HBox>
+
+            <!-- Identity Row -->
+            <HBox alignment="BASELINE_LEFT" spacing="10.0">
+                <Label fx:id="lblNextToken" text="TK-2026-0142" style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: #0D9488;" />
+                <Label fx:id="lblNextName" text="Ramesh Kumar" style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: #0F172A;" />
+                <Label fx:id="lblNextMeta" text="58 · Male · UH-2026-000891" style="-fx-font-size: 13px; -fx-text-fill: #64748B;" />
+            </HBox>
+
+            <!-- Vitals Chips Row -->
+            <HBox spacing="8.0" alignment="CENTER_LEFT">
+                <Label fx:id="chipSpo2" text="SpO2 88%" styleClass="vitals-chip, vitals-chip-critical" />
+                <Label fx:id="chipHr" text="HR 134" styleClass="vitals-chip, vitals-chip-high" />
+                <Label fx:id="chipBp" text="BP 150/95" styleClass="vitals-chip" />
+                <Label fx:id="chipNews2" text="NEWS2 9" styleClass="vitals-chip, vitals-chip-critical" />
+                <Label fx:id="chipAllergy" text="Allergy: penicillin" styleClass="vitals-chip, vitals-chip-allergy" />
+            </HBox>
+
+            <!-- Complaint & Actions Row -->
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+                <Label fx:id="lblNextComplaint" text="Chest pain radiating to left arm, sweating"
+                       style="-fx-font-size: 13px; -fx-text-fill: #334155;" HBox.hgrow="ALWAYS" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="Print slip" onAction="#handlePrintNextSlip" styleClass="btn-secondary" />
+                <Button text="Begin treatment" onAction="#handleBeginTreatment" styleClass="btn-primary" />
+            </HBox>
+        </VBox>
+
+        <!-- 4. WAITING QUEUE TABLE (PAGE 2) -->
+        <VBox styleClass="card" spacing="14.0">
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT">
+                <VBox spacing="1.0">
+                    <Label text="Waiting queue" styleClass="card-title" />
+                    <Label text="Ranked by min-heap priority, live" styleClass="card-subtitle" />
+                </VBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="View full queue" onAction="#handleViewFullQueue" styleClass="btn-secondary" style="-fx-font-size: 12.5px; -fx-padding: 6px 14px;" />
+            </HBox>
+
+            <!-- Table Header Row -->
+            <GridPane hgap="12.0" style="-fx-padding: 4px 8px; -fx-border-color: #E5EAF1; -fx-border-width: 0 0 1px 0;">
+                <Label text="#" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="0" prefWidth="30.0" />
+                <Label text="Patient" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="1" prefWidth="320.0" />
+                <Label text="Priority" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="2" prefWidth="120.0" />
+                <Label text="Bay · doctor" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="3" prefWidth="220.0" />
+                <Label text="Wait vs SLA" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="4" prefWidth="200.0" />
+            </GridPane>
+
+            <!-- Dynamic Rows Container -->
+            <VBox fx:id="queueRowsContainer" spacing="6.0" />
+        </VBox>
+
+    </VBox>
+</ScrollPane>

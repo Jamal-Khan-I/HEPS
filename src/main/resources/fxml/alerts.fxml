@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="16.0" style="-fx-padding: 0 4px 20px 0;"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.hospital.priority.controller.AlertsController">
+
+    <!-- HEADER & STATS -->
+    <HBox alignment="CENTER_LEFT" spacing="16.0">
+        <VBox spacing="2.0">
+            <Label styleClass="view-title" text="Alerts center" />
+            <Label styleClass="view-subtitle" text="Real-time clinical warnings, vital sign deterioration, SLA breaches, and emergency notifications." />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <StackPane styleClass="counter-pill" style="-fx-background-color: #FEE2E2; -fx-border-color: #FECACA;">
+                <Label fx:id="lblActiveCount" text="4 Active Alerts" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
+            </StackPane>
+            <StackPane styleClass="counter-pill" style="-fx-background-color: #DCFCE7; -fx-border-color: #BBF7D0;">
+                <Label fx:id="lblAcknowledgedCount" text="1 Acknowledged" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #15803D;" />
+            </StackPane>
+            <Button onAction="#handleRefresh" styleClass="btn-modern-pill-secondary" text="Refresh" />
+        </HBox>
+    </HBox>
+
+    <!-- FILTER BAR -->
+    <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="filter-pill-bar">
+        <Button fx:id="btnFilterActive" onAction="#filterActive" styleClass="filter-tab-pill-active" text="Active Alerts" />
+        <Button fx:id="btnFilterAcknowledged" onAction="#filterAcknowledged" styleClass="filter-tab-pill" text="Acknowledged" />
+        <Button fx:id="btnFilterAll" onAction="#filterAll" styleClass="filter-tab-pill" text="All Alerts" />
+
+        <Region HBox.hgrow="ALWAYS" />
+        <TextField fx:id="txtSearch" prefWidth="240.0" promptText="Search alerts, patients, tokens..." styleClass="search-pill-input" />
+    </HBox>
+
+    <!-- ALERTS FEED LIST -->
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+        <VBox fx:id="boxAlertsFeed" spacing="12.0" style="-fx-padding: 0 2px 20px 2px;">
+            <!-- Populated dynamically -->
+        </VBox>
+    </ScrollPane>
+
+</VBox>

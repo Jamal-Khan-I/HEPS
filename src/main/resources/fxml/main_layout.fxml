@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -10,70 +12,172 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.SVGPath?>
 
-<BorderPane prefHeight="750.0" prefWidth="1200.0" stylesheets="@../css/style.css"
+<BorderPane prefHeight="780.0" prefWidth="1360.0" styleClass="app-root" stylesheets="@../css/style.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.hospital.priority.controller.MainController">
 
-    <!-- COMPACT LIGHT HEADER -->
-    <top>
-        <HBox alignment="CENTER_LEFT" styleClass="header-bar" spacing="12.0">
-            <!-- Hospital Mark -->
-            <StackPane styleClass="brand-icon">
-                <Label text="+" styleClass="brand-icon-text" />
-            </StackPane>
-
-            <VBox spacing="1.0">
-                <Label styleClass="header-title" text="Emergency Department" />
-                <Label styleClass="header-subtitle" text="Patient Priority System" />
-            </VBox>
-
-            <Region HBox.hgrow="ALWAYS" />
-
-            <!-- User Info & Sign Out -->
-            <HBox alignment="CENTER" spacing="12.0">
-                <Label fx:id="userBadgeLabel" styleClass="header-user-badge" text="Administrator" />
-                <Button fx:id="btnSignOut" onAction="#handleSignOut" styleClass="btn-signout" text="Sign Out" />
-            </HBox>
-        </HBox>
-    </top>
-
-    <!-- NEUTRAL NARROW SIDEBAR -->
+    <!-- PERMANENT WHITE LEFT SIDEBAR (PAGE 2) -->
     <left>
-        <VBox styleClass="sidebar">
-            <Button fx:id="btnNavOverview" onAction="#showOverview" styleClass="nav-button, nav-button-active" text="Overview" graphicTextGap="10">
-                <graphic>
-                    <SVGPath content="M3 3h7v7H3zm11 0h7v7h-7zm-11 11h7v7H3zm11 0h7v7h-7z" styleClass="nav-icon" />
-                </graphic>
-            </Button>
-            <Button fx:id="btnNavRegister" onAction="#showRegisterPatient" styleClass="nav-button" text="Register Patient" graphicTextGap="10">
-                <graphic>
-                    <SVGPath content="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z" styleClass="nav-icon" />
-                </graphic>
-            </Button>
-            <Button fx:id="btnNavQueue" onAction="#showEmergencyQueue" styleClass="nav-button" text="Emergency Queue" graphicTextGap="10">
-                <graphic>
-                    <SVGPath content="M3 5h18v2.5H3zm0 5.75h18v2.5H3zm0 5.75h18v2.5H3z" styleClass="nav-icon" />
-                </graphic>
-            </Button>
-            <Button fx:id="btnNavRecords" onAction="#showPatientRecords" styleClass="nav-button" text="Patient Records" graphicTextGap="10">
-                <graphic>
-                    <SVGPath content="M4 2h10l6 6v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm9 1.5V8h4.5M6 12h12v2H6zm0 4h9v2H6z" styleClass="nav-icon" />
-                </graphic>
-            </Button>
+        <VBox fx:id="sidebar" styleClass="sidebar" alignment="TOP_LEFT" spacing="2.0">
+            <!-- Header: HEPS Emergency dept -->
+            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="sidebar-header-box">
+                <StackPane prefWidth="30.0" prefHeight="30.0" style="-fx-background-color: #0D9488; -fx-background-radius: 8px;">
+                    <SVGPath content="M3 12h4l3 8 4-16 3 8h4" style="-fx-stroke: #FFFFFF; -fx-stroke-width: 2.2; -fx-fill: transparent;" />
+                </StackPane>
+                <VBox spacing="1.0">
+                    <Label text="HEPS" styleClass="sidebar-brand-title" />
+                    <Label text="Emergency dept" styleClass="sidebar-brand-subtitle" />
+                </VBox>
+            </HBox>
 
-            <Region VBox.vgrow="ALWAYS" />
+            <!-- Scrollable Nav List -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;">
+                <VBox spacing="3.0">
+                    <!-- SECTION: OPERATIONS -->
+                    <VBox fx:id="grpOperations" spacing="2.0">
+                        <Label text="Operations" styleClass="sidebar-group-label" />
+                        <Button fx:id="btnNavCommandCenter" text="Command center" onAction="#showCommandCenter" styleClass="nav-item, nav-item-active">
+                            <graphic>
+                                <SVGPath content="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z" style="-fx-fill: #0D9488;" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="btnNavRegister" text="Register patient" onAction="#showRegisterPatient" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M8.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M20 8v6M23 11h-6" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="btnNavQueue" text="Emergency queue" onAction="#showEmergencyQueue" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" style="-fx-stroke: #64748B; -fx-stroke-width: 2; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="btnNavBayBoard" text="Bay board" onAction="#showBayBoard" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M3 7v11M3 14h18M21 7v11M7 10h10a4 4 0 0 1 4 4v0H3v0a4 4 0 0 1 4-4z" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="btnNavMassCasualty" text="Mass casualty" onAction="#showMassCasualty" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                    </VBox>
 
-            <HBox styleClass="sidebar-footer">
-                <Label text="v1.0" styleClass="sidebar-version" />
+                    <!-- SECTION: CLINICAL -->
+                    <VBox fx:id="grpClinical" spacing="2.0">
+                        <Label text="Clinical" styleClass="sidebar-group-label" />
+                        <Button fx:id="btnNavDoctorWorkspace" text="My patients" onAction="#showDoctorWorkspace" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="btnNavOrdersResults" text="Orders and results" onAction="#showOrdersResults" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3l4.9 8.27A2 2 0 0 1 17.2 21H6.8a2 2 0 0 1-1.7-3.43L10 9.3" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                    </VBox>
+
+                    <!-- SECTION: RECORDS -->
+                    <VBox fx:id="grpRecords" spacing="2.0">
+                        <Label text="Records" styleClass="sidebar-group-label" />
+                        <Button fx:id="btnNavRecords" text="Patient records" onAction="#showPatientRecords" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="btnNavDischarge" text="Discharge" onAction="#showDischarge" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                    </VBox>
+
+                    <!-- SECTION: INSIGHTS -->
+                    <VBox fx:id="grpInsights" spacing="2.0">
+                        <Label text="Insights" styleClass="sidebar-group-label" />
+                        <Button fx:id="btnNavReports" text="Reports" onAction="#showReports" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M18 20V10M12 20V4M6 20v-6" style="-fx-stroke: #64748B; -fx-stroke-width: 2; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="btnNavAlerts" text="Alerts" onAction="#showAlerts" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                    </VBox>
+
+                    <!-- SECTION: ADMIN -->
+                    <VBox fx:id="grpAdmin" spacing="2.0">
+                        <Label text="Admin" styleClass="sidebar-group-label" />
+                        <Button fx:id="btnNavAdmin" text="Admin" onAction="#showAdmin" styleClass="nav-item">
+                            <graphic>
+                                <SVGPath content="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" style="-fx-stroke: #64748B; -fx-stroke-width: 1.5; -fx-fill: transparent;" />
+                            </graphic>
+                        </Button>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+
+            <!-- Bottom User Profile Pill (Page 2) -->
+            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="sidebar-profile-box">
+                <StackPane fx:id="avatarBox" styleClass="profile-avatar">
+                    <Label fx:id="lblInitials" text="PS" style="-fx-font-weight: 700; -fx-text-fill: #0D9488; -fx-font-size: 12px;" />
+                </StackPane>
+                <VBox spacing="1.0" HBox.hgrow="ALWAYS">
+                    <Label fx:id="lblStaffName" text="Priya S." style="-fx-font-weight: 700; -fx-font-size: 13px; -fx-text-fill: #0F172A;" />
+                    <Label fx:id="lblStaffRole" text="Triage nurse" style="-fx-font-size: 11px; -fx-text-fill: #64748B;" />
+                </VBox>
+                <Button onAction="#handleSignOut" style="-fx-background-color: transparent; -fx-padding: 4px; -fx-cursor: hand;">
+                    <graphic>
+                        <SVGPath content="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" style="-fx-stroke: #94A3B8; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                    </graphic>
+                </Button>
             </HBox>
         </VBox>
     </left>
 
-    <!-- DYNAMIC CENTER CONTENT AREA -->
+    <!-- MAIN WORKSPACE -->
     <center>
-        <StackPane fx:id="contentArea" styleClass="content-area">
-            <!-- Dynamic screen views loaded here -->
-        </StackPane>
+        <VBox VBox.vgrow="ALWAYS" style="-fx-background-color: #F6F8FB;">
+            <!-- TOP BAR (PAGE 2) -->
+            <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="top-bar">
+                <Label fx:id="lblScreenTitle" text="Command center" styleClass="top-bar-title" />
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <!-- Search Input -->
+                <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #F8FAFC; -fx-border-color: #E2E8F0; -fx-border-radius: 10px; -fx-background-radius: 10px; -fx-padding: 6px 12px;">
+                    <SVGPath content="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z M21 21l-4.35-4.35" style="-fx-stroke: #94A3B8; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                    <TextField fx:id="txtGlobalSearch" promptText="Search token or UHID" onAction="#handleGlobalSearch"
+                               style="-fx-background-color: transparent; -fx-border-width: 0; -fx-font-size: 13px; -fx-pref-width: 180px;" />
+                </HBox>
+
+                <!-- Live Clock (Page 2) -->
+                <HBox alignment="CENTER_LEFT" spacing="6.0" style="-fx-padding: 0 8px;">
+                    <SVGPath content="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2" style="-fx-stroke: #64748B; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
+                    <Label fx:id="lblClock" text="14:32" style="-fx-font-size: 14px; -fx-font-weight: 600; -fx-text-fill: #334155;" />
+                </HBox>
+
+                <!-- Alerts Bell with Badge (Page 2) -->
+                <Button onAction="#showAlerts" style="-fx-background-color: transparent; -fx-padding: 4px; -fx-cursor: hand;">
+                    <graphic>
+                        <StackPane>
+                            <SVGPath content="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" style="-fx-stroke: #64748B; -fx-stroke-width: 2; -fx-fill: transparent;" />
+                            <Label fx:id="lblAlertBadge" text="3" styleClass="badge-alert-bell" StackPane.alignment="TOP_RIGHT" style="-fx-translate-x: 6px; -fx-translate-y: -6px;" />
+                        </StackPane>
+                    </graphic>
+                </Button>
+            </HBox>
+
+            <!-- DYNAMIC SCREEN CONTENT AREA -->
+            <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS" style="-fx-background-color: #F6F8FB;">
+                <padding>
+                    <Insets top="16.0" right="24.0" bottom="20.0" left="24.0" />
+                </padding>
+            </StackPane>
+        </VBox>
     </center>
 
 </BorderPane>

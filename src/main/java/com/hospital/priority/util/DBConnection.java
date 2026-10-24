@@ -19,6 +19,7 @@ public class DBConnection {
     private static String user;
     private static String password;
     private static boolean initialized = false;
+    private static boolean autoStartAttempted = false;
 
     private DBConnection() {
         // Private constructor prevents direct instantiation
@@ -53,6 +54,7 @@ public class DBConnection {
 
     /**
      * Obtains a new JDBC connection to MySQL.
+     * If the server is offline on localhost, attempts auto-recovery once before failing.
      * Callers must close the returned connection via try-with-resources.
      *
      * @return active java.sql.Connection
@@ -65,8 +67,58 @@ public class DBConnection {
         try {
             return DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
+            if (!autoStartAttempted && (url.contains("127.0.0.1") || url.contains("localhost"))) {
+                autoStartAttempted = true;
+                if (tryAutoStartLocalMySQL()) {
+                    try {
+                        return DriverManager.getConnection(url, user, password);
+                    } catch (SQLException retryEx) {
+                        throw new DatabaseOperationException("Failed to connect to MySQL database after auto-recovery: " + retryEx.getMessage(), retryEx);
+                    }
+                }
+            }
             throw new DatabaseOperationException("Failed to connect to MySQL database at " + url + ": " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Attempts to automatically launch local MySQL Server daemon if it is stopped after a reboot.
+     */
+    private static synchronized boolean tryAutoStartLocalMySQL() {
+        try {
+            String os = System.getProperty("os.name", "").toLowerCase();
+            if (!os.contains("win")) {
+                return false;
+            }
+
+            java.io.File mysqld = new java.io.File("C:/Program Files/MySQL/MySQL Server 8.4/bin/mysqld.exe");
+            java.io.File myIni = new java.io.File("C:/ProgramData/MySQL/MySQL Server 8.4/my.ini");
+
+            if (!mysqld.exists() || !myIni.exists()) {
+                return false;
+            }
+
+            System.out.println(">>> [Auto-Recovery] MySQL Server is offline. Starting local server...");
+            new ProcessBuilder(mysqld.getAbsolutePath(), "--defaults-file=" + myIni.getAbsolutePath())
+                    .redirectErrorStream(true)
+                    .start();
+
+            // Wait up to 6 seconds for port 3306 to accept connections
+            for (int i = 0; i < 12; i++) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored) {}
+
+                try (java.net.Socket socket = new java.net.Socket("127.0.0.1", 3306)) {
+                    System.out.println(">>> [Auto-Recovery] MySQL Server started successfully.");
+                    return true;
+                } catch (Exception ignored) {
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println(">>> [Auto-Recovery] Note: Could not auto-start MySQL: " + ex.getMessage());
+        }
+        return false;
     }
 
     /**

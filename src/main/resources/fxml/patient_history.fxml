@@ -9,74 +9,90 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="14.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="18.0" style="-fx-padding: 0 4px 20px 0;"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.hospital.priority.controller.PatientHistoryController">
 
     <!-- HEADER -->
     <HBox alignment="CENTER_LEFT" spacing="16.0">
         <VBox spacing="2.0">
-            <Label styleClass="view-title" text="Patient Records" />
-            <Label styleClass="view-subtitle" text="Search and review patient visits." />
+            <Label styleClass="view-title" text="Patient Records &amp; Clinical History" />
+            <Label styleClass="view-subtitle" text="Search, inspect diagnosis logs, and complete active patient encounters." />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnCompleteTreatmentAction" disable="true" onAction="#handleCompleteSelected" styleClass="btn-success" text="Complete Treatment" />
+        <Button fx:id="btnCompleteTreatmentAction" disable="true" onAction="#handleCompleteSelected"
+                styleClass="btn-primary" text="✓ Complete Treatment" />
     </HBox>
 
-    <!-- SINGLE COMPACT FILTER ROW -->
-    <HBox alignment="CENTER_LEFT" styleClass="panel" spacing="12.0" style="-fx-padding: 10px 16px;">
-        <Label styleClass="form-label" text="Search:" />
-        <TextField fx:id="txtSearch" prefWidth="240.0" promptText="Search token, name, phone..." />
+    <!-- MAIN FLOATING CARD CONTAINER -->
+    <VBox styleClass="modern-table-card" spacing="14.0" VBox.vgrow="ALWAYS">
 
-        <Label styleClass="form-label" text="Priority:" />
-        <ComboBox fx:id="cmbLevelFilter" prefWidth="130.0" />
+        <!-- FILTER ROW -->
+        <HBox alignment="CENTER_LEFT" styleClass="filter-pill-bar" spacing="14.0">
+            <HBox alignment="CENTER_LEFT" spacing="6.0" styleClass="search-pill-box">
+                <Label text="🔍" style="-fx-font-size: 13px; -fx-text-fill: #94A3B8;" />
+                <TextField fx:id="txtSearch" prefWidth="240.0" promptText="Search token, name, phone..." styleClass="search-pill-input" />
+            </HBox>
 
-        <Label styleClass="form-label" text="Status:" />
-        <ComboBox fx:id="cmbStatusFilter" prefWidth="140.0" />
+            <Label text="Priority:" styleClass="filter-label" />
+            <ComboBox fx:id="cmbLevelFilter" prefWidth="130.0" styleClass="filter-combo-pill" />
 
-        <Region HBox.hgrow="ALWAYS" />
-        <Button onAction="#refreshHistory" styleClass="btn-secondary" text="Refresh" />
-    </HBox>
+            <Label text="Status:" styleClass="filter-label" />
+            <ComboBox fx:id="cmbStatusFilter" prefWidth="140.0" styleClass="filter-combo-pill" />
 
-    <!-- PATIENT RECORDS TABLE VIEW -->
-    <TableView fx:id="historyTable" VBox.vgrow="ALWAYS">
-        <columns>
-            <TableColumn fx:id="colToken" prefWidth="110.0" text="Token" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colName" prefWidth="180.0" text="Full Name" />
-            <TableColumn fx:id="colAge" prefWidth="55.0" text="Age" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colGender" prefWidth="75.0" text="Gender" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colPhone" prefWidth="130.0" text="Phone Number" />
-            <TableColumn fx:id="colLevel" prefWidth="110.0" text="Priority" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colStatus" prefWidth="120.0" text="Status" style="-fx-alignment: CENTER;" />
-            <TableColumn fx:id="colArrival" prefWidth="160.0" text="Arrival Time" style="-fx-alignment: CENTER;" />
-        </columns>
-        <columnResizePolicy>
-            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-        </columnResizePolicy>
-    </TableView>
-
-    <!-- SELECTED PATIENT DETAILS DRAWER -->
-    <VBox fx:id="detailsCard" styleClass="panel" spacing="8.0" style="-fx-padding: 14px 18px;">
-        <HBox alignment="CENTER_LEFT" spacing="12.0">
-            <Label text="Selected Patient Details:" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #0F172A;" />
-            <Label fx:id="lblSelectedTokenAndName" text="Select a patient above to inspect clinical history."
-                   style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #1E293B;" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblDetailStatus" styleClass="badge, status-completed" text="Status" visible="false" />
+            <Button onAction="#refreshHistory" styleClass="btn-secondary" text="🔄 Refresh" />
         </HBox>
 
-        <HBox spacing="24.0">
-            <VBox spacing="3.0" HBox.hgrow="ALWAYS">
-                <Label text="Presenting Complaint:" styleClass="form-label" />
-                <Label fx:id="lblDetailSymptoms" text="-" style="-fx-font-size: 13px; -fx-text-fill: #334155;" wrapText="true" />
-            </VBox>
+        <!-- PATIENT RECORDS TABLE VIEW -->
+        <TableView fx:id="historyTable" VBox.vgrow="ALWAYS">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="colToken" prefWidth="120.0" minWidth="95.0" text="TOKEN" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colName" prefWidth="170.0" minWidth="120.0" text="FULL NAME" />
+                <TableColumn fx:id="colAge" prefWidth="55.0" minWidth="45.0" text="AGE" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colGender" prefWidth="75.0" minWidth="65.0" text="GENDER" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colLevel" prefWidth="110.0" minWidth="90.0" text="PRIORITY" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colBay" prefWidth="180.0" minWidth="130.0" text="ASSIGNED BAY" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colStatus" prefWidth="125.0" minWidth="95.0" text="STATUS" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colPhone" prefWidth="130.0" minWidth="105.0" text="PHONE NUMBER" />
+                <TableColumn fx:id="colArrival" prefWidth="150.0" minWidth="120.0" text="ARRIVAL TIME" style="-fx-alignment: CENTER;" />
+            </columns>
+        </TableView>
 
-            <VBox spacing="3.0" HBox.hgrow="ALWAYS">
-                <Label text="Treatment &amp; Discharge Notes:" styleClass="form-label" />
-                <Label fx:id="lblDetailTreatmentNotes" text="No treatment documentation recorded." style="-fx-font-size: 13px; -fx-text-fill: #334155;" wrapText="true" />
-            </VBox>
-        </HBox>
+        <!-- SELECTED PATIENT DETAILS DRAWER -->
+        <VBox fx:id="detailsCard" styleClass="selected-patient-details-box" spacing="12.0">
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+                <StackPane styleClass="selected-pill-badge" minWidth="-Infinity">
+                    <Label text="Patient Record" styleClass="selected-pill-badge-text" />
+                </StackPane>
+                <Label fx:id="lblSelectedTokenAndName" text="Select a patient above to inspect clinical history."
+                       styleClass="selected-record-title" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnPrintHistoryTicket" onAction="#handlePrintTicket" styleClass="btn-secondary" text="🖨️ Print Slip" visible="false" minWidth="-Infinity" />
+                <Label fx:id="lblDetailStatus" styleClass="badge-pill, badge-completed" text="Status" visible="false" minWidth="-Infinity" />
+            </HBox>
+
+            <HBox spacing="16.0">
+                <!-- Left: Clinical Triage & Vitals -->
+                <VBox spacing="6.0" HBox.hgrow="ALWAYS" styleClass="patient-detail-subcard">
+                    <Label text="Clinical Triage &amp; Vitals Profile" styleClass="patient-subcard-title" />
+                    <Label fx:id="lblDetailSymptoms" text="Select a patient from the table above to view clinical complaint and recorded vitals." styleClass="patient-subcard-body" wrapText="true" />
+                </VBox>
+
+                <!-- Right: Treatment Records & Doctor Notes -->
+                <VBox spacing="6.0" HBox.hgrow="ALWAYS" styleClass="patient-detail-subcard">
+                    <Label text="Treatment Record &amp; Notes" styleClass="patient-subcard-title" />
+                    <Label fx:id="lblDetailTreatmentNotes" text="Select a patient to view treatment history or complete active care." styleClass="patient-subcard-body" wrapText="true" />
+                </VBox>
+            </HBox>
+        </VBox>
+
     </VBox>
 
 </VBox>

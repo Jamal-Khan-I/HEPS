@@ -15,7 +15,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Service managing treatment lifecycle, medical documentation,
+ * ============================================================================
+ * HEPS 2.0 TREATMENT SERVICE
+ * ============================================================================
+ * Manages treatment lifecycle, medical documentation, doctor workload release,
  * and patient discharge.
  */
 public class TreatmentService {
@@ -24,11 +27,13 @@ public class TreatmentService {
     private final TreatmentRecordDao treatmentRecordDao;
     private final PatientDao patientDao;
     private final QueueService queueService;
+    private final DoctorRoutingService routingService;
 
     private TreatmentService() {
         this.treatmentRecordDao = new TreatmentRecordDaoImpl();
         this.patientDao = new PatientDaoImpl();
         this.queueService = QueueService.getInstance();
+        this.routingService = DoctorRoutingService.getInstance();
     }
 
     public static synchronized TreatmentService getInstance() {
@@ -43,8 +48,14 @@ public class TreatmentService {
      * 1. Records doctor notes and completion timestamp.
      * 2. Sets patient status to COMPLETED in database.
      * 3. Ensures active queue synchronization.
+     * 4. Releases assigned doctor's active workload.
      */
     public void completeTreatment(int patientId, String doctorName, String treatmentNotes)
+            throws InvalidPatientDataException, PatientNotFoundException, DatabaseOperationException {
+        completeTreatment(patientId, doctorName, treatmentNotes, "DISCHARGED_HOME");
+    }
+
+    public void completeTreatment(int patientId, String doctorName, String treatmentNotes, String disposition)
             throws InvalidPatientDataException, PatientNotFoundException, DatabaseOperationException {
 
         if (doctorName == null || doctorName.trim().isEmpty()) {
@@ -62,13 +73,18 @@ public class TreatmentService {
         Patient patient = patientOpt.get();
 
         // 1. Update or create completed treatment record
-        treatmentRecordDao.completeTreatmentByPatientId(patientId, doctorName.trim(), treatmentNotes.trim());
+        treatmentRecordDao.completeTreatmentByPatientId(patientId, doctorName.trim(), treatmentNotes.trim(), disposition);
 
         // 2. Mark patient as COMPLETED
         patientDao.updateStatus(patientId, PatientStatus.COMPLETED);
 
         // 3. Ensure removed from waiting queue if still there
         queueService.removeFromQueue(patient);
+
+        // 4. HEPS 2.0: Release doctor workload
+        if (patient.getAssignedDoctorId() != null) {
+            routingService.releaseDoctorFromPatient(patient.getAssignedDoctorId());
+        }
     }
 
     public Optional<TreatmentRecord> getTreatmentForPatient(int patientId) throws DatabaseOperationException {

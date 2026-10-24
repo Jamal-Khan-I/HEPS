@@ -2,115 +2,363 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
-<VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.hospital.priority.controller.RegisterPatientController">
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" stylesheets="@../css/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.hospital.priority.controller.RegisterPatientController">
 
-    <!-- PAGE HEADER -->
-    <VBox spacing="2.0">
-        <Label styleClass="view-title" text="Register Patient" />
-        <Label styleClass="view-subtitle" text="Record patient details and assign treatment priority." />
-    </VBox>
+    <VBox spacing="18.0" style="-fx-padding: 0 4px 20px 0;">
 
-    <!-- CENTERED REGISTRATION FORM CARD -->
-    <VBox alignment="TOP_CENTER" VBox.vgrow="ALWAYS">
-        <VBox styleClass="panel" maxWidth="840.0" spacing="18.0">
-
-            <!-- Group 1: Personal Details -->
-            <VBox spacing="10.0">
-                <Label text="Personal Details" style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #0F172A;" />
-
-                <GridPane hgap="16.0" vgap="12.0">
-                    <columnConstraints>
-                        <ColumnConstraints percentWidth="50.0" />
-                        <ColumnConstraints percentWidth="50.0" />
-                    </columnConstraints>
-
-                    <!-- Full Name -->
-                    <VBox spacing="4.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                        <Label styleClass="form-label" text="Full Name" />
-                        <TextField fx:id="txtFullName" promptText="e.g. Ramesh Chandra" />
-                    </VBox>
-
-                    <!-- Contact Phone -->
-                    <VBox spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <Label styleClass="form-label" text="Contact Number" />
-                        <TextField fx:id="txtPhone" promptText="10-digit phone number" />
-                    </VBox>
-
-                    <!-- Age -->
-                    <VBox spacing="4.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                        <Label styleClass="form-label" text="Age" />
-                        <TextField fx:id="txtAge" promptText="Years" />
-                    </VBox>
-
-                    <!-- Gender -->
-                    <VBox spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                        <Label styleClass="form-label" text="Gender" />
-                        <ComboBox fx:id="cmbGender" maxWidth="Infinity" />
-                    </VBox>
-                </GridPane>
-            </VBox>
-
-            <!-- Group 2: Visit Details -->
-            <VBox spacing="10.0">
-                <Label text="Visit Details" style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #0F172A;" />
-
-                <GridPane hgap="16.0" vgap="12.0">
-                    <columnConstraints>
-                        <ColumnConstraints percentWidth="50.0" />
-                        <ColumnConstraints percentWidth="50.0" />
-                    </columnConstraints>
-
-                    <!-- Emergency Level -->
-                    <VBox spacing="4.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                        <HBox alignment="CENTER_LEFT" spacing="6.0">
-                            <Label styleClass="form-label" text="Emergency Level" />
-                            <Label text="ℹ" style="-fx-text-fill: #0284C7; -fx-font-size: 11px; -fx-cursor: hand;">
-                                <tooltip>
-                                    <Tooltip text="Critical: immediate life threat&#10;High: severe emergency/fracture&#10;Medium: acute distress/pain&#10;Low: minor condition" />
-                                </tooltip>
-                            </Label>
-                        </HBox>
-                        <ComboBox fx:id="cmbEmergencyLevel" maxWidth="Infinity" />
-                    </VBox>
-
-                    <!-- Priority Level Clinical Note -->
-                    <VBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <Label styleClass="form-label" text="Priority Guidance" />
-                        <Label fx:id="lblLevelDescription" styleClass="form-note" wrapText="true" />
-                    </VBox>
-                </GridPane>
-
-                <VBox spacing="4.0">
-                    <Label styleClass="form-label" text="Presenting Complaint" />
-                    <TextArea fx:id="txtSymptoms" prefRowCount="3"
-                              promptText="Describe presenting symptoms, clinical observation, or injury mechanism..."
-                              wrapText="true" />
-                </VBox>
-            </VBox>
-
-            <!-- Quiet note & Actions -->
-            <HBox alignment="CENTER_LEFT" spacing="12.0" style="-fx-padding: 8px 0 0 0;">
-                <Label fx:id="lblPreviewToken" styleClass="form-note" text="A token number is assigned after registration." />
-                <Region HBox.hgrow="ALWAYS" />
-                <Button onAction="#handleClearForm" styleClass="btn-secondary" text="Clear" />
-                <Button fx:id="btnRegister" onAction="#handleRegisterPatient" styleClass="btn-primary" text="Register Patient" />
+        <!-- 3-STEP WIZARD PROGRESS BAR (PAGES 4, 5, 6) -->
+        <HBox alignment="CENTER" spacing="12.0" styleClass="card" style="-fx-padding: 14px 24px;">
+            <HBox alignment="CENTER" spacing="8.0">
+                <StackPane fx:id="step1Circle" styleClass="stepper-circle, stepper-circle-active">
+                    <Label fx:id="lblStep1Num" text="1" style="-fx-text-fill: #FFFFFF; -fx-font-weight: 700;" />
+                </StackPane>
+                <Label fx:id="lblStep1Text" text="Identity" style="-fx-font-weight: 700; -fx-text-fill: #0F172A;" />
             </HBox>
 
-            <!-- Hidden compatibility label -->
-            <Label fx:id="lblFormMessage" visible="false" managed="false" />
-        </VBox>
-    </VBox>
+            <SVGPath fx:id="lineStep1" content="M0 0 L 80 0" styleClass="stepper-line" />
 
-</VBox>
+            <HBox alignment="CENTER" spacing="8.0">
+                <StackPane fx:id="step2Circle" styleClass="stepper-circle">
+                    <Label fx:id="lblStep2Num" text="2" style="-fx-text-fill: #64748B; -fx-font-weight: 700;" />
+                </StackPane>
+                <Label fx:id="lblStep2Text" text="Triage assessment" style="-fx-font-weight: 500; -fx-text-fill: #64748B;" />
+            </HBox>
+
+            <SVGPath fx:id="lineStep2" content="M0 0 L 80 0" styleClass="stepper-line" />
+
+            <HBox alignment="CENTER" spacing="8.0">
+                <StackPane fx:id="step3Circle" styleClass="stepper-circle">
+                    <Label fx:id="lblStep3Num" text="3" style="-fx-text-fill: #64748B; -fx-font-weight: 700;" />
+                </StackPane>
+                <Label fx:id="lblStep3Text" text="Decision" style="-fx-font-weight: 500; -fx-text-fill: #64748B;" />
+            </HBox>
+        </HBox>
+
+        <!-- ================================================================= -->
+        <!-- STEP 1: IDENTITY (PAGE 4)                                         -->
+        <!-- ================================================================= -->
+        <VBox fx:id="paneStep1" spacing="16.0">
+            <!-- Returning Patient Found Banner (Page 4) -->
+            <HBox fx:id="bannerReturningPatient" alignment="CENTER_LEFT" spacing="12.0"
+                  style="-fx-background-color: #EFF6FF; -fx-border-color: #BFDBFE; -fx-border-width: 1px; -fx-border-radius: 10px; -fx-background-radius: 10px; -fx-padding: 12px 16px;">
+                <SVGPath content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" style="-fx-stroke: #2563EB; -fx-stroke-width: 2; -fx-fill: transparent;" />
+                <VBox spacing="1.0" HBox.hgrow="ALWAYS">
+                    <Label text="Returning patient found" style="-fx-font-weight: 700; -fx-text-fill: #1E3A8A; -fx-font-size: 13px;" />
+                    <Label text="Ramesh Kumar · UH-2026-000891 · last visit 02 Aug 2026 (fever)" style="-fx-text-fill: #3B82F6; -fx-font-size: 12px;" />
+                </VBox>
+                <Button text="Use this record" onAction="#handleUseReturningRecord" styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 6px 14px; -fx-background-color: #2563EB;" />
+            </HBox>
+
+            <!-- Patient Details Card -->
+            <VBox styleClass="card" spacing="16.0">
+                <Label text="Patient details" styleClass="card-title" />
+
+                <GridPane hgap="16.0" vgap="14.0">
+                    <!-- Row 0: Full Name & Contact Number -->
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Full name *" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtName" promptText="e.g. Ramesh Kumar" prefWidth="420.0" />
+                        <Label fx:id="errName" text="Name is required" visible="false" managed="false" style="-fx-text-fill: #EF4444; -fx-font-size: 11px;" />
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Contact number *" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtPhone" promptText="e.g. 98765 43210" prefWidth="420.0" />
+                        <Label fx:id="errPhone" text="Valid 10-digit phone number is required" visible="false" managed="false" style="-fx-text-fill: #EF4444; -fx-font-size: 11px;" />
+                    </VBox>
+
+                    <!-- Row 1: DOB, Age, Gender -->
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <HBox spacing="14.0">
+                            <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                <Label text="Date of birth *" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                                <TextField fx:id="txtDob" promptText="14 / 03 / 1968" onKeyReleased="#handleDobChange" />
+                            </VBox>
+                            <VBox spacing="6.0" prefWidth="120.0">
+                                <Label text="Age" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                                <TextField fx:id="txtAge" promptText="58 years" editable="false" style="-fx-background-color: #F8FAFC;" />
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label text="Gender *" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <ComboBox fx:id="cmbGender" maxWidth="Infinity" />
+                    </VBox>
+
+                    <!-- Row 2: Address & Blood Group -->
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                        <Label text="Address" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtAddress" promptText="e.g. 12, Lake View Road, Chennai" />
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <Label text="Blood group" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <ComboBox fx:id="cmbBloodGroup" maxWidth="Infinity" />
+                    </VBox>
+                </GridPane>
+            </VBox>
+
+            <!-- Emergency Contact Card -->
+            <VBox styleClass="card" spacing="14.0">
+                <Label text="Emergency contact" styleClass="card-title" />
+                <GridPane hgap="16.0" vgap="12.0">
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Name" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtEmergName" promptText="Sunita Kumar" prefWidth="280.0" />
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Relation" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtEmergRelation" promptText="Spouse" prefWidth="280.0" />
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                        <Label text="Phone" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtEmergPhone" promptText="98765 11122" prefWidth="280.0" />
+                    </VBox>
+                </GridPane>
+            </VBox>
+
+            <!-- Arrival Mode & MLC -->
+            <VBox styleClass="card" spacing="14.0">
+                <Label text="Arrival" styleClass="card-title" />
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Button fx:id="chipWalkIn" text="Walk-in" onAction="#handleSelectArrivalWalkIn" styleClass="btn-secondary" />
+                    <Button fx:id="chipAmbulance" text="🚑 Ambulance" onAction="#handleSelectArrivalAmbulance" styleClass="btn-primary" />
+                    <Button fx:id="chipReferred" text="Referred" onAction="#handleSelectArrivalReferred" styleClass="btn-secondary" />
+                    <Button fx:id="chipPolice" text="Police" onAction="#handleSelectArrivalPolice" styleClass="btn-secondary" />
+                    <Button fx:id="chipRelatives" text="Brought by relatives" onAction="#handleSelectArrivalRelatives" styleClass="btn-secondary" />
+                </HBox>
+
+                <CheckBox fx:id="chkMlc" text="Medico-legal case (MLC)" style="-fx-font-weight: 600; -fx-text-fill: #0F172A; -fx-padding: 8px 0 0 0;" />
+            </VBox>
+
+            <!-- Step 1 Bottom Action Bar -->
+            <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                <Button text="Cancel" onAction="#handleCancelRegistration" styleClass="btn-secondary" />
+                <Button text="Continue to triage" onAction="#handleContinueToTriage" styleClass="btn-primary" />
+            </HBox>
+        </VBox>
+
+        <!-- ================================================================= -->
+        <!-- STEP 2: TRIAGE ASSESSMENT (PAGE 5)                                -->
+        <!-- ================================================================= -->
+        <VBox fx:id="paneStep2" visible="false" managed="false" spacing="16.0">
+            <!-- Patient Header Banner -->
+            <HBox alignment="CENTER_RIGHT">
+                <Label fx:id="lblStep2PatientBanner" text="Ramesh Kumar · 58 M · UH-2026-000891"
+                       style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
+            </HBox>
+
+            <!-- Vital Signs Card (Page 5) -->
+            <VBox styleClass="card" spacing="14.0">
+                <Label text="Vital signs *" styleClass="card-title" />
+
+                <GridPane hgap="16.0" vgap="14.0">
+                    <!-- SpO2 -->
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="SpO2 (%)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <HBox alignment="CENTER_LEFT" spacing="6.0">
+                            <TextField fx:id="txtSpo2" text="88" onKeyReleased="#handleVitalsChange" prefWidth="140.0" />
+                            <Label fx:id="badgeSpo2Alert" text="Critical" styleClass="badge, badge-critical" />
+                        </HBox>
+                    </VBox>
+
+                    <!-- Heart Rate -->
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Heart rate (bpm)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <HBox alignment="CENTER_LEFT" spacing="6.0">
+                            <TextField fx:id="txtHr" text="134" onKeyReleased="#handleVitalsChange" prefWidth="140.0" />
+                            <Label fx:id="badgeHrAlert" text="High" styleClass="badge, badge-high" />
+                        </HBox>
+                    </VBox>
+
+                    <!-- Temperature -->
+                    <VBox spacing="6.0" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                        <Label text="Temperature (F)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtTemp" text="98.6" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                    </VBox>
+
+                    <!-- Systolic BP -->
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label text="Systolic BP (mmHg)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtSysBp" text="150" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                    </VBox>
+
+                    <!-- Diastolic BP -->
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label text="Diastolic BP (mmHg)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtDiaBp" text="95" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                    </VBox>
+
+                    <!-- Respiratory Rate -->
+                    <VBox spacing="6.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                        <Label text="Respiratory rate (/min)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtRr" text="26" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                    </VBox>
+
+                    <!-- GCS -->
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                        <Label text="GCS (3 to 15)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtGcs" text="15" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                    </VBox>
+
+                    <!-- Pain Score Slider (0 to 10) -->
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Pain score: " style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                            <Label fx:id="lblPainValue" text="8 / 10" style="-fx-font-weight: 800; -fx-text-fill: #B91C1C;" />
+                        </HBox>
+                        <Slider fx:id="sliderPain" min="0" max="10" value="8" majorTickUnit="1" snapToTicks="true" showTickLabels="true" />
+                    </VBox>
+                </GridPane>
+            </VBox>
+
+            <!-- Chief Complaint Card (Page 5) -->
+            <VBox styleClass="card" spacing="14.0">
+                <Label text="Chief complaint *" styleClass="card-title" />
+                <HBox spacing="8.0" alignment="CENTER_LEFT">
+                    <Button text="Chest pain" onAction="#handleChipComplaint" styleClass="btn-primary" />
+                    <Button text="Breathlessness" onAction="#handleChipComplaint" styleClass="btn-secondary" />
+                    <Button text="Trauma" onAction="#handleChipComplaint" styleClass="btn-secondary" />
+                    <Button text="Stroke signs" onAction="#handleChipComplaint" styleClass="btn-secondary" />
+                    <Button text="Fever" onAction="#handleChipComplaint" styleClass="btn-secondary" />
+                    <Button text="Bleeding" onAction="#handleChipComplaint" styleClass="btn-secondary" />
+                </HBox>
+
+                <TextField fx:id="txtComplaint" text="Chest pain radiating to left arm, sweating, onset 30 minutes ago"
+                           style="-fx-font-size: 13px;" />
+
+                <GridPane hgap="16.0" vgap="12.0" style="-fx-padding: 8px 0 0 0;">
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Allergies" style="-fx-font-weight: 600; -fx-text-fill: #B91C1C;" />
+                        <TextField fx:id="txtAllergies" text="Penicillin" style="-fx-border-color: #FECACA; -fx-background-color: #FEF2F2;" prefWidth="420.0" />
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Known conditions" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <TextField fx:id="txtKnownConditions" text="Diabetes, hypertension" prefWidth="420.0" />
+                    </VBox>
+                </GridPane>
+            </VBox>
+
+            <!-- Clinical Decision Support (Page 5) -->
+            <VBox styleClass="card" spacing="14.0">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Clinical decision support" styleClass="card-title" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label fx:id="lblNews2ScoreBadge" text="NEWS2: 9" styleClass="badge, badge-critical" style="-fx-font-size: 13px; -fx-padding: 4px 12px;" />
+                </HBox>
+
+                <HBox spacing="24.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS" style="-fx-background-color: #F8FAFC; -fx-padding: 12px; -fx-background-radius: 8px;">
+                        <Label text="Rule engine" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                        <Label text="Critical" style="-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: #B91C1C;" />
+                        <Label text="SpO2 under 90%" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                    </VBox>
+
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS" style="-fx-background-color: #F8FAFC; -fx-padding: 12px; -fx-background-radius: 8px;">
+                        <Label text="AI agents" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                        <Label text="High" style="-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: #C2410C;" />
+                        <Label text="Possible acute coronary syndrome" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                    </VBox>
+                </HBox>
+
+                <!-- Disagreement Detected Banner (Page 5) -->
+                <HBox alignment="CENTER_LEFT" spacing="10.0"
+                      style="-fx-background-color: #FEF9C3; -fx-border-color: #FDE047; -fx-border-width: 1px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px 14px;">
+                    <SVGPath content="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" style="-fx-stroke: #A16207; -fx-stroke-width: 2; -fx-fill: transparent;" />
+                    <Label text="Disagreement detected. Defaulting to the higher acuity: Critical."
+                           style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #854D0E;" />
+                </HBox>
+            </VBox>
+
+            <!-- Step 2 Bottom Actions -->
+            <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                <Button text="Back" onAction="#handleBackToStep1" styleClass="btn-secondary" />
+                <Button text="Continue to decision" onAction="#handleContinueToDecision" styleClass="btn-primary" />
+            </HBox>
+        </VBox>
+
+        <!-- ================================================================= -->
+        <!-- STEP 3: DECISION AND ROUTING (PAGE 6)                             -->
+        <!-- ================================================================= -->
+        <VBox fx:id="paneStep3" visible="false" managed="false" spacing="16.0">
+            <!-- Recommendation Box (Page 6) -->
+            <VBox styleClass="card" spacing="12.0">
+                <Label text="Recommendation" styleClass="card-title" />
+                <HBox spacing="16.0" alignment="CENTER_LEFT">
+                    <VBox spacing="2.0">
+                        <Label text="Rule engine" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                        <Label text="Critical" style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
+                    </VBox>
+                    <Label text="|" style="-fx-text-fill: #CBD5E1; -fx-padding: 0 8px;" />
+                    <VBox spacing="2.0">
+                        <Label text="AI agents" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                        <Label text="High" style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #C2410C;" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <VBox spacing="2.0" alignment="CENTER_RIGHT">
+                        <Label text="Final suggestion" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                        <Label text="Critical" styleClass="badge, badge-critical" style="-fx-font-size: 13px; -fx-padding: 4px 14px;" />
+                    </VBox>
+                </HBox>
+
+                <Label text="Suggested: Cardiology · Bay 1 Resus (free) · Dr. Mehta (available)"
+                       style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0D9488;" />
+            </VBox>
+
+            <!-- Confirmed Routing (Page 6) -->
+            <VBox styleClass="card" spacing="16.0">
+                <Label text="Confirmed routing" styleClass="card-title" />
+
+                <GridPane hgap="16.0" vgap="14.0">
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Final urgency *" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <ComboBox fx:id="cmbFinalUrgency" maxWidth="Infinity" />
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Specialty *" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <ComboBox fx:id="cmbSpecialty" maxWidth="Infinity" />
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label text="Assigned doctor *" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <ComboBox fx:id="cmbDoctor" maxWidth="Infinity" />
+                    </VBox>
+                    <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label text="ER bay *" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
+                        <ComboBox fx:id="cmbBay" maxWidth="Infinity" />
+                    </VBox>
+                </GridPane>
+
+                <Label fx:id="lblRoutingHint" text="Critical: immediate care. Target wait: 0 min."
+                       style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #64748B;" />
+
+                <HBox spacing="16.0" alignment="CENTER_LEFT" style="-fx-padding: 10px 0 0 0;">
+                    <Button fx:id="btnAcceptRec" text="✓ Accept recommendation" onAction="#handleAcceptRec" styleClass="btn-primary" />
+                    <Button fx:id="btnOverrideRec" text="✎ Clinical override" onAction="#handleClinicalOverride" styleClass="btn-secondary" />
+                    <Label text="An override needs a reason and is logged." style="-fx-font-size: 12px; -fx-text-fill: #94A3B8;" />
+                </HBox>
+            </VBox>
+
+            <!-- Step 3 Bottom Actions -->
+            <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                <Button text="Back" onAction="#handleBackToStep2" styleClass="btn-secondary" />
+                <Button text="Register and print ticket" onAction="#handleRegisterAndPrint" styleClass="btn-primary" style="-fx-font-size: 14px; -fx-padding: 10px 20px;" />
+            </HBox>
+        </VBox>
+
+    </VBox>
+</ScrollPane>

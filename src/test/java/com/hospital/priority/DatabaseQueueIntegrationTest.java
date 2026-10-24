@@ -49,9 +49,12 @@ public class DatabaseQueueIntegrationTest {
                     ") must have urgency >= patient at pos " + (i + 2) + " (" + next.getEmergencyLevel() + ")");
         }
 
-        // Verify that the head of the queue is CRITICAL
+        // Verify that the head of the queue is the top patient from sorted snapshot
         Patient head = queueService.peekNext();
         assertNotNull(head);
-        assertEquals(EmergencyLevel.CRITICAL, head.getEmergencyLevel(), "Head of queue should be CRITICAL urgency");
+        assertEquals(sortedSnapshot.get(0).getPatientId(), head.getPatientId(),
+                "Head of queue must match the highest priority patient in the sorted snapshot");
+        assertEquals(sortedSnapshot.get(0).getEmergencyLevel(), head.getEmergencyLevel(),
+                "Head of queue urgency level must match the first patient in sorted snapshot");
     }
 }

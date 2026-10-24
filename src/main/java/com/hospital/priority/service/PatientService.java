@@ -6,6 +6,7 @@ import com.hospital.priority.exception.DatabaseOperationException;
 import com.hospital.priority.exception.InvalidPatientDataException;
 import com.hospital.priority.exception.PatientNotFoundException;
 import com.hospital.priority.model.*;
+import com.hospital.priority.service.ai.AIAgentOrchestrator;
 import com.hospital.priority.util.TokenGenerator;
 import com.hospital.priority.util.ValidationUtil;
 
@@ -16,18 +17,25 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * ============================================================================
+ * HEPS 2.0 PATIENT SERVICE
+ * ============================================================================
  * Service orchestrating patient domain workflows, data validation,
- * persistence, and queue updates.
+ * persistence, queue updates, AI multi-agent analysis, and doctor routing.
  */
 public class PatientService {
 
     private static PatientService instance;
     private final PatientDao patientDao;
     private final QueueService queueService;
+    private final DoctorRoutingService routingService;
+    private final AIAgentOrchestrator aiOrchestrator;
 
     private PatientService() {
         this.patientDao = new PatientDaoImpl();
         this.queueService = QueueService.getInstance();
+        this.routingService = DoctorRoutingService.getInstance();
+        this.aiOrchestrator = AIAgentOrchestrator.getInstance();
     }
 
     public static synchronized PatientService getInstance() {
@@ -50,15 +58,34 @@ public class PatientService {
     }
 
     /**
-     * Registers a new patient into the Emergency System:
-     * 1. Validates inputs.
-     * 2. Auto-generates unique token.
-     * 3. Sets timestamps and WAITING status.
+     * Runs multi-agent AI assessment + deterministic Java safety check.
+     */
+    public AIAssessmentResult runClinicalAndAiAssessment(String fullName, int age, String gender,
+                                                         String symptoms, Vitals vitals) {
+        return aiOrchestrator.assessPatient(fullName, age, gender, symptoms, vitals);
+    }
+
+    /**
+     * Finds optimal available specialist doctor for a given specialty.
+     */
+    public DoctorRoutingService.RoutingDecision routeDoctor(Specialty specialty) {
+        return routingService.routeDoctor(specialty);
+    }
+
+    /**
+     * HEPS 2.0 Full Registration Workflow:
+     * 1. Validates patient inputs.
+     * 2. Auto-generates unique sequential token.
+     * 3. Sets vitals, specialty, and doctor assignment.
      * 4. Persists to MySQL.
-     * 5. Immediately adds to the active PriorityQueue.
+     * 5. Immediately enqueues into in-memory Min-Heap PriorityQueue.
+     * 6. Updates doctor's workload.
      */
     public Patient registerPatient(String fullName, String ageStr, String gender,
-                                   String phone, String symptoms, EmergencyLevel level)
+                                   String phone, String symptoms, EmergencyLevel level,
+                                   Vitals vitals, Specialty specialty, Doctor assignedDoctor,
+                                   String assignedBay,
+                                   EmergencyLevel aiLevel, EmergencyLevel ruleLevel, String overrideReason)
             throws InvalidPatientDataException, DatabaseOperationException {
 
         // Step 1: Input Validation
@@ -80,6 +107,25 @@ public class PatientService {
                 LocalDateTime.now()
         );
         patient.setStatus(PatientStatus.WAITING);
+        patient.setVitals(vitals != null ? vitals : new Vitals());
+        patient.setAssignedSpecialty(specialty != null ? specialty : Specialty.GENERAL_EMERGENCY);
+        patient.setAssignedBay(assignedBay != null && !assignedBay.trim().isEmpty() ? assignedBay : Patient.getDefaultBayForLevel(level));
+
+        if (assignedDoctor != null) {
+            patient.setAssignedDoctorId(assignedDoctor.getDoctorId());
+            patient.setAssignedDoctorName(assignedDoctor.getName());
+        } else {
+            // Auto-route if not explicitly specified
+            DoctorRoutingService.RoutingDecision route = routingService.routeDoctor(patient.getAssignedSpecialty());
+            if (route != null && route.getAssignedDoctor() != null) {
+                patient.setAssignedDoctorId(route.getAssignedDoctor().getDoctorId());
+                patient.setAssignedDoctorName(route.getAssignedDoctor().getName());
+            }
+        }
+
+        patient.setAiSuggestedLevel(aiLevel);
+        patient.setRuleSuggestedLevel(ruleLevel);
+        patient.setOverrideReason(overrideReason);
 
         // Step 4: Persist to MySQL
         int generatedId = patientDao.insert(patient);
@@ -89,6 +135,40 @@ public class PatientService {
         queueService.enqueue(patient);
 
         return patient;
+    }
+
+    /**
+     * Registers and persists an already-constructed Patient model object.
+     */
+    public Patient registerPatient(Patient patient) throws DatabaseOperationException {
+        if (patient == null) {
+            throw new IllegalArgumentException("Patient cannot be null");
+        }
+        if (patient.getTokenNo() == null || patient.getTokenNo().isEmpty()) {
+            patient.setTokenNo(TokenGenerator.nextToken());
+        }
+        int generatedId = patientDao.insert(patient);
+        patient.setPatientId(generatedId);
+        return patient;
+    }
+
+    public Patient registerPatient(String fullName, String ageStr, String gender,
+                                   String phone, String symptoms, EmergencyLevel level,
+                                   Vitals vitals, Specialty specialty, Doctor assignedDoctor,
+                                   EmergencyLevel aiLevel, EmergencyLevel ruleLevel, String overrideReason)
+            throws InvalidPatientDataException, DatabaseOperationException {
+        return registerPatient(fullName, ageStr, gender, phone, symptoms, level,
+                vitals, specialty, assignedDoctor, null, aiLevel, ruleLevel, overrideReason);
+    }
+
+    /**
+     * Backward-compatible registration method for HEPS 1.0 callers.
+     */
+    public Patient registerPatient(String fullName, String ageStr, String gender,
+                                   String phone, String symptoms, EmergencyLevel level)
+            throws InvalidPatientDataException, DatabaseOperationException {
+        return registerPatient(fullName, ageStr, gender, phone, symptoms, level,
+                new Vitals(), Specialty.GENERAL_EMERGENCY, null, null, null, null, null);
     }
 
     public boolean updatePatient(Patient patient) throws DatabaseOperationException, InvalidPatientDataException {
@@ -136,26 +216,17 @@ public class PatientService {
 
         int totalWaiting = queueService.getQueueSize();
         int criticalWaiting = queueService.getCriticalCount();
+        int escalatedCount = queueService.getEscalatedCount();
         int inTreatment = patientDao.countByStatus(PatientStatus.IN_TREATMENT);
         int completedToday = patientDao.countCompletedToday();
-        Patient nextPatient = queueService.peekNext();
 
         stats.put("totalWaiting", totalWaiting);
         stats.put("criticalWaiting", criticalWaiting);
+        stats.put("escalatedCount", escalatedCount);
         stats.put("inTreatment", inTreatment);
         stats.put("completedToday", completedToday);
-        stats.put("nextPatient", nextPatient);
+        stats.put("specialistAvailability", routingService.getAvailableDoctorsCountBySpecialty());
 
         return stats;
-    }
-
-    public void cancelPatient(int patientId) throws DatabaseOperationException, PatientNotFoundException {
-        Optional<Patient> pOpt = patientDao.findById(patientId);
-        if (pOpt.isEmpty()) {
-            throw new PatientNotFoundException("Patient not found with ID: " + patientId);
-        }
-        Patient p = pOpt.get();
-        queueService.removeFromQueue(p);
-        patientDao.updateStatus(patientId, PatientStatus.CANCELLED);
     }
 }

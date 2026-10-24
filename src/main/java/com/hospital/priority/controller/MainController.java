@@ -1,40 +1,77 @@
 package com.hospital.priority.controller;
 
+import com.hospital.priority.model.Role;
 import com.hospital.priority.model.User;
-import com.hospital.priority.service.AuthService;
+import com.hospital.priority.service.AlertService;
+import com.hospital.priority.service.AuditService;
+import com.hospital.priority.service.UserSession;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
+/**
+ * ============================================================================
+ * MAIN WORKSTATION CONTROLLER (Page 2)
+ * ============================================================================
+ * Coordinates the Top Bar, Live Clock, Alerts Badge, Global Search, and Role-Filtered Sidebar.
+ */
 public class MainController implements Initializable {
 
     private static MainController instance;
 
-    @FXML private Label userBadgeLabel;
-    @FXML private Button btnSignOut;
-
-    @FXML private Button btnNavOverview;
-    @FXML private Button btnNavRegister;
-    @FXML private Button btnNavQueue;
-    @FXML private Button btnNavRecords;
-
+    @FXML private VBox sidebar;
+    @FXML private Label lblScreenTitle;
+    @FXML private Label lblClock;
+    @FXML private Label lblAlertBadge;
+    @FXML private TextField txtGlobalSearch;
     @FXML private StackPane contentArea;
 
-    private final AuthService authService = AuthService.getInstance();
+    // Sidebar Groups for Role Filtering (Page 18)
+    @FXML private VBox grpOperations;
+    @FXML private VBox grpClinical;
+    @FXML private VBox grpRecords;
+    @FXML private VBox grpInsights;
+    @FXML private VBox grpAdmin;
+
+    // Nav Buttons
+    @FXML private Button btnNavCommandCenter;
+    @FXML private Button btnNavRegister;
+    @FXML private Button btnNavQueue;
+    @FXML private Button btnNavBayBoard;
+    @FXML private Button btnNavMassCasualty;
+    @FXML private Button btnNavDoctorWorkspace;
+    @FXML private Button btnNavOrdersResults;
+    @FXML private Button btnNavRecords;
+    @FXML private Button btnNavDischarge;
+    @FXML private Button btnNavReports;
+    @FXML private Button btnNavAlerts;
+    @FXML private Button btnNavAdmin;
+
+    // User Profile at bottom of sidebar
+    @FXML private Label lblInitials;
+    @FXML private Label lblStaffName;
+    @FXML private Label lblStaffRole;
+
+    private final List<Button> allNavButtons = new ArrayList<>();
+    private static final DateTimeFormatter CLOCK_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
     public static MainController getInstance() {
         return instance;
@@ -43,100 +80,264 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         instance = this;
-        updateUserBadge();
-        showOverview(null);
+
+        // Register nav buttons
+        allNavButtons.addAll(Arrays.asList(
+                btnNavCommandCenter, btnNavRegister, btnNavQueue, btnNavBayBoard, btnNavMassCasualty,
+                btnNavDoctorWorkspace, btnNavOrdersResults, btnNavRecords, btnNavDischarge,
+                btnNavReports, btnNavAlerts, btnNavAdmin
+        ));
+
+        // Start live clock
+        startLiveClock();
+
+        // Apply role permissions to sidebar items
+        applyRolePermissions();
+
+        // Update active profile pill
+        updateUserProfile();
+
+        // Update alerts badge
+        updateAlertBadge();
+
+        // Show Command Center by default (Page 2)
+        showCommandCenter(null);
     }
 
-    public void updateUserBadge() {
-        User user = authService.getCurrentUser();
-        if (user != null) {
-            userBadgeLabel.setText(user.getFullName());
-        } else {
-            userBadgeLabel.setText("Administrator");
+    private void startLiveClock() {
+        lblClock.setText(LocalDateTime.now().format(CLOCK_FMT));
+        Timeline clockTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            lblClock.setText(LocalDateTime.now().format(CLOCK_FMT));
+            updateAlertBadge();
+        }));
+        clockTimeline.setCycleCount(Timeline.INDEFINITE);
+        clockTimeline.play();
+    }
+
+    public void updateAlertBadge() {
+        int unread = AlertService.getInstance().getUnreadCount();
+        if (lblAlertBadge != null) {
+            lblAlertBadge.setText(String.valueOf(unread));
+            lblAlertBadge.setVisible(unread > 0);
         }
     }
 
     public void updateSidebarCounters() {
-        // Safe hook retained for multi-controller notifications
+        updateAlertBadge();
     }
 
+    public void updateUserProfile() {
+        UserSession session = UserSession.getInstance();
+        if (lblStaffName != null) lblStaffName.setText(session.getStaffName());
+        if (lblStaffRole != null) lblStaffRole.setText(session.getRole().getTitle());
+        if (lblInitials != null) lblInitials.setText(session.getStaffInitials());
+    }
+
+    /**
+     * Enforces the Page 18 Permission Matrix.
+     */
+    public void applyRolePermissions() {
+        UserSession session = UserSession.getInstance();
+
+        setNavVisible(btnNavRegister, session.canAccessRegisterPatient());
+        setNavVisible(btnNavQueue, session.canAccessEmergencyQueue());
+        setNavVisible(btnNavBayBoard, session.canAccessBayBoard());
+        setNavVisible(btnNavMassCasualty, session.canAccessMassCasualty());
+        setNavVisible(btnNavDoctorWorkspace, session.canAccessDoctorWorkspace());
+        setNavVisible(btnNavOrdersResults, session.canAccessOrdersResults());
+        setNavVisible(btnNavDischarge, session.canAccessDisposition());
+        setNavVisible(btnNavReports, session.canAccessReports());
+        setNavVisible(btnNavAlerts, session.canAccessAlerts());
+        setNavVisible(btnNavAdmin, session.canAccessAdmin());
+
+        // Hide entire group boxes if all children are hidden
+        if (grpAdmin != null) {
+            grpAdmin.setVisible(session.canAccessAdmin());
+            grpAdmin.setManaged(session.canAccessAdmin());
+        }
+        if (grpInsights != null) {
+            boolean visible = session.canAccessReports() || session.canAccessAlerts();
+            grpInsights.setVisible(visible);
+            grpInsights.setManaged(visible);
+        }
+        if (grpClinical != null) {
+            boolean visible = session.canAccessDoctorWorkspace() || session.canAccessOrdersResults();
+            grpClinical.setVisible(visible);
+            grpClinical.setManaged(visible);
+        }
+    }
+
+    private void setNavVisible(Button btn, boolean visible) {
+        if (btn != null) {
+            btn.setVisible(visible);
+            btn.setManaged(visible);
+        }
+    }
+
+    // =========================================================================
+    // SCREEN NAVIGATION ACTIONS
+    // =========================================================================
+
     @FXML
-    public void showOverview(ActionEvent event) {
-        setActiveNavButton(btnNavOverview);
+    public void showCommandCenter(ActionEvent event) {
+        lblScreenTitle.setText("Command center");
+        setActiveNav(btnNavCommandCenter);
         loadView("/fxml/dashboard.fxml");
     }
 
-    // Backward compatibility alias for existing callers
+    // Backward compatibility aliases
+    public void showOverview(ActionEvent event) {
+        showCommandCenter(event);
+    }
     public void showDashboard(ActionEvent event) {
-        showOverview(event);
+        showCommandCenter(event);
     }
 
     @FXML
     public void showRegisterPatient(ActionEvent event) {
-        setActiveNavButton(btnNavRegister);
+        lblScreenTitle.setText("Register patient");
+        setActiveNav(btnNavRegister);
         loadView("/fxml/register_patient.fxml");
     }
 
     @FXML
     public void showEmergencyQueue(ActionEvent event) {
-        setActiveNavButton(btnNavQueue);
+        lblScreenTitle.setText("Emergency queue");
+        setActiveNav(btnNavQueue);
         loadView("/fxml/emergency_queue.fxml");
     }
 
     @FXML
+    public void showBayBoard(ActionEvent event) {
+        lblScreenTitle.setText("Bay board");
+        setActiveNav(btnNavBayBoard);
+        loadView("/fxml/bay_board.fxml");
+    }
+
+    @FXML
+    public void showMassCasualty(ActionEvent event) {
+        lblScreenTitle.setText("Mass casualty");
+        setActiveNav(btnNavMassCasualty);
+        loadView("/fxml/mass_casualty.fxml");
+    }
+
+    @FXML
+    public void showDoctorWorkspace(ActionEvent event) {
+        lblScreenTitle.setText("Doctor workspace");
+        setActiveNav(btnNavDoctorWorkspace);
+        loadView("/fxml/doctor_workspace.fxml");
+    }
+
+    @FXML
+    public void showOrdersResults(ActionEvent event) {
+        lblScreenTitle.setText("Orders and results");
+        setActiveNav(btnNavOrdersResults);
+        loadView("/fxml/orders_results.fxml");
+    }
+
+    @FXML
     public void showPatientRecords(ActionEvent event) {
-        setActiveNavButton(btnNavRecords);
+        lblScreenTitle.setText("Patient records");
+        setActiveNav(btnNavRecords);
         loadView("/fxml/patient_history.fxml");
     }
 
-    // Backward compatibility alias
     public void showPatientHistory(ActionEvent event) {
         showPatientRecords(event);
     }
 
-    private void setActiveNavButton(Button activeButton) {
-        List<Button> navButtons = Arrays.asList(btnNavOverview, btnNavRegister, btnNavQueue, btnNavRecords);
-        for (Button btn : navButtons) {
-            if (btn != null) {
-                btn.getStyleClass().remove("nav-button-active");
-            }
-        }
-        if (activeButton != null && !activeButton.getStyleClass().contains("nav-button-active")) {
-            activeButton.getStyleClass().add("nav-button-active");
+    @FXML
+    public void showDischarge(ActionEvent event) {
+        lblScreenTitle.setText("Disposition & discharge");
+        setActiveNav(btnNavDischarge);
+        loadView("/fxml/disposition.fxml");
+    }
+
+    @FXML
+    public void showReports(ActionEvent event) {
+        lblScreenTitle.setText("Reports and analytics");
+        setActiveNav(btnNavReports);
+        loadView("/fxml/reports.fxml");
+    }
+
+    @FXML
+    public void showAlerts(ActionEvent event) {
+        lblScreenTitle.setText("Alerts center");
+        setActiveNav(btnNavAlerts);
+        loadView("/fxml/alerts.fxml");
+    }
+
+    @FXML
+    public void showAdmin(ActionEvent event) {
+        lblScreenTitle.setText("Admin");
+        setActiveNav(btnNavAdmin);
+        loadView("/fxml/admin.fxml");
+    }
+
+    @FXML
+    public void handleGlobalSearch(ActionEvent event) {
+        String query = txtGlobalSearch.getText() != null ? txtGlobalSearch.getText().trim() : "";
+        if (!query.isEmpty()) {
+            showPatientRecords(null);
+            // Patient records view will filter automatically
         }
     }
 
-    private void loadView(String fxmlPath) {
+    private void setActiveNav(Button active) {
+        for (Button b : allNavButtons) {
+            if (b != null) {
+                b.getStyleClass().remove("nav-item-active");
+            }
+        }
+        if (active != null && !active.getStyleClass().contains("nav-item-active")) {
+            active.getStyleClass().add("nav-item-active");
+        }
+    }
+
+    public void loadView(String fxmlPath) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Node node = loader.load();
             contentArea.getChildren().setAll(node);
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Error Loading Screen", "Failed to load view: " + fxmlPath + "\n" + e.getMessage());
+            // Fallback display if view is not yet built
+            Label placeholder = new Label("Screen loading: " + fxmlPath + "\n\n" + e.getMessage());
+            placeholder.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748B;");
+            contentArea.getChildren().setAll(placeholder);
         }
     }
 
     @FXML
-    private void handleSignOut(ActionEvent event) {
+    public void handleSignOut(ActionEvent event) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Sign Out");
-        confirm.setHeaderText("Sign out of Emergency Department Workstation?");
+        confirm.setHeaderText("Sign out of City General Hospital Emergency Workstation?");
         confirm.setContentText("Your active session will be ended.");
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            authService.logout();
-            updateUserBadge();
-            showOverview(null);
-        }
-    }
+            User currentUser = UserSession.getInstance().getCurrentUser();
+            String name = currentUser != null ? currentUser.getFullName() : "Staff";
+            AuditService.getInstance().log("USER_LOGOUT", null, null, null, null, name + " signed out.");
 
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+            UserSession.getInstance().logout();
+
+            // Return to login screen
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+                Parent root = loader.load();
+                Stage stage = (Stage) sidebar.getScene().getWindow();
+                Scene currentScene = stage.getScene();
+                if (currentScene != null) {
+                    currentScene.setRoot(root);
+                } else {
+                    stage.setScene(new Scene(root, 1280, 760));
+                }
+                stage.setTitle("HEPS – City General Hospital Emergency Department");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -20,3 +20,12 @@ src/main/resources/config.properties
 # OS Generated Files
 .DS_Store
 Thumbs.db
+
+# Release & Distribution Bundles (Executable packages)
+release/
+dist/
+dist_old/
+dependency-reduced-pom.xml
+*.lnk
+target_page_9.png
+

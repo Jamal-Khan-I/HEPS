@@ -16,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -38,11 +39,13 @@ public class PatientHistoryController implements Initializable {
     @FXML private TableColumn<Patient, String> colGender;
     @FXML private TableColumn<Patient, String> colPhone;
     @FXML private TableColumn<Patient, EmergencyLevel> colLevel;
+    @FXML private TableColumn<Patient, String> colBay;
     @FXML private TableColumn<Patient, PatientStatus> colStatus;
     @FXML private TableColumn<Patient, String> colArrival;
 
     @FXML private VBox detailsCard;
     @FXML private Label lblSelectedTokenAndName;
+    @FXML private Button btnPrintHistoryTicket;
     @FXML private Label lblDetailStatus;
     @FXML private Label lblDetailSymptoms;
     @FXML private Label lblDetailTreatmentNotes;
@@ -68,6 +71,33 @@ public class PatientHistoryController implements Initializable {
         colGender.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getGender()));
         colPhone.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getMaskedPhone()));
         colArrival.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getFormattedArrivalTime()));
+
+        colBay.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getAssignedBay()));
+        colBay.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String bay, boolean empty) {
+                super.updateItem(bay, empty);
+                if (empty || bay == null) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    String displayBay = bay.contains(" - ") ? bay.replaceAll(" - [A-Za-z]+", "") : bay;
+                    Label chip = new Label(displayBay);
+                    chip.setStyle(
+                            "-fx-background-color: #F8FAFC; " +
+                            "-fx-text-fill: #0F172A; " +
+                            "-fx-font-weight: 700; " +
+                            "-fx-font-size: 11px; " +
+                            "-fx-padding: 3px 8px; " +
+                            "-fx-background-radius: 999px; " +
+                            "-fx-border-color: #CBD5E1; " +
+                            "-fx-border-radius: 999px;"
+                    );
+                    setGraphic(chip);
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                }
+            }
+        });
 
         colLevel.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getEmergencyLevel()));
         colLevel.setCellFactory(col -> new TableCell<>() {
@@ -123,15 +153,18 @@ public class PatientHistoryController implements Initializable {
             if (selected != null) {
                 displayPatientDetails(selected);
                 btnCompleteTreatmentAction.setDisable(selected.getStatus() != PatientStatus.IN_TREATMENT);
+                if (btnPrintHistoryTicket != null) btnPrintHistoryTicket.setVisible(true);
             } else {
                 lblSelectedTokenAndName.setText("Select a patient above to inspect clinical history.");
                 lblDetailStatus.setVisible(false);
                 lblDetailSymptoms.setText("-");
                 lblDetailTreatmentNotes.setText("No patient selected.");
                 btnCompleteTreatmentAction.setDisable(true);
+                if (btnPrintHistoryTicket != null) btnPrintHistoryTicket.setVisible(false);
             }
         });
         btnCompleteTreatmentAction.setDisable(true);
+        if (btnPrintHistoryTicket != null) btnPrintHistoryTicket.setVisible(false);
     }
 
     private void displayPatientDetails(Patient patient) {
@@ -141,7 +174,19 @@ public class PatientHistoryController implements Initializable {
         lblDetailStatus.setText(patient.getStatus().getDisplayName());
         lblDetailStatus.getStyleClass().setAll("badge", patient.getStatus().getCssClass());
 
-        lblDetailSymptoms.setText(patient.getSymptoms());
+        StringBuilder symSb = new StringBuilder();
+        symSb.append(patient.getSymptoms()).append("\n\n");
+        symSb.append("• Assigned ER Bay: ").append(patient.getAssignedBay()).append("\n");
+        symSb.append("• Specialty: ").append(patient.getAssignedSpecialty() != null ? patient.getAssignedSpecialty().getDisplayName() : "General Emergency").append("\n");
+        symSb.append("• Assigned Doctor: ").append(patient.getAssignedDoctorName()).append("\n");
+        symSb.append("• Physiological Vitals: ").append(patient.getVitals() != null ? patient.getVitals().toSummaryString() : "Not recorded");
+        if (patient.isEscalated()) {
+            symSb.append("\n• ⚡ Escalation Note: ").append(patient.getEscalationReason());
+        }
+        if (patient.getOverrideReason() != null && !patient.getOverrideReason().isEmpty()) {
+            symSb.append("\n• ⚠ Clinical Override Reason: ").append(patient.getOverrideReason());
+        }
+        lblDetailSymptoms.setText(symSb.toString());
 
         try {
             Optional<TreatmentRecord> recOpt = treatmentService.getTreatmentForPatient(patient.getPatientId());
@@ -149,6 +194,7 @@ public class PatientHistoryController implements Initializable {
                 TreatmentRecord rec = recOpt.get();
                 StringBuilder sb = new StringBuilder();
                 sb.append("Attending Doctor: ").append(rec.getDoctorName() != null ? rec.getDoctorName() : "N/A").append("\n");
+                sb.append("Clinical Disposition: ").append(rec.getFormattedDisposition()).append("\n");
                 if (rec.getCompletedAt() != null) {
                     sb.append("Completed At: ").append(rec.getCompletedAt().format(Patient.DISPLAY_TIME_FMT)).append("\n");
                 }
@@ -178,6 +224,7 @@ public class PatientHistoryController implements Initializable {
             historyList.setAll(results);
             historyTable.getSelectionModel().clearSelection();
             btnCompleteTreatmentAction.setDisable(true);
+            if (btnPrintHistoryTicket != null) btnPrintHistoryTicket.setVisible(false);
         } catch (Exception e) {
             showError("Search Error", "Could not fetch patient records: " + e.getMessage());
         }
@@ -189,6 +236,14 @@ public class PatientHistoryController implements Initializable {
         cmbLevelFilter.setValue("ALL");
         cmbStatusFilter.setValue("ALL");
         refreshHistory();
+    }
+
+    @FXML
+    public void handlePrintTicket(ActionEvent event) {
+        Patient selected = historyTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            com.hospital.priority.util.TriageTicketUtil.showTicketDialog(selected, false);
+        }
     }
 
     @FXML
@@ -204,54 +259,107 @@ public class PatientHistoryController implements Initializable {
             return;
         }
 
-        // Dialog for entering Doctor name and Treatment Notes
+        // 1-Click Clinical Disposition Dialog
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Complete Treatment");
-        dialog.setHeaderText("Complete Treatment: " + selected.getFullName() + " (" + selected.getTokenNo() + ")");
+        dialog.setTitle("Clinical Disposition & Treatment Completion");
+        dialog.setHeaderText("Complete Treatment: " + selected.getFullName() + " (" + selected.getTokenNo() + ") • " + selected.getAssignedBay());
 
-        ButtonType btnSubmit = new ButtonType("Complete Treatment", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnSubmit = new ButtonType("Complete & Discharge →", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnSubmit, ButtonType.CANCEL);
 
+        VBox contentBox = new VBox(14);
+        contentBox.setStyle("-fx-padding: 16px;");
+
+        // Outcome Selector (1-Click Disposition)
+        Label lblOutcomeHeading = new Label("1. Select Clinical Disposition / Outcome:");
+        lblOutcomeHeading.setStyle("-fx-font-weight: 800; -fx-text-fill: #0F172A; -fx-font-size: 13px;");
+
+        ToggleGroup outcomeGroup = new ToggleGroup();
+        RadioButton rbDischarge = new RadioButton("✓ Discharged Home (Stable)");
+        rbDischarge.setToggleGroup(outcomeGroup);
+        rbDischarge.setSelected(true);
+        rbDischarge.setStyle("-fx-font-weight: 700; -fx-text-fill: #16A34A;");
+
+        RadioButton rbAdmit = new RadioButton("🏥 Admitted to Inpatient Ward");
+        rbAdmit.setToggleGroup(outcomeGroup);
+        rbAdmit.setStyle("-fx-font-weight: 700; -fx-text-fill: #0284C7;");
+
+        RadioButton rbIcu = new RadioButton("🚨 Transferred to ICU/OT");
+        rbIcu.setToggleGroup(outcomeGroup);
+        rbIcu.setStyle("-fx-font-weight: 700; -fx-text-fill: #DC2626;");
+
+        HBox outcomeRow = new HBox(16, rbDischarge, rbAdmit, rbIcu);
+        outcomeRow.setStyle("-fx-background-color: #F8FAFC; -fx-padding: 10px 14px; -fx-background-radius: 12px; -fx-border-color: #E2E8F0; -fx-border-radius: 12px;");
+
+        // Doctor & Notes
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.setStyle("-fx-padding: 16px;");
 
         TextField txtDoctor = new TextField();
-        String defaultDoctor = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Clinician";
+        String defaultDoctor = selected.getAssignedDoctorName() != null && !selected.getAssignedDoctorName().equalsIgnoreCase("Unassigned")
+                ? selected.getAssignedDoctorName()
+                : (authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Clinician");
         txtDoctor.setText(defaultDoctor);
 
         TextArea txtNotes = new TextArea();
-        txtNotes.setPromptText("Enter clinical observations, administered procedures, and discharge notes...");
+        txtNotes.setText("Patient examined and stabilized. Vital signs normalized. Discharged home in stable condition with outpatient care instructions.");
         txtNotes.setPrefRowCount(4);
         txtNotes.setWrapText(true);
 
-        grid.add(new Label("Attending Doctor:"), 0, 0);
+        // Auto-fill template notes on 1-click radio toggle
+        outcomeGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == rbDischarge) {
+                txtNotes.setText("Patient examined and stabilized. Vital signs normalized. Discharged home in stable condition with outpatient care instructions.");
+            } else if (newVal == rbAdmit) {
+                txtNotes.setText("Patient stabilized but requires continuing inpatient observation and treatment. Admitted to General Inpatient Ward under attending specialist care.");
+            } else if (newVal == rbIcu) {
+                txtNotes.setText("High-acuity emergency transfer initiated. Critical stabilization completed in bay; transferred immediately to Intensive Care Unit (ICU) / OT.");
+            }
+        });
+
+        Label lblDoc = new Label("Attending Physician:");
+        lblDoc.setStyle("-fx-font-weight: 700; -fx-text-fill: #475569;");
+        Label lblNotes = new Label("Clinical Observations & Notes *:");
+        lblNotes.setStyle("-fx-font-weight: 700; -fx-text-fill: #475569;");
+
+        grid.add(lblDoc, 0, 0);
         grid.add(txtDoctor, 1, 0);
-        grid.add(new Label("Treatment & Discharge Notes *:"), 0, 1);
+        grid.add(lblNotes, 0, 1);
         grid.add(txtNotes, 1, 1);
         GridPane.setHgrow(txtDoctor, Priority.ALWAYS);
         GridPane.setHgrow(txtNotes, Priority.ALWAYS);
 
-        dialog.getDialogPane().setContent(grid);
+        contentBox.getChildren().addAll(lblOutcomeHeading, outcomeRow, grid);
+        dialog.getDialogPane().setContent(contentBox);
 
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isPresent() && result.get() == btnSubmit) {
             String doctor = txtDoctor.getText();
             String notes = txtNotes.getText();
+            String disposition = "DISCHARGED_HOME";
+            String dispLabel = "Discharged Home";
+            if (outcomeGroup.getSelectedToggle() == rbAdmit) {
+                disposition = "ADMITTED_INPATIENT";
+                dispLabel = "Admitted to Inpatient";
+            } else if (outcomeGroup.getSelectedToggle() == rbIcu) {
+                disposition = "TRANSFERRED_ICU";
+                dispLabel = "Transferred to ICU/OT";
+            }
 
             if (notes == null || notes.trim().isEmpty()) {
-                showError("Validation Error", "Treatment notes cannot be empty before completing discharge.");
+                showError("Validation Error", "Clinical treatment notes cannot be empty before recording disposition.");
                 return;
             }
 
             try {
-                treatmentService.completeTreatment(selected.getPatientId(), doctor, notes);
+                treatmentService.completeTreatment(selected.getPatientId(), doctor, notes, disposition);
                 refreshHistory();
                 if (MainController.getInstance() != null) {
                     MainController.getInstance().updateSidebarCounters();
                 }
-                showInfo("Treatment Completed", "Patient " + selected.getFullName() + " (" + selected.getTokenNo() + ") marked as COMPLETED.");
+                showInfo("Clinical Disposition Recorded", "Patient [" + selected.getTokenNo() + "] " + selected.getFullName()
+                        + " completed with outcome: " + dispLabel + ".");
             } catch (Exception e) {
                 showError("Error", e.getMessage());
             }

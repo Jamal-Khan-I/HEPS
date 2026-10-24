@@ -1,192 +1,171 @@
-# Hospital Emergency Priority System (HEPS) — Team Presentation Guide
+# Hospital Emergency Priority System — Team Presentation Guide
 
-**Course:** CSE203 - Object-Oriented Programming using Java  
-**Evaluation:** Mini-Project Presentation & Individual Viva (50 Marks)  
-**File Generated:** [`docs/Hospital_Emergency_Priority_System_Presentation.pptx`](file:///e:/Antigravity%20IDE/hospital-emergency-priority-system/docs/Hospital_Emergency_Priority_System_Presentation.pptx)  
-**Total Target Duration:** 15 Minutes (~3 Minutes per Team Member) + 5 Minutes Q&A
-
----
-
-## Team Roster & Responsibility Matrix
-
-| Member | Primary Presentation Responsibility | Key Technical Topics Covered | Target Time |
-| :--- | :--- | :--- | :--- |
-| **Member 1** | **Clinical Context & Problem Statement** | Emergency Department overload, why FIFO queues fail in healthcare, triage urgency scale, project objectives. | 0:00 – 3:00 |
-| **Member 2** | **OOP Architecture & System Design** | Layered architecture (FXML -> Controller -> Service -> DAO -> MySQL), Encapsulation, Abstraction, Polymorphism, Custom Exceptions. | 3:00 – 6:00 |
-| **Member 3** | **Data Structures & Priority Queue Algorithms** | Min-Heap binary tree mechanics, $O(1)$ vs $O(\log N)$ complexity, 3-tier `PatientPriorityComparator`, tie-breaking logic. | 6:00 – 9:00 |
-| **Member 4** | **Database Design, Enterprise JDBC & Security** | MySQL relational schema, Foreign key cascades, PreparedStatements against SQL Injection, heap-to-DB synchronization. | 9:00 – 12:00 |
-| **Member 5** | **UI Tour, Automated QA & Live Demo** | JavaFX workstation layout, 19 passing JUnit 5 tests, live workflow (Register -> Admit -> Discharge), project conclusion. | 12:00 – 15:00 |
+**Course:** CSE203 — Object-Oriented Programming using Java  
+**Presentation File:** [`HEPS_Conceptual_Presentation.pptx`](file:///e:/Antigravity%20IDE/hospital-emergency-priority-system/docs/HEPS_Conceptual_Presentation.pptx)  
+**Total Duration:** 15 Minutes (~3 min per member) + 5 Minutes Q&A
 
 ---
 
-## Slide-by-Slide Speaker Notes & Talk Tracks
+## Team Roster & Speaking Order
 
-### [Slide 1] Title Slide (All Members on Stage)
-- **Speaker:** Member 1
-- **Visual:** Project Title, Course Code (CSE203), Team Member Names.
-- **Speaking Script:**
-  > *"Good morning respected evaluators and panel members. We are Group [Number], presenting our Object-Oriented Programming mini-project: the **Hospital Emergency Priority System (HEPS)**. Our system is an event-driven clinical workstation designed to solve the critical challenge of emergency patient prioritization using Java 17, JavaFX 21, relational persistence in MySQL, and an algorithmic min-heap priority queue. I will begin by introducing the healthcare challenge, followed by my team members who will cover our OOP architecture, data structure implementation, database engineering, and a live demonstration."*
-
----
-
-### [Slide 2] Presentation Agenda & Team Division
-- **Speaker:** Member 1
-- **Visual:** 5-member agenda breakdown cards.
-- **Speaking Script:**
-  > *"To give you a structured view of our defense today, we have divided the technical presentation into five distinct competencies: I will cover the clinical problem and triage requirements; Member 2 will explain our layered software architecture and OOP principles; Member 3 will walk through the internal binary heap mechanics and comparator algorithms; Member 4 will detail our MySQL relational persistence and security; and Member 5 will present our workstation UI, automated test suite, and live demo."*
-
----
-
-### [Slide 3] The Healthcare Challenge: Emergency Room Overload
-- **Speaker:** Member 1
-- **Visual:** Emergency room surge problem card and 4-level triage acuity scale (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`).
-- **Speaking Script:**
-  > *"In a busy hospital emergency department, patient arrivals are unpredictable and continuous. Patients walk through the door with vastly differing acuities—from superficial abrasions to life-threatening acute respiratory failure or myocardial infarction. If reception staff rely on manual registers or whiteboards, they experience severe cognitive fatigue under pressure, leading to dangerous errors and information silos."*
-
----
-
-### [Slide 4] Why FIFO Queues Fail & System Objectives
-- **Speaker:** Member 1
-- **Visual:** The FIFO trap vs. algorithmic priority queue; HEPS project objectives.
-- **Speaking Script:**
-  > *"In computer science, First-In, First-Out (FIFO) is standard for print spoolers and web servers. In healthcare, FIFO is medically fatal. A patient experiencing cardiac arrest who arrives at 14:45 cannot wait behind a patient with mild back pain who arrived at 14:00. Even a 5-minute delay in resuscitation can cause irreversible hypoxia. Therefore, our primary objective was to build an automated algorithmic triage queue where urgency dictates position, while arrival time acts solely as a fair tie-breaker within the same urgency tier."*
-- **Handoff Line:**
-  > *"I will now hand over to Member 2 to explain how we structured our software architecture using clean Object-Oriented principles."*
-
----
-
-### [Slide 5] Layered Architecture & Separation of Concerns
-- **Speaker:** Member 2
-- **Visual:** 6-layer architecture flow diagram.
-- **Speaking Script:**
-  > *"Thank you, Member 1. To ensure long-term maintainability and strict separation of concerns, HEPS is structured into six decoupled layers. At the top, the **Presentation Layer** uses JavaFX FXML views styled with CSS, containing zero business logic. The **Controller Layer** captures UI events and invokes the **Service Layer**—specifically `PatientService` and `QueueService`. Beneath them, the **Domain & DSA Layer** encapsulates our core entities and priority comparator. Finally, our **DAO Layer** abstracts database operations, communicating via JDBC with **MySQL 8**."*
-
----
-
-### [Slide 6] Core OOP Design Principles in Action
-- **Speaker:** Member 2
-- **Visual:** Four cards covering Encapsulation, Abstraction (DAO), Polymorphism, and Custom Exceptions.
-- **Speaking Script:**
-  > *"We applied all four pillars of OOP throughout the codebase:
-  > 1. **Encapsulation:** Domain classes like `Patient`, `User`, and `TreatmentRecord` keep fields private, with controlled accessors enforcing business invariants.
-  > 2. **Abstraction:** Through the Data Access Object pattern, `PatientDao` and `TreatmentRecordDao` define abstract interfaces. The services know nothing about SQL syntax.
-  > 3. **Polymorphism:** We implement the `Comparator<Patient>` interface dynamically, and use generic JavaFX `TableCell` factories to render custom status pills and priority badges.
-  > 4. **Exception Handling:** We designed a clean hierarchy with `InvalidPatientDataException` for validation boundaries and `DatabaseOperationException` for SQL failures, ensuring user-friendly error alerts without application crashes."*
-- **Handoff Line:**
-  > *"Member 3 will now take you into our core Data Structure and the internal mechanics of our PriorityQueue."*
-
----
-
-### [Slide 7] Data Structures & Algorithms: Java PriorityQueue
-- **Speaker:** Member 3
-- **Visual:** Binary min-heap diagram and asymptotic time complexity comparison table.
-- **Speaking Script:**
-  > *"Thank you, Member 2. At the core of our triage engine is Java's `java.util.PriorityQueue<Patient>`, which is internally implemented as an array-backed binary min-heap. Unlike a sorted LinkedList which requires $O(N)$ linear time to insert a new patient, the binary heap maintains the heap invariant where every parent is smaller than or equal to its children. This gives us $O(\log N)$ logarithmic insertion via sift-up, $O(\log N)$ deletion via sift-down, and $O(1)$ constant-time retrieval of the queue head. For 1,000 waiting patients, an enqueue requires fewer than 10 comparison operations."*
-
----
-
-### [Slide 8] Deterministic 3-Tier Priority Comparator Algorithm
-- **Speaker:** Member 3
-- **Visual:** `PatientPriorityComparator` decision tree breakdown (Tier 1, 2, 3).
-- **Speaking Script:**
-  > *"To govern the heap ordering, we authored a custom `PatientPriorityComparator`. The comparison follows a strict 3-tier cascade:
-  > - **Tier 1:** Medical Emergency Level. `CRITICAL` (rank 1) has highest priority, followed by `HIGH` (2), `MEDIUM` (3), and `LOW` (4).
-  > - **Tier 2:** Arrival Timestamp tie-breaker. If two patients have equal urgency, the one with the earlier arrival time is placed first—enforcing strict First-Come, First-Served fairness within the tier.
-  > - **Tier 3:** Sequential Token Number tie-breaker. If two patients have identical timestamps to the millisecond, their unique token strings guarantee deterministic mathematical sorting.
-  > Crucially, because direct iteration over Java's `PriorityQueue` only traverses the array in arbitrary heap order, `QueueService.getSortedSnapshot()` extracts elements into an immutable list sorted by this comparator before populating the JavaFX table."*
-- **Handoff Line:**
-  > *"Member 4 will now present our database schema and JDBC persistence engineering."*
-
----
-
-### [Slide 9] Relational Database Design & Schema Architecture
-- **Speaker:** Member 4
-- **Visual:** MySQL tables (`patients`, `treatment_records`) with keys and indexes.
-- **Speaking Script:**
-  > *"Thank you, Member 3. To guarantee data durability and auditable patient history, HEPS uses a local relational MySQL database. Our schema comprises two core transactional tables:
-  > - The `patients` table stores demographic records, triage urgency, arrival timestamps, and queue statuses (`WAITING`, `IN_TREATMENT`, `COMPLETED`).
-  > - The `treatment_records` table holds physician consultation documentation, linking to `patients` via a foreign key with cascading referential integrity.
-  > We indexed `status`, `emergency_level`, and `arrival_time` to ensure instant query performance even under high historical visit volumes."*
-
----
-
-### [Slide 10] Enterprise JDBC Persistence & Security Measures
-- **Speaker:** Member 4
-- **Visual:** PreparedStatements, heap-to-DB sync algorithm, and try-with-resources resource management.
-- **Speaking Script:**
-  > *"On the persistence tier, we implemented enterprise security and synchronization best practices:
-  > - **SQL Injection Prevention:** 100% of our SQL statements use parameterized `PreparedStatement` queries. User inputs are escaped by the MySQL JDBC driver as data literals.
-  > - **Dual-Layer Synchronization:** On startup, `QueueService` queries MySQL for all waiting patients and reconstructs the in-memory `PriorityQueue` in $O(N \log N)$ time. Any status mutation is persisted in MySQL before reconciling the in-memory queue.
-  > - **Resource Safety:** All database connections, statements, and result sets are wrapped in Java `try-with-resources` blocks to completely eliminate connection leaks.
-  > - **Patient Privacy:** Phone numbers are masked in reception tables as `+91 98****001`, only exposed in clinical inspection drawers upon doctor authorization."*
-- **Handoff Line:**
-  > *"Member 5 will now demonstrate the clinical desktop workstation and our automated testing results."*
-
----
-
-### [Slide 11] Emergency Department Staff Workstation UI
-- **Speaker:** Member 5
-- **Visual:** Full application workstation screenshot (`screen_full_app.png`).
-- **Speaking Script:**
-  > *"Thank you, Member 4. For our user interface, we moved away from generic student templates and designed an authentic clinical desktop workstation. Notice the calm color palette: soft cool grays, white panels, and restrained hospital blue, reserving red strictly for CRITICAL life-threats. The header prominently displays 'Emergency Department' with administrator identity and sign-out controls. The sidebar features custom SVG vector icons for our four core views: Overview, Register Patient, Emergency Queue, and Patient Records."*
-
----
-
-### [Slide 12] Functional Screen Tour & Clinical Workflows
-- **Speaker:** Member 5
-- **Visual:** Three operational screen cards (Register, Queue, Records).
-- **Speaking Script:**
-  > *"Here you see our three primary operational views:
-  > 1. **Register Patient:** A centered two-column card grouping personal details on the left and visit details on the right with priority guidance and automated token generation.
-  > 2. **Emergency Queue:** A live worklist ordered by urgency. Clicking 'Begin Treatment' admits the queue head, updating the database and moving them into treatment bays.
-  > 3. **Patient Records:** An auditable log with masked phone privacy, consistent status pills, and doctor discharge note recording."*
-
----
-
-### [Slide 13] Automated Testing, Verification & Quality Assurance
-- **Speaker:** Member 5
-- **Visual:** JUnit 5 test breakdown (19 tests passing) and Maven build log.
-- **Speaking Script:**
-  > *"To ensure software correctness, we developed a comprehensive test suite of 19 automated JUnit 5 tests. Our tests validate:
-  > - 3-tier comparator ordering and tie-breaking edge cases.
-  > - PriorityQueue poll extraction and heap invariant maintenance.
-  > - Full database bootstrapping and transactional JDBC lifecycles.
-  > - Demographic boundary validation (age 0-125, valid phone numbers).
-  > - Headless JavaFX screen capture tests verifying zero visual clipping.
-  > Running `mvn clean test` compiles all classes and passes 19 out of 19 tests with zero failures."*
-
----
-
-### [Slide 14] Individual Viva Voce Defense (All Members)
-- **Speaker:** Member 5 transitions; all members ready.
-- **Visual:** Five core technical defense questions and answers.
-- **Speaking Script:**
-  > *"We have also prepared for individual viva voce questions covering our technical design choices—from why we chose a binary heap over a sorted LinkedList, to how our DAO abstraction shields the application from persistence changes, to the common trap of iterating over Java's PriorityQueue."*
-
----
-
-### [Slide 15] Project Achievements & Future Scope
-- **Speaker:** Member 5
-- **Visual:** Key achievements and future roadmap (HL7/FHIR, IoT vitals, multi-terminal WebSocket sync).
-- **Speaking Script:**
-  > *"In summary, HEPS successfully bridges theoretical computer science with real-world clinical application, meeting every rubric requirement of our OOP course. In future iterations, we plan to integrate HL7/FHIR standards for hospital EHR connectivity, IoT vitals monitor ingestion, and WebSocket-driven multi-terminal synchronization."*
-
----
-
-### [Slide 16] Q&A & Thank You
-- **Speaker:** Member 5 (All Members step forward)
-- **Visual:** Thank You & Q&A invitation.
-- **Speaking Script:**
-  > *"Thank you for your time and attention. We now invite any questions or comments from the examination panel."*
-
----
-
-## Examiner Viva Voce Preparation (Per Member)
-
-| Member | Probable Viva Question | Precise Answer to Give |
+| Member | Topic | Time Slot |
 | :--- | :--- | :--- |
-| **Member 1** | *Why not just sort the patients by arrival time and let the doctor pick who looks sickest?* | "Manual sorting introduces clinical bias, cognitive fatigue under pressure, and dangerous delays. Algorithmic triage guarantees the most acute patient is placed at the queue head deterministically, upholding hospital patient-safety standards." |
-| **Member 2** | *What is the advantage of using DAO interfaces instead of putting SQL in the controllers?* | "Separation of concerns and loose coupling. If the hospital switches databases from MySQL to Oracle or MongoDB, only the DAO implementation changes. Controllers and views remain 100% untouched." |
-| **Member 3** | *If Java's PriorityQueue is sorted, why did you need `Collections.sort()` for the TableView?* | "`PriorityQueue.iterator()` traverses internal array elements in heap-tree order, not sorted order. Only sequential `poll()` yields sorted order. To display a sorted table without draining the queue, we take a snapshot list and sort it using our comparator." |
-| **Member 4** | *How does your application prevent SQL Injection in the search bar?* | "We use `PreparedStatement` with parameterized placeholders (`?`). The JDBC driver treats user inputs strictly as literal values, completely neutralizing SQL injection attempts." |
-| **Member 5** | *How does your UI prevent accidental double-admission or premature discharge?* | "The 'Complete Treatment' button is strictly disabled until an `IN_TREATMENT` patient is selected. Admitting the queue head prompts a confirmation dialog and atomically updates both MySQL and the in-memory queue." |
+| **Member 1** | The Problem & Motivation (Slides 1–4) | 0:00 – 3:00 |
+| **Member 2** | Our Solution & Patient Journey (Slides 5–6) | 3:00 – 6:00 |
+| **Member 3** | Smart Queue & Priority Logic (Slides 7–8) | 6:00 – 9:00 |
+| **Member 4** | Database, Security & Architecture (Slides 9–12) | 9:00 – 12:00 |
+| **Member 5** | Testing, Team Work & Live Demo (Slides 13–17) | 12:00 – 15:00 |
+
+---
+
+## Slide-by-Slide Speaker Notes
+
+### Slide 1 — Title Slide
+**Speaker:** Member 1
+
+> "Good morning. We are presenting our mini project: the Hospital Emergency Priority System. It's a desktop application that helps hospital staff manage emergency patients by automatically prioritizing them based on how sick they are — so the most critical patient is always treated first."
+
+---
+
+### Slide 2 — Agenda
+**Speaker:** Member 1
+
+> "Our presentation has five parts: I'll explain the problem, Member 2 will show our solution, Member 3 will explain how the smart queue works, Member 4 covers data storage and security, and Member 5 will give a live demo."
+
+---
+
+### Slide 3 — The Problem
+**Speaker:** Member 1
+
+> "In busy emergency rooms, patients arrive with very different conditions — some have minor cuts, others are having heart attacks. If we use a simple first-come-first-served system, a critically ill patient might have to wait behind someone with a cold. That delay can be life-threatening. Staff also struggle with paper-based tracking — it's error-prone and there's no reliable history."
+
+---
+
+### Slide 4 — Priority Levels
+**Speaker:** Member 1
+
+> "Our system classifies every patient into one of four levels: Critical for life-threatening cases, High for urgent but stable conditions, Medium for patients who need attention soon, and Low for minor issues. This is based on real hospital triage systems."
+
+**Handoff:** "I'll now hand over to Member 2 to show how our system solves this problem."
+
+---
+
+### Slide 5 — Our Solution
+**Speaker:** Member 2
+
+> "Our system, HEPS, is a desktop application with six key capabilities: patient registration with automatic token generation, a live dashboard showing waiting counts and critical cases, a smart queue that auto-sorts by urgency, a complete treatment workflow for doctors, search and history for finding any patient record, and staff roles so each person sees only what they need."
+
+---
+
+### Slide 6 — Patient Journey
+**Speaker:** Member 2
+
+> "Let me walk you through how a patient moves through the system. Step 1: The receptionist registers the patient and assigns a priority level. Step 2: A unique token like TK-2026-0001 is generated. Step 3: The system automatically places the patient at the right position in the queue based on urgency. Step 4: The doctor sees who's next and begins treatment. Step 5: After treatment, the doctor adds clinical notes and marks it complete. Every status change is permanently saved."
+
+**Handoff:** "Member 3 will now explain how the smart queue actually works."
+
+---
+
+### Slide 7 — How the Smart Queue Works
+**Speaker:** Member 3
+
+> "This is the heart of our project. Let me show you with an example. Four patients arrive: Patient A with a mild cold at 2 PM, Patient B with a sprained ankle at 2:05, Patient C with chest pain at 2:10, and Patient D with a deep cut at 2:15. In a normal queue, they'd be treated in arrival order — meaning the chest pain patient waits behind two non-urgent patients. But our smart queue automatically reorders them: Patient C goes to position 1 because they're Critical, then D who is High, then B who is Medium, and finally A who is Low."
+
+> "How does it decide? Three simple rules: First, compare urgency — Critical always beats everything else. Second, if two patients have the same urgency, the one who arrived earlier goes first. Third, if everything matches, the smaller token number wins."
+
+---
+
+### Slide 8 — Normal vs Smart Queue
+**Speaker:** Member 3
+
+> "This slide shows the difference clearly. On the left: a normal queue where Patient C with chest pain is stuck at position 3. On the right: our smart queue where Patient C is automatically moved to position 1. This is the core value of our project — the system makes the right decision automatically."
+
+**Handoff:** "Member 4 will now explain how we store and protect all this patient data."
+
+---
+
+### Slide 9 — How We Built It
+**Speaker:** Member 4
+
+> "We built HEPS using four main technologies: Java 17 as our core programming language, JavaFX for the desktop user interface, MySQL 8 as our database to store all records permanently, and JDBC as the bridge between Java and MySQL. The flow is simple: staff interacts with the screen, the application logic processes the request, the smart queue handles prioritization, and the database stores everything."
+
+---
+
+### Slide 10 — Design Principles
+**Speaker:** Member 4
+
+> "We followed four key principles: Encapsulation — patient data is protected and can only be accessed through controlled methods. Abstraction — complex database operations are hidden behind simple interfaces. Polymorphism — the same code handles different priority levels with different visual styles automatically. And Error Handling — if something goes wrong, the user gets a clear message instead of a crash."
+
+---
+
+### Slide 11 — What Data We Store
+**Speaker:** Member 4
+
+> "We have three database tables: Patients table stores the token, name, age, symptoms, priority level, and current status. Treatment Records stores which doctor treated them, when treatment started and ended, and clinical notes. And the Staff Users table manages login credentials with encrypted passwords and role assignments."
+
+---
+
+### Slide 12 — Data Safety
+**Speaker:** Member 4
+
+> "Patient data is sensitive, so we built in six layers of protection: encrypted passwords, protection against database attacks, input validation on every field, permanent storage that survives restarts, external configuration so credentials aren't in the code, and graceful error handling if the database goes offline."
+
+**Handoff:** "Member 5 will now show our test results and give a live demonstration."
+
+---
+
+### Slide 13 — Testing
+**Speaker:** Member 5
+
+> "We wrote 19 automated tests — and all of them pass. We tested that Critical patients always sort before others, that tie-breaking works correctly, that 1,000 generated tokens are all unique with zero duplicates, that invalid inputs are properly rejected, and that patients loaded from the database maintain the correct priority order."
+
+---
+
+### Slide 14 — Team Contributions
+**Speaker:** Member 5
+
+> "Every team member contributed to the project. Member 1 handled research and requirements, Member 2 designed the application architecture, Member 3 implemented the priority queue logic, Member 4 built the database and security layer, and Member 5 designed the UI and wrote tests. All our work is tracked on GitHub with individual commits."
+
+---
+
+### Slide 15 — Live Demo
+**Speaker:** Member 5
+
+> "Now let me demonstrate the system. I'll open the app, register three patients with different priority levels, show how the queue auto-sorts them, begin treatment on the top patient, complete the treatment with doctor notes, and search for the patient record. Watch how the Critical patient automatically goes to position 1, how the color badges make scanning easy, and how the dashboard numbers update instantly."
+
+*(Switch to the running application and demonstrate)*
+
+---
+
+### Slide 16 — Key Takeaways
+**Speaker:** Member 5
+
+> "To summarize: We solved a real hospital problem — automated emergency patient prioritization. Our smart queue always treats the sickest patient first. Patient data is secure and permanently stored. The complete workflow from registration to discharge is tracked. And we built it as a team using Git, with clean architecture and 19 passing tests."
+
+---
+
+### Slide 17 — Thank You
+**Speaker:** All Members
+
+> "Thank you for your time. We're happy to answer any questions."
+
+---
+
+## Tips for Each Presenter
+
+1. **Speak slowly and clearly** — you have 3 minutes, that's plenty of time.
+2. **Don't read from the slides** — use the speaker notes above as your guide.
+3. **Point to visuals** — gesture at the cards/diagrams on screen as you talk.
+4. **Practice the handoff** — smooth transitions between members look professional.
+5. **During Q&A** — the person with the most relevant expertise should answer.
+
+## Common Questions to Prepare For
+
+| Question | Who Answers | Quick Answer |
+| :--- | :--- | :--- |
+| "Why not use a normal queue?" | Member 3 | "Normal queues use first-come-first-served, which can delay critical patients. Our priority queue ensures urgency decides the order." |
+| "How do you handle same-priority patients?" | Member 3 | "The patient who arrived earlier goes first — then by token number." |
+| "Is the data saved permanently?" | Member 4 | "Yes, in MySQL. Even if the app restarts, all records are preserved." |
+| "How do you prevent data attacks?" | Member 4 | "All database queries use parameterized statements, which block SQL injection." |
+| "What OOP concepts did you use?" | Member 2/4 | "Encapsulation, Abstraction, Polymorphism, and Custom Exception Handling." |
+| "How many tests did you write?" | Member 5 | "19 automated tests, all passing — covering priority sorting, validation, and database sync." |

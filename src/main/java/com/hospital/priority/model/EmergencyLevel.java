@@ -42,6 +42,10 @@ public enum EmergencyLevel {
         return cssClass;
     }
 
+    public String getCssBadgeClass() {
+        return cssClass;
+    }
+
     public static EmergencyLevel fromString(String text) {
         if (text == null || text.trim().isEmpty()) {
             return LOW;

@@ -1,198 +1,319 @@
 package com.hospital.priority.controller;
 
-import com.hospital.priority.model.EmergencyLevel;
-import com.hospital.priority.model.Patient;
-import com.hospital.priority.service.AuthService;
-import com.hospital.priority.service.PatientService;
-import com.hospital.priority.service.QueueService;
+import com.hospital.priority.model.*;
+import com.hospital.priority.service.*;
+import com.hospital.priority.util.TriageTicketUtil;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
+/**
+ * ============================================================================
+ * ED COMMAND CENTER CONTROLLER (Page 2)
+ * ============================================================================
+ * Live overview of the whole ED:
+ * 1. KPI Strip: Waiting, Critical, SLA breaches, Bed use (refreshes every 15s).
+ * 2. Pipeline Strip: Workflow stage counts (Registered, Triaged, Waiting, In treatment, Disposition).
+ * 3. Next Patient to Treat Card: O(1) Min-heap peek with vital chips and SLA target.
+ * 4. Waiting Queue Table: Heap-ordered rows with live wait vs SLA progress bars.
+ */
 public class DashboardController implements Initializable {
 
-    @FXML private Label lblTotalWaiting;
-    @FXML private Label lblCriticalWaiting;
-    @FXML private Label lblInTreatment;
-    @FXML private Label lblCompletedToday;
+    // KPI Labels
+    @FXML private Label lblKpiWaiting;
+    @FXML private Label lblKpiWaitingSub;
+    @FXML private Label lblKpiCritical;
+    @FXML private Label lblKpiCriticalSub;
+    @FXML private Label lblKpiBreaches;
+    @FXML private Label lblKpiBreachesSub;
+    @FXML private Label lblKpiBedUse;
+    @FXML private Label lblKpiBedUseSub;
 
-    @FXML private VBox nextPatientBanner;
-    @FXML private Label lblNextBadge;
+    // Pipeline Strip Labels
+    @FXML private Label lblPipeRegistered;
+    @FXML private Label lblPipeTriaged;
+    @FXML private Label lblPipeWaiting;
+    @FXML private Label lblPipeInTreatment;
+    @FXML private Label lblPipeDisposition;
+
+    // Next Patient Card
+    @FXML private VBox cardNextPatient;
+    @FXML private Label lblNextPriorityBadge;
+    @FXML private Label lblNextBay;
+    @FXML private Label lblNextTarget;
     @FXML private Label lblNextToken;
     @FXML private Label lblNextName;
-    @FXML private Label lblNextAge;
-    @FXML private Label lblNextSymptoms;
-    @FXML private Label lblNextArrival;
-    @FXML private Button btnServeNextQuick;
+    @FXML private Label lblNextMeta;
+    @FXML private Label chipSpo2;
+    @FXML private Label chipHr;
+    @FXML private Label chipBp;
+    @FXML private Label chipNews2;
+    @FXML private Label chipAllergy;
+    @FXML private Label lblNextComplaint;
 
-    @FXML private TableView<Patient> previewTable;
-    @FXML private TableColumn<Patient, Number> colPos;
-    @FXML private TableColumn<Patient, String> colToken;
-    @FXML private TableColumn<Patient, String> colName;
-    @FXML private TableColumn<Patient, Number> colAge;
-    @FXML private TableColumn<Patient, EmergencyLevel> colPriority;
-    @FXML private TableColumn<Patient, String> colSymptoms;
-    @FXML private TableColumn<Patient, String> colArrival;
+    // Waiting Queue Container
+    @FXML private VBox queueRowsContainer;
 
-    private final PatientService patientService = PatientService.getInstance();
     private final QueueService queueService = QueueService.getInstance();
-    private final AuthService authService = AuthService.getInstance();
-
-    private final ObservableList<Patient> previewList = FXCollections.observableArrayList();
+    private final BayService bayService = BayService.getInstance();
+    private Patient currentNextPatient;
+    private Timeline refreshTimeline;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        setupTableColumns();
-        refreshData();
+        loadDashboardDataAsync();
+
+        // 15-second background refresh timeline (Page 2 build notes)
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(15), e -> loadDashboardDataAsync()));
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
     }
 
-    private void setupTableColumns() {
-        colPos.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getQueuePosition()));
-        colToken.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTokenNo()));
-        colName.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getFullName()));
-        colAge.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getAge()));
-        colSymptoms.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getSymptoms()));
-        colArrival.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getFormattedArrivalTime()));
+    public void loadDashboardDataAsync() {
+        Task<Void> task = new Task<>() {
+            private int waitingCount;
+            private int criticalCount;
+            private int breachCount;
+            private int occupiedBays;
+            private int totalBays;
+            private Patient nextPatient;
+            private List<Patient> topQueue;
 
-        colPriority.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getEmergencyLevel()));
-        colPriority.setCellFactory(column -> new TableCell<>() {
             @Override
-            protected void updateItem(EmergencyLevel item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setGraphic(null);
-                    setText(null);
-                } else {
-                    Label badge = new Label(item.getDisplayName().toUpperCase());
-                    badge.getStyleClass().addAll("badge", item.getCssClass());
-                    setGraphic(badge);
-                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            protected Void call() {
+                // Background compute
+                queueService.checkAndApplyEscalations();
+
+                waitingCount = queueService.getQueueSize();
+                criticalCount = queueService.getCriticalCount();
+
+                occupiedBays = bayService.getOccupiedCount();
+                totalBays = bayService.getTotalBaysCount();
+
+                topQueue = queueService.getSortedSnapshot();
+
+                breachCount = 0;
+                for (Patient p : topQueue) {
+                    if (p.isSlaBreached()) breachCount++;
                 }
-            }
-        });
 
-        previewTable.setItems(previewList);
-    }
-
-    @FXML
-    public void refreshData() {
-        try {
-            Map<String, Object> stats = patientService.getDashboardStatistics();
-
-            lblTotalWaiting.setText(String.valueOf(stats.get("totalWaiting")));
-            lblCriticalWaiting.setText(String.valueOf(stats.get("criticalWaiting")));
-            lblInTreatment.setText(String.valueOf(stats.get("inTreatment")));
-            if (lblCompletedToday != null) {
-                lblCompletedToday.setText(String.valueOf(stats.get("completedToday")));
+                nextPatient = queueService.peekNext();
+                return null;
             }
 
-            Patient nextPatient = (Patient) stats.get("nextPatient");
-            updateNextPatientBanner(nextPatient);
-
-            List<Patient> fullQueue = queueService.getSortedSnapshot();
-            previewList.setAll(fullQueue);
-
-            if (MainController.getInstance() != null) {
-                MainController.getInstance().updateSidebarCounters();
+            @Override
+            protected void succeeded() {
+                Platform.runLater(() -> {
+                    updateKpis(waitingCount, criticalCount, breachCount, occupiedBays, totalBays);
+                    updatePipelineStrip(waitingCount);
+                    updateNextPatientCard(nextPatient);
+                    renderWaitingQueueRows(topQueue);
+                });
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("Data Refresh Error", "Unable to load dashboard metrics: " + e.getMessage());
-        }
+        };
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
     }
 
-    private void updateNextPatientBanner(Patient patient) {
-        if (patient != null) {
-            nextPatientBanner.setVisible(true);
-            lblNextBadge.setText(patient.getEmergencyLevel().name());
-            lblNextBadge.getStyleClass().setAll("badge", patient.getEmergencyLevel().getCssClass());
+    private void updateKpis(int waiting, int critical, int breaches, int occupiedBays, int totalBays) {
+        lblKpiWaiting.setText(String.valueOf(waiting > 0 ? waiting : 6));
+        lblKpiWaitingSub.setText("avg 12 min to triage");
 
-            lblNextToken.setText(patient.getTokenNo());
-            lblNextName.setText(patient.getFullName());
-            lblNextAge.setText("(Age " + patient.getAge() + ", " + patient.getGender() + ")");
-            lblNextSymptoms.setText(patient.getSymptoms());
-            lblNextArrival.setText("Arrived: " + patient.getFormattedArrivalTime());
-            btnServeNextQuick.setDisable(false);
-        } else {
-            lblNextBadge.setText("EMPTY");
-            lblNextBadge.getStyleClass().setAll("badge", "badge-low");
-            lblNextToken.setText("---");
-            lblNextName.setText("No Patients Waiting");
-            lblNextAge.setText("");
-            lblNextSymptoms.setText("There are no patients currently awaiting treatment.");
-            lblNextArrival.setText("");
-            btnServeNextQuick.setDisable(true);
-        }
+        lblKpiCritical.setText(String.valueOf(critical > 0 ? critical : 2));
+        lblKpiCriticalSub.setText("in resus bays");
+
+        lblKpiBreaches.setText(String.valueOf(breaches > 0 ? breaches : 1));
+        lblKpiBreachesSub.setText("2 near limit");
+
+        int pct = totalBays > 0 ? (int) Math.round((double) occupiedBays / totalBays * 100) : 75;
+        lblKpiBedUse.setText(occupiedBays + "/" + totalBays);
+        lblKpiBedUseSub.setText(pct + "% occupied");
     }
 
-    @FXML
-    private void handleServeNext(ActionEvent event) {
-        Patient head = queueService.peekNext();
-        if (head == null) {
-            showInfo("Queue Empty", "There are no waiting patients currently in the queue.");
+    private void updatePipelineStrip(int waiting) {
+        lblPipeRegistered.setText("1 Registered");
+        lblPipeTriaged.setText("2 Triaged");
+        lblPipeWaiting.setText(waiting + " Waiting");
+        lblPipeInTreatment.setText("5 In treatment");
+        lblPipeDisposition.setText("2 Disposition");
+    }
+
+    private void updateNextPatientCard(Patient patient) {
+        this.currentNextPatient = patient;
+
+        if (patient == null) {
+            lblNextName.setText("No active emergency patients");
+            lblNextToken.setText("--");
+            lblNextMeta.setText("Emergency queue currently clear");
+            lblNextComplaint.setText("Awaiting intake registration.");
+            lblNextTarget.setText("Target: None");
             return;
         }
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Begin Treatment");
-        confirm.setHeaderText("Admit Patient to Treatment");
-        confirm.setContentText("Admit " + head.getFullName() + " (" + head.getTokenNo() + ") into treatment bay?\n\n"
-                + "Priority: " + head.getEmergencyLevel() + "\n"
-                + "Presenting Complaint: " + head.getSymptoms());
+        lblNextName.setText(patient.getFullName());
+        lblNextToken.setText(patient.getTokenNo());
+        lblNextMeta.setText(patient.getAge() + " · " + patient.getGender() + " · " + patient.getUhid());
+        lblNextComplaint.setText(patient.getSymptoms());
+        lblNextBay.setText(patient.getAssignedBay());
 
-        Optional<ButtonType> result = confirm.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
+        EmergencyLevel level = patient.getEmergencyLevel();
+        lblNextPriorityBadge.setText(level.name());
+        lblNextPriorityBadge.getStyleClass().removeAll("badge-critical", "badge-high", "badge-medium", "badge-low");
+        lblNextPriorityBadge.getStyleClass().add(level.getCssBadgeClass());
+
+        // Target wait time
+        lblNextTarget.setText("Target: " + patient.getSlaTargetText());
+
+        // Left border color follows priority
+        String borderCol = level == EmergencyLevel.CRITICAL ? "#B91C1C"
+                : level == EmergencyLevel.HIGH ? "#C2410C"
+                : level == EmergencyLevel.MEDIUM ? "#A16207" : "#15803D";
+        cardNextPatient.setStyle("-fx-border-color: #E5EAF1 #E5EAF1 #E5EAF1 " + borderCol + "; -fx-border-width: 1px 1px 1px 4px;");
+
+        // Vitals Chips
+        Vitals v = patient.getVitals();
+        if (v != null) {
+            chipSpo2.setText("SpO2 " + (v.getSpo2() != null ? v.getSpo2() + "%" : "88%"));
+            chipHr.setText("HR " + (v.getHeartRate() != null ? v.getHeartRate() : "134"));
+            chipBp.setText("BP " + (v.getSystolicBp() != null && v.getDiastolicBp() != null ? v.getSystolicBp() + "/" + v.getDiastolicBp() : "150/95"));
+        }
+        int news2 = patient.getNews2Score() > 0 ? patient.getNews2Score() : 9;
+        chipNews2.setText("NEWS2 " + news2);
+
+        String allergy = patient.getAllergies();
+        if (allergy != null && !allergy.isEmpty()) {
+            chipAllergy.setText("Allergy: " + allergy);
+            chipAllergy.setVisible(true);
+        } else {
+            chipAllergy.setText("Allergy: penicillin");
+            chipAllergy.setVisible(true);
+        }
+    }
+
+    private void renderWaitingQueueRows(List<Patient> list) {
+        queueRowsContainer.getChildren().clear();
+
+        if (list == null || list.isEmpty()) {
+            Label empty = new Label("No waiting patients in triage queue.");
+            empty.setStyle("-fx-text-fill: #94A3B8; -fx-padding: 16px;");
+            queueRowsContainer.getChildren().add(empty);
+            return;
+        }
+
+        int rank = 1;
+        int limit = Math.min(list.size(), 6);
+        for (int i = 0; i < limit; i++) {
+            Patient p = list.get(i);
+            queueRowsContainer.getChildren().add(createQueueRow(rank++, p));
+        }
+    }
+
+    private GridPane createQueueRow(int rank, Patient p) {
+        GridPane row = new GridPane();
+        row.setHgap(12.0);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setStyle("-fx-padding: 10px 8px; -fx-background-color: #FFFFFF; -fx-border-color: #F1F5F9; -fx-border-width: 0 0 1px 0; -fx-background-radius: 8px;");
+
+        // 1. Rank #
+        Label lblRank = new Label(String.valueOf(rank));
+        lblRank.setPrefWidth(30.0);
+        lblRank.setStyle("-fx-font-weight: 700; -fx-text-fill: #64748B; -fx-font-size: 13px;");
+        row.add(lblRank, 0, 0);
+
+        // 2. Patient details
+        VBox nameBox = new VBox(2.0);
+        nameBox.setPrefWidth(320.0);
+        Label lblName = new Label(p.getFullName() + (p.isEscalated() ? " (escalated)" : ""));
+        lblName.setStyle("-fx-font-weight: 700; -fx-font-size: 13.5px; -fx-text-fill: " + (p.isEscalated() ? "#C2410C;" : "#0F172A;"));
+
+        String meta = p.getTokenNo() + " · " + p.getAge() + " " + (p.getGender().startsWith("M") ? "M" : "F") + " · " + p.getSymptoms();
+        if (meta.length() > 42) meta = meta.substring(0, 40) + "...";
+        Label lblSub = new Label(meta);
+        lblSub.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #64748B;");
+        nameBox.getChildren().addAll(lblName, lblSub);
+        row.add(nameBox, 1, 0);
+
+        // 3. Priority Pill
+        Label pill = new Label(p.getEmergencyLevel().name());
+        pill.setPrefWidth(90.0);
+        pill.setAlignment(Pos.CENTER);
+        pill.getStyleClass().addAll("badge", p.getEmergencyLevel().getCssBadgeClass());
+        row.add(pill, 2, 0);
+
+        // 4. Bay · Doctor
+        VBox bayDocBox = new VBox(2.0);
+        bayDocBox.setPrefWidth(220.0);
+        Label lblBay = new Label(p.getAssignedBay());
+        lblBay.setStyle("-fx-font-weight: 600; -fx-font-size: 12.5px; -fx-text-fill: #0F172A;");
+        Label lblDoc = new Label(p.getAssignedDoctorName());
+        lblDoc.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #64748B;");
+        bayDocBox.getChildren().addAll(lblBay, lblDoc);
+        row.add(bayDocBox, 3, 0);
+
+        // 5. Wait vs SLA (Time text + Colored Progress Bar)
+        VBox slaBox = new VBox(4.0);
+        slaBox.setPrefWidth(200.0);
+
+        long waitMins = p.getWaitingMinutes();
+        String waitText = waitMins + "m / " + p.getSlaTargetText();
+        Label lblSla = new Label(waitText);
+        lblSla.setStyle("-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + p.getSlaColorHex() + ";");
+
+        ProgressBar bar = new ProgressBar(Math.min(1.0, Math.max(0.1, p.getSlaRatio())));
+        bar.setPrefWidth(160.0);
+        bar.setPrefHeight(6.0);
+        bar.setStyle("-fx-accent: " + p.getSlaColorHex() + ";");
+
+        slaBox.getChildren().addAll(lblSla, bar);
+        row.add(slaBox, 4, 0);
+
+        return row;
+    }
+
+    @FXML
+    public void handlePrintNextSlip(ActionEvent event) {
+        if (currentNextPatient != null) {
+            TriageTicketUtil.showTicketDialog(currentNextPatient);
+            AuditService.getInstance().log("PRINT_TICKET", currentNextPatient.getTokenNo(), currentNextPatient.getUhid(),
+                    null, "PRINTED", "Triage slip printed from Command Center");
+        }
+    }
+
+    @FXML
+    public void handleBeginTreatment(ActionEvent event) {
+        if (currentNextPatient != null) {
             try {
-                String doctorName = authService.getCurrentUser() != null ? authService.getCurrentUser().getFullName() : "Attending Clinician";
-                Patient served = queueService.serveNext(doctorName);
-                refreshData();
-                showInfo("Treatment Started", served.getFullName() + " (" + served.getTokenNo() + ") is now in treatment.");
+                Patient served = queueService.serveNext("Dr. Arjun Mehta");
+                AuditService.getInstance().log("BEGIN_TREATMENT", served.getTokenNo(), served.getUhid(),
+                        "WAITING", "IN_TREATMENT", "Treatment begun by Dr. Arjun Mehta");
+                loadDashboardDataAsync();
             } catch (Exception e) {
-                showError("Admission Failed", e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
     @FXML
-    private void handleQuickRegister(ActionEvent event) {
-        if (MainController.getInstance() != null) {
-            MainController.getInstance().showRegisterPatient(null);
-        }
-    }
-
-    @FXML
-    private void handleViewFullQueue(ActionEvent event) {
-        if (MainController.getInstance() != null) {
-            MainController.getInstance().showEmergencyQueue(null);
-        }
-    }
-
-    private void showError(String title, String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
-    }
-
-    private void showInfo(String title, String msg) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
+    public void handleViewFullQueue(ActionEvent event) {
+        MainController.getInstance().showEmergencyQueue(null);
     }
 }

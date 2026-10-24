@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="16.0" style="-fx-padding: 0 4px 20px 0;"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.hospital.priority.controller.OrdersResultsController">
+
+    <!-- HEADER & STATS -->
+    <HBox alignment="CENTER_LEFT" spacing="16.0">
+        <VBox spacing="2.0">
+            <Label styleClass="view-title" text="Orders and results" />
+            <Label styleClass="view-subtitle" text="Centralized diagnostic tracker for laboratory, radiology, cardiac ECG, and medication orders." />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <StackPane styleClass="counter-pill">
+                <Label fx:id="lblTotalOrders" text="5 Orders Total" styleClass="counter-pill-text" />
+            </StackPane>
+            <StackPane styleClass="counter-pill" style="-fx-background-color: #FEF9C3; -fx-border-color: #FEF08A;">
+                <Label fx:id="lblPendingOrders" text="3 Pending" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #A16207;" />
+            </StackPane>
+            <StackPane styleClass="counter-pill" style="-fx-background-color: #DCFCE7; -fx-border-color: #BBF7D0;">
+                <Label fx:id="lblResultedOrders" text="2 Resulted" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #15803D;" />
+            </StackPane>
+            <StackPane styleClass="counter-pill" style="-fx-background-color: #FEE2E2; -fx-border-color: #FECACA;">
+                <Label fx:id="lblAbnormalOrders" text="2 Abnormal" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
+            </StackPane>
+            <Button onAction="#handleRefresh" styleClass="btn-secondary" text="🔄 Refresh" />
+        </HBox>
+    </HBox>
+
+    <!-- FILTER BAR -->
+    <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="filter-pill-bar">
+        <Button fx:id="btnFilterAll" onAction="#filterAll" styleClass="filter-tab-pill-active" text="All" />
+        <Button fx:id="btnFilterLab" onAction="#filterLab" styleClass="filter-tab-pill" text="Lab" />
+        <Button fx:id="btnFilterImaging" onAction="#filterImaging" styleClass="filter-tab-pill" text="Imaging" />
+        <Button fx:id="btnFilterEcg" onAction="#filterEcg" styleClass="filter-tab-pill" text="Cardiac ECG" />
+        <Button fx:id="btnFilterMeds" onAction="#filterMeds" styleClass="filter-tab-pill" text="Medications" />
+
+        <Separator orientation="VERTICAL" />
+
+        <Label text="Status:" styleClass="filter-label" />
+        <ComboBox fx:id="cmbStatus" prefWidth="130.0" styleClass="filter-combo-pill" />
+
+        <Region HBox.hgrow="ALWAYS" />
+        <TextField fx:id="txtSearch" prefWidth="220.0" promptText="Search patient, token, test..." styleClass="search-pill-input" />
+    </HBox>
+
+    <!-- ORDERS TABLE VIEW -->
+    <VBox styleClass="modern-table-card" VBox.vgrow="ALWAYS">
+        <TableView fx:id="ordersTable" VBox.vgrow="ALWAYS">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="colId" prefWidth="55.0" minWidth="45.0" text="#" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colPatient" prefWidth="180.0" minWidth="130.0" text="PATIENT" />
+                <TableColumn fx:id="colBay" prefWidth="120.0" minWidth="90.0" text="BAY" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colCategory" prefWidth="120.0" minWidth="90.0" text="CATEGORY" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colOrderName" prefWidth="180.0" minWidth="130.0" text="ORDER NAME" />
+                <TableColumn fx:id="colOrderedBy" prefWidth="160.0" minWidth="120.0" text="ORDERED BY" />
+                <TableColumn fx:id="colStatus" prefWidth="120.0" minWidth="90.0" text="STATUS" style="-fx-alignment: CENTER;" />
+                <TableColumn fx:id="colResults" prefWidth="250.0" minWidth="160.0" text="FINDINGS / RESULTS" />
+                <TableColumn fx:id="colAction" prefWidth="130.0" minWidth="100.0" text="ACTION" style="-fx-alignment: CENTER;" />
+            </columns>
+        </TableView>
+    </VBox>
+
+</VBox>

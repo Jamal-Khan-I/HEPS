@@ -41,15 +41,15 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main_layout.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
             Parent root = loader.load();
 
-            Scene scene = new Scene(root, 1200, 780);
+            Scene scene = new Scene(root, 1280, 760);
             scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
-            primaryStage.setTitle("Emergency Department | Patient Priority System");
-            primaryStage.setMinWidth(1080);
-            primaryStage.setMinHeight(680);
+            primaryStage.setTitle("HEPS – City General Hospital Emergency Department");
+            primaryStage.setMinWidth(1180);
+            primaryStage.setMinHeight(720);
             primaryStage.setScene(scene);
             primaryStage.show();
 

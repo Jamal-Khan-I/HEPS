@@ -16,22 +16,15 @@ import java.util.PriorityQueue;
 
 /**
  * ============================================================================
- * CORE DSA SERVICE: PRIORITY QUEUE TRIAGE ENGINE
+ * HEPS 2.0 DSA SERVICE: PRIORITY QUEUE TRIAGE ENGINE & ESCALATION CONTROLLER
  * ============================================================================
- * Central triage coordinator managing the in-memory Java PriorityQueue&lt;Patient&gt;.
+ * Central triage coordinator managing the in-memory Java PriorityQueue<Patient>.
  *
- * Key Design Principles (Viva Relevant):
- * 1. The PriorityQueue is the AUTHORITATIVE active ordering structure in RAM.
- * 2. It uses min-heap semantics backed by PatientPriorityComparator:
- *    - CRITICAL (1) &gt; HIGH (2) &gt; MEDIUM (3) &gt; LOW (4)
- *    - FIFO on tie (earlier arrival time)
- *    - Deterministic tie-breaker (smaller token number)
- * 3. CRITICAL IMPLEMENTATION NOTE:
- *    Iterating over a Java PriorityQueue directly using iterator() or for-each
- *    DOES NOT guarantee sorted order! Therefore, getSortedSnapshot() creates
- *    a copy and sorts it using the comparator before binding to the JavaFX TableView.
- * 4. Queue updates and MySQL database updates are kept strictly synchronized.
- * ============================================================================
+ * HEPS 2.0 Upgrades:
+ * 1. Automatic Priority Escalation: Patients waiting excessively long without care
+ *    are automatically escalated to prevent clinical neglect.
+ * 2. Specialty & Doctor Integration: Coordinates with DoctorRoutingService upon admission.
+ * 3. Heap State Synchronization: Guarantees Min-Heap invariant is restored after escalations.
  */
 public class QueueService {
 
@@ -96,11 +89,6 @@ public class QueueService {
      * 2. Changes status from WAITING to IN_TREATMENT.
      * 3. Persists status in MySQL.
      * 4. Creates an active treatment record in MySQL.
-     *
-     * @param doctorName Attending doctor or staff member
-     * @return The served Patient
-     * @throws PatientNotFoundException if the queue is empty
-     * @throws DatabaseOperationException if database update fails
      */
     public synchronized Patient serveNext(String doctorName) throws PatientNotFoundException, DatabaseOperationException {
         Patient head = triageQueue.poll();
@@ -111,11 +99,18 @@ public class QueueService {
         head.setStatus(PatientStatus.IN_TREATMENT);
         patientDao.updateStatus(head.getPatientId(), PatientStatus.IN_TREATMENT);
 
+        String effectiveDoctor = doctorName != null && !doctorName.trim().isEmpty()
+                ? doctorName.trim()
+                : (head.getAssignedDoctorName() != null && !head.getAssignedDoctorName().equals("Unassigned")
+                ? head.getAssignedDoctorName() : "ER Physician");
+
+        head.setAssignedDoctorName(effectiveDoctor);
+
         // Record treatment admission
         TreatmentRecord record = new TreatmentRecord(
                 head.getPatientId(),
-                doctorName != null && !doctorName.trim().isEmpty() ? doctorName.trim() : "ER Physician",
-                "Patient called into emergency treatment bay.",
+                effectiveDoctor,
+                "Patient admitted to emergency bay for " + head.getAssignedSpecialty().getDisplayName() + " evaluation.",
                 LocalDateTime.now()
         );
         treatmentRecordDao.insert(record);
@@ -131,6 +126,65 @@ public class QueueService {
             return false;
         }
         return triageQueue.remove(patient);
+    }
+
+    /**
+     * HEPS 2.0 AUTOMATIC WAIT-TIME PRIORITY ESCALATION ENGINE
+     * Scans all waiting patients in the PriorityQueue.
+     * Rules:
+     * - LOW waiting >= 90 mins -> Escalated to MEDIUM
+     * - MEDIUM waiting >= 45 mins -> Escalated to HIGH
+     * - HIGH waiting >= 25 mins -> Marked for Critical Attention
+     * Rebuilds the PriorityQueue to ensure Min-Heap invariant is restored!
+     *
+     * @return List of newly escalated patients for UI notification
+     */
+    public synchronized List<Patient> checkAndApplyEscalations() {
+        List<Patient> escalatedList = new ArrayList<>();
+        boolean heapModified = false;
+
+        List<Patient> currentList = new ArrayList<>(triageQueue);
+
+        for (Patient p : currentList) {
+            long waitMins = p.getWaitingMinutes();
+            boolean changed = false;
+
+            if (p.getEmergencyLevel() == EmergencyLevel.LOW && waitMins >= 90) {
+                p.setEmergencyLevel(EmergencyLevel.MEDIUM);
+                p.setEscalated(true);
+                p.setEscalationReason("Wait time reached " + waitMins + "m (Exceeded 90m threshold for Low priority)");
+                changed = true;
+            } else if (p.getEmergencyLevel() == EmergencyLevel.MEDIUM && waitMins >= 45) {
+                p.setEmergencyLevel(EmergencyLevel.HIGH);
+                p.setEscalated(true);
+                p.setEscalationReason("Wait time reached " + waitMins + "m (Exceeded 45m threshold for Medium priority)");
+                changed = true;
+            } else if (p.getEmergencyLevel() == EmergencyLevel.HIGH && waitMins >= 25 && !p.isEscalated()) {
+                p.setEscalated(true);
+                p.setEscalationReason("Prolonged High wait (" + waitMins + "m) - Immediate treatment recommended");
+                changed = true;
+            }
+
+            if (changed) {
+                escalatedList.add(p);
+                heapModified = true;
+                try {
+                    patientDao.update(p);
+                } catch (Exception e) {
+                    System.err.println("Notice: Could not persist patient escalation: " + e.getMessage());
+                }
+            }
+        }
+
+        if (heapModified) {
+            // Re-heapify: Clear and re-insert all elements
+            triageQueue.clear();
+            for (Patient p : currentList) {
+                triageQueue.offer(p);
+            }
+        }
+
+        return escalatedList;
     }
 
     /**
@@ -157,6 +211,16 @@ public class QueueService {
         int count = 0;
         for (Patient p : triageQueue) {
             if (p.getEmergencyLevel() == EmergencyLevel.CRITICAL) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public synchronized int getEscalatedCount() {
+        int count = 0;
+        for (Patient p : triageQueue) {
+            if (p.isEscalated()) {
                 count++;
             }
         }
