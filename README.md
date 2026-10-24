@@ -1,421 +1,289 @@
-# 🏥 Hospital Emergency Priority System (HEPS)
+# Hospital Emergency Priority System (HEPS)
 
-[![Java 17](https://img.shields.io/badge/Java-17%20LTS-007396?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
-[![JavaFX 21](https://img.shields.io/badge/JavaFX-21.0.2-FF6F00?style=for-the-badge&logo=java&logoColor=white)](https://openjfx.io/)
-[![MySQL 8](https://img.shields.io/badge/MySQL-8.4%20LTS-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Maven 3](https://img.shields.io/badge/Apache%20Maven-3.9-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
-[![JUnit 5](https://img.shields.io/badge/Tests-37%20Passed-25A162?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
-[![License MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+**Mini Project Report — Bachelor of Technology in Computer Science & Engineering**  
+**School of Computing, Department of Computer Science & Engineering**  
+**Kalasalingam Academy of Research and Education (Deemed to be University)**  
+*Krishnankoil, Tamil Nadu, India — November 2026*  
 
-> **An enterprise-grade Emergency Department (ED) clinical triage, heap-based priority queue management, and physician workstation system.**  
-> Built with Java 17, JavaFX 21, MySQL 8, and layered Clean Architecture.
+**Course:** Object Oriented Programming using Java (CSE203) — Academic Year 2026–2027 (Odd Semester)  
 
 ---
 
-## 📌 1. Project Overview & Clinical Problem Statement
+## 👥 Project Team & Supervision
 
-In standard hospital outpatient clinics, patients are registered and evaluated in **First-Come, First-Served (FIFO)** order. However, in an **Emergency Department (ED)**, medical urgency supersedes arrival sequence. A patient presenting with acute ST-elevation myocardial infarction (STEMI) or respiratory failure must receive immediate resuscitation ahead of patients presenting with minor lacerations, regardless of who arrived first.
+| Register Number | Student Name | Role / Contribution |
+| :--- | :--- | :--- |
+| **99250040297** | **Jamal Khan I** | Project Lead, Queue & Architecture Implementation |
+| **99250040005** | **Ajmal Khan I** | Core JavaFX UI & Screen Controllers |
+| **99250040307** | **Jeeva Darwin M** | MySQL Database, DAO Layer & JDBC Transactions |
+| **99250040290** | **Harish S** | Triage Rule Engine, Safety Checks & NEWS2 Service |
+| **99250040098** | **Beteeshia John** | Automated JUnit 5 Testing & Integration Verification |
 
-The **Hospital Emergency Priority System (HEPS)** solves this by automating clinical triage and queue management:
-- **Clinical Urgency Stratification:** Automated classification into 4 standardized urgency tiers: **CRITICAL (Level 1)**, **HIGH (Level 2)**, **MEDIUM (Level 3)**, and **LOW (Level 4)** based on the Manchester Triage System (MTS) and Emergency Severity Index (ESI).
-- **In-Memory Min-Heap Priority Queue:** Queue orchestration powered by Java Collections `PriorityQueue<Patient>` using a 3-tier custom `PatientPriorityComparator` ($O(\log n)$ insertions and extractions).
-- **Dynamic Starvation Prevention (Escalation Engine):** Automatically escalates patient urgency as wait times exceed clinical thresholds to prevent starvation of non-critical patients.
-- **Physician Workstation & Journey Stepper:** Full doctor workspace with 5-step circular journey tracking, SOAP clinical documentation, STAT orders, and a real-time National Early Warning Score (NEWS2) deterioration watchdog.
-- **Relational Persistence & Auditing:** Real-time persistence across MySQL 8 with JDBC transaction management, automated audit trail logging, and PDF discharge summaries.
-
----
-
-## 🖥️ 2. Visual Walkthrough & Screen Gallery
-
-### 🩺 Doctor Workspace & Clinical Management
-*Interactive clinical dashboard featuring a 2-line patient banner, 5-step circular journey stepper, and 4 underline tabs: Vitals Trend Line Chart, Latest Vitals 2x2 Grid, and Diagnostic Orders.*
-![Doctor Workspace Overview](docs/screenshots/screen_full_app.png)
+* **Faculty Guide:** Ms. S. Shanmugapriya, Assistant Professor, Dept. of CSE  
+* **Head of Department:** Dr. R. Raja Subramanian, M.E., Ph.D., Professor & Head, Dept. of CSE  
 
 ---
 
-### 📊 Executive Command Center
-*Real-time ED overview displaying patient throughput, waiting times, door-to-doctor metrics, and active emergency alert summaries.*
-![Executive Command Center](docs/screenshots/screen_overview.png)
+## 📋 Abstract
+
+Hospital emergency rooms are busy environments where every minute matters. Most queues encountered in daily life, such as bank counters or ticket windows, serve individuals on a **First-Come, First-Served (FIFO)** basis. In an emergency room, this rule is clinically unsafe because a patient arriving later with a life-threatening illness must not wait behind patients with minor complaints.
+
+The **Hospital Emergency Priority System (HEPS)** is a desktop application developed in Java to solve this critical healthcare challenge. It registers patients at reception, collects vital physiological measurements (pulse, blood oxygen saturation, blood pressure, respiratory rate, and temperature), and automatically categorizes urgency. 
+
+Waiting patients are managed dynamically using an in-memory **Priority Queue** implemented as a binary min-heap (`PriorityQueue<Patient>`), ensuring the most critically ill patient is always positioned at the head of the queue. Patients presenting with equal urgency are scheduled fairly by arrival sequence. To protect patients with lower urgency from being neglected during peak arrival periods, a background anti-starvation thread continuously evaluates waiting durations and promotes patients automatically.
+
+HEPS also coordinates the complete emergency visit:
+* Allocates one of 12 dedicated treatment bays across 4 specialized zones with live occupancy and cleaning timers.
+* Suggests suitable on-duty physicians matching medical specialties and workload.
+* Records diagnostic laboratory/imaging orders and alerts on abnormal results.
+* Captures structured clinical treatment SOAP notes.
+* Prints an instant triage ticket with barcodes and 2D QR codes (ZXing).
+* Generates a tamper-proof PDF clinical discharge summary (Apache PDFBox).
+* Enforces Role-Based Access Control (RBAC) with salted password hashing (jBCrypt) and an immutable audit log.
+* Backed by persistent relational storage via MySQL 8 and JDBC PreparedStatements.
+* Verified by **37 automated JUnit 5 test cases** ensuring complete clinical and architectural reliability.
 
 ---
 
-### 🚨 Emergency Priority Queue (Heap Order)
-*Dynamic triage queue organized by clinical priority rank with live escalation timers, bay allocations, and filter tabs.*
-![Emergency Queue](docs/screenshots/screen_emergency_queue.png)
+## 📌 Problem Statement & Clinical Motivation
+
+### Limitations of the Existing Manual System:
+In many emergency departments, triage and patient flow are handled manually through notebooks, paper slips, and dry-erase whiteboards:
+1. **Paper slips and notebooks:** Prone to physical damage, misplacement, or illegible handwriting.
+2. **First-Come, First-Served Bias:** Seriously ill patients wait behind non-urgent arrivals if token numbers are assigned sequentially.
+3. **Absence of Serial Re-assessment:** Waiting patients are rarely re-evaluated systematically; deteriorating conditions are easily missed.
+4. **Lack of Digital Audit Trail:** Inability to accurately record exact timestamps for arrival, triage assessment, doctor consultation, and discharge.
+5. **Opaque Departmental Visibility:** Bed occupancy, cleaning status, and doctor workloads are not globally synchronized across staff.
+
+### Comparison: Existing System vs. Proposed System (HEPS)
+
+| Parameter | Existing (Manual) System | Proposed System (HEPS) |
+| :--- | :--- | :--- |
+| **Treatment Order** | Order of arrival (FIFO) | Clinical urgency first, arrival time second |
+| **Waiting Patients** | Not checked again systematically | Background scan every 15 seconds; auto-promoted if delayed |
+| **Record Storage** | Paper registers and manual slips | Persistent MySQL relational database |
+| **Bed Allotment** | Written on whiteboards | Live visual board of 12 bays with 15-minute cleaning timers |
+| **Tests & Notes** | Handwritten slips (easily lost) | Digital entry on workstation with timestamps |
+| **Clinical Safety** | Relies entirely on individual memory | Safety rules + NEWS2 early warning score evaluate every patient |
+| **Documents** | Hand-written physical receipts | Auto-printed barcode/QR tickets and generated PDF summaries |
 
 ---
 
-### 📝 Clinical SOAP Notes Documentation
-*Structured clinical notes form with pre-filled chief complaints, triage vitals, live character counters, mandatory diagnosis/plan validation, and signed note history.*
-![SOAP Notes](docs/screenshots/screen_doctor_soap.png)
+## 🎯 Clinical Urgency Levels & Target Times
 
----
+HEPS classifies clinical arrivals into four distinct urgency tiers with predefined service level agreement (SLA) target times:
 
-### 🧪 Diagnostic Orders & Laboratory Results
-*Order placement toolbar with 6 quick STAT order chips, urgency selector, status tracking pills, and abnormal result indicators.*
-![Diagnostic Orders & Results](docs/screenshots/screen_doctor_orders.png)
-
----
-
-### 💓 Repeat Vitals & NEWS2 Deterioration Watchdog
-*Null-safe serial vitals recording, real-time keystroke NEWS2 calculation, deterioration alert banner, and physiological history.*
-![Repeat Vitals & NEWS2 Watchdog](docs/screenshots/screen_doctor_vitals.png)
-
----
-
-### 🏥 Bay Allocation & Occupancy Board
-*Visual bed board across Resuscitation (Resus), Acute, and Sub-Acute zones with real-time occupancy and assigned clinical staff.*
-![Bay Board](docs/screenshots/screen_bay_board.png)
-
----
-
-### 📈 Reports, Analytics & SLA Compliance
-*Triage acuity pie chart, hourly patient arrival bar chart with full hour labels, and SLA benchmark compliance audit table.*
-![Reports and Analytics](docs/screenshots/screen_reports.png)
-
----
-
-### 🚑 Mass Casualty Incident (MCI) Protocol
-*START protocol disaster triage mode with international color categorization (Red, Yellow, Green, Black) and rapid casualty intake.*
-![Mass Casualty Protocol](docs/screenshots/screen_mass_casualty.png)
-
----
-
-### 🎫 Thermal Triage Ticket & QR Code
-*Digital triage ticket generation with ZXing 2D QR code for patient self-tracking and bedside scanning.*
-![Triage Ticket Card](docs/screenshots/screen_triage_ticket.png)
-
----
-
-## 🛠️ 3. Technology Stack
-
-| Layer / Concern | Technology | Version | Purpose |
+| Urgency Level | Clinical Meaning | Clinical Examples | Target Waiting Time |
 | :--- | :--- | :--- | :--- |
-| **Language** | Java (OpenJDK Temurin) | 17 LTS | Core backend logic, OOP encapsulation, Java Collections |
-| **GUI Framework** | JavaFX | 21.0.2 | Hardware-accelerated desktop UI views and controllers |
-| **View Layout** | FXML | JavaFX 21 | Declarative screen layout structure (0 inline styles) |
-| **Styling** | Vanilla CSS | Custom Design System | Light clinical palette (`#0D9488` teal, `#F6F8FB` canvas, Inter font) |
-| **Persistence** | MySQL Server | 8.4 LTS | Relational database storage with foreign key constraints |
-| **Database Driver** | MySQL Connector/J | 8.4.0 | JDBC database connectivity and connection management |
-| **Security & Auth** | jBCrypt | 0.4 | Salted BCrypt password hashing for staff authentication |
-| **Barcode / QR** | Google ZXing | 3.5.3 | Generation of 2D QR codes on clinical triage tickets |
-| **Document Generation** | Apache PDFBox | 3.0.2 | Automated generation of patient discharge summary PDFs |
-| **Build & Packaging** | Apache Maven & Shade | 3.9.9 / 3.5.1 | Lifecycle management and shaded executable uber-JAR bundling |
-| **Automated Testing**| JUnit 5 (Jupiter) | 5.10.2 | Unit and integration test coverage across all business logic |
+| **Critical (Level 1)** | Immediate life threat | Cardiac arrest, acute STEMI, respiratory arrest, severe trauma, SpO2 < 90% | Immediate (0 minutes) |
+| **High (Level 2)** | Serious, urgent care | Bone fractures, acute asthma, high fever with weakness, systolic BP > 200 | Within 15 minutes |
+| **Medium (Level 3)**| Stable, needs treatment | Sprains, lacerations requiring suturing, abdominal pain | Within 60 minutes |
+| **Low (Level 4)** | Minor, non-urgent problem| Mild cold, superficial abrasions, minor skin rash | Within 120 minutes |
 
 ---
 
-## 🏗️ 4. Architecture & Design Patterns
+## 🛡️ Anti-Starvation Protection (Waiting-Time Check)
 
-HEPS follows **Layered Clean Architecture** and established **Object-Oriented Design Patterns**:
-
-```mermaid
-graph TD
-    subgraph Presentation_Layer ["Presentation Layer (JavaFX / FXML / CSS)"]
-        UI["Application Window (App.java / Launcher.java)"]
-        MainCtrl["MainController (Sidebar, Clock, Alerts Badge)"]
-        DocCtrl["DoctorWorkspaceController (Banner, Stepper, 4 Tabs)"]
-        DashCtrl["DashboardController (KPI Metrics & Acuity Overview)"]
-        QueueCtrl["EmergencyQueueController (Heap Table & Filter Chips)"]
-        BayCtrl["BayBoardController (Zone & Bed Occupancy)"]
-        OrderCtrl["OrdersResultsController (STAT Chips & Lab Result Panel)"]
-        DispCtrl["DispositionController (Discharge & PDF Generation)"]
-        ReportCtrl["ReportsController (Charts & SLA Compliance Audits)"]
-    end
-
-    subgraph Service_Layer ["Service Layer (Business Logic & State Machines)"]
-        PatientSvc["PatientService (Validation & Patient Registration)"]
-        QueueSvc["QueueService (Triage State & PriorityQueue Engine)"]
-        DocRouteSvc["DoctorRoutingService (Automated Specialty Doctor Matching)"]
-        NEWS2Svc["NEWS2Service (Physiological Scoring & Watchdog Alerts)"]
-        TriageEngine["JavaTriageRuleEngine (Manchester / ESI Acuity Rules)"]
-        OrderSvc["OrderService (Diagnostic Orders & Lab Results)"]
-        BaySvc["BayService (Bed Allocation & Availability)"]
-        AuditSvc["AuditService (Clinical Event Logging)"]
-        UserSession["UserSession (Role-Based Access Control - RBAC)"]
-    end
-
-    subgraph Domain_DSA_Layer ["Domain & Data Structures Layer"]
-        PQ["PriorityQueue&lt;Patient&gt; (In-Memory Min-Heap)"]
-        Comp["PatientPriorityComparator (3-Tier Ordering Logic)"]
-        SM["PatientStateMachine (Strict State Transitions)"]
-        Models["Domain Models: Patient, Doctor, Bay, Order, Vitals, AuditLog"]
-        Enums["Enums: EmergencyLevel, PatientStatus, Role, Specialty"]
-    end
-
-    subgraph Persistence_Layer ["Data Access Layer (DAO Pattern & JDBC)"]
-        PatientDao["PatientDao / PatientDaoImpl"]
-        DoctorDao["DoctorDao / DoctorDaoImpl"]
-        BayDao["BayDao / BayDaoImpl"]
-        OrderDao["OrderDao / OrderDaoImpl"]
-        AuditDao["AuditDao / AuditDaoImpl"]
-        UserDao["UserDao / UserDaoImpl"]
-        DBConn["DBConnection (Connection Pooling & Validation)"]
-        MySQL[("MySQL 8.4 Relational Database")]
-    end
-
-    UI --> MainCtrl
-    MainCtrl --> DocCtrl
-    MainCtrl --> DashCtrl
-    MainCtrl --> QueueCtrl
-    MainCtrl --> BayCtrl
-    MainCtrl --> OrderCtrl
-    MainCtrl --> DispCtrl
-    MainCtrl --> ReportCtrl
-
-    DocCtrl --> QueueSvc
-    DocCtrl --> NEWS2Svc
-    DocCtrl --> OrderSvc
-    DocCtrl --> AuditSvc
-    QueueCtrl --> QueueSvc
-    QueueCtrl --> DocRouteSvc
-    DispCtrl --> PatientSvc
-    DispCtrl --> AuditSvc
-
-    QueueSvc --> PQ
-    PQ -.-> Comp
-    QueueSvc --> SM
-    QueueSvc --> PatientDao
-    OrderSvc --> OrderDao
-    BaySvc --> BayDao
-    AuditSvc --> AuditDao
-
-    PatientDao --> DBConn
-    DoctorDao --> DBConn
-    BayDao --> DBConn
-    OrderDao --> DBConn
-    AuditDao --> DBConn
-    UserDao --> DBConn
-    DBConn --> MySQL
-```
-
-### Key Design Patterns Implemented:
-1. **Model-View-Controller (MVC):** Strict separation between FXML view definitions, CSS stylesheets, and JavaFX controllers.
-2. **Data Access Object (DAO) Pattern:** Decoupled interfaces (`PatientDao`, `DoctorDao`, `OrderDao`, `TreatmentRecordDao`) isolate persistence logic from domain services.
-3. **Singleton Pattern:** Controlled single instances for core services (`QueueService`, `UserSession`, `AlertService`, `AuditService`, `DBConnection`).
-4. **State Machine Pattern:** `PatientStateMachine` enforces deterministic, valid clinical status transitions (`REGISTERED` $\rightarrow$ `TRIAGED` $\rightarrow$ `IN_TREATMENT` $\rightarrow$ `DISCHARGED` / `ADMITTED` / `TRANSFERRED` / `DECEASED`), throwing `InvalidStateTransitionException` on illegal jumps.
-5. **Comparator & Min-Heap DSA:** Custom 3-tier comparator:
-   $$\text{Rank}_1 (\text{EmergencyLevel}) \succ \text{Rank}_2 (\text{Arrival Timestamp}) \succ \text{Rank}_3 (\text{Token ID})$$
-6. **Watchdog Alert Pattern:** Asynchronous physiological monitors continuously evaluate vital signs, calculating NEWS2 scores and dispatching escalation notifications when clinical deterioration is detected.
+A common flaw in pure priority queuing is **starvation**, where lower-priority patients wait indefinitely if urgent patients arrive continuously. HEPS resolves this through an automated anti-starvation algorithm executed every 15 seconds by a dedicated background daemon:
+* A **Medium (Level 3)** patient who has waited for more than **45 minutes** is promoted to **High (Level 2)** and flagged as `escalated`.
+* A **Low (Level 4)** patient who has waited for more than **90 minutes** is promoted to **Medium (Level 3)** and flagged as `escalated`.
+* When any patient is promoted, the queue is rebuilt and re-sorted automatically, guaranteeing fair progress through the queue.
 
 ---
 
-## 🗄️ 5. Database Schema & Architecture
+## 🧩 System Architecture & Modules
 
-The system utilizes an optimized MySQL 8 relational schema with foreign key constraints, indexes on lookup tokens, and timestamps:
+HEPS is organized into a **4-Layer Clean Architecture**:
+1. **Presentation Layer (JavaFX & FXML):** 16 responsive screens styled with a centralized CSS stylesheet and controlled by dedicated Java controller classes.
+2. **Business Logic Layer (Services):** Core algorithms including the binary min-heap priority queue, NEWS2 calculation, safety rules, patient state machine, doctor routing, and bay management.
+3. **Data Access Layer (DAO):** Decoupled interfaces (`PatientDao`, `DoctorDao`, `TreatmentRecordDao`, `OrderDao`) abstracting SQL operations via JDBC `PreparedStatements`.
+4. **Database Layer (MySQL):** Relational tables maintaining patient records, treatment encounters, orders, bed statuses, staff accounts, and audit trails.
 
-```mermaid
-erDiagram
-    USERS ||--o{ PATIENTS : "triaged_by"
-    USERS ||--o{ AUDIT_LOGS : "performed_by"
-    PATIENTS ||--o{ TREATMENT_RECORDS : "has"
-    PATIENTS ||--o{ CLINICAL_ORDERS : "prescribed"
-    PATIENTS ||--o{ VITAL_SIGNS : "recorded"
-    DOCTORS ||--o{ PATIENTS : "assigned_to"
-    BAYS ||--o{ PATIENTS : "accommodates"
+### The 14 System Modules:
 
-    USERS {
-        int user_id PK
-        string username UK
-        string password_hash
-        string full_name
-        string role "ADMIN | DOCTOR | TRIAGE_NURSE | RECEPTIONIST"
-        timestamp created_at
-    }
+1. **Login & Role-Based Access Control:** Secure user authentication with BCrypt hashing and role-based screen navigation.
+2. **Command Center:** Executive overview displaying total arrivals, active waiting queue, bed occupancy, and alert summaries.
+3. **Patient Registration Wizard:** Multi-step intake collecting demographic identity, arrival mode, and chief complaint.
+4. **Emergency Priority Queue:** Live display of prioritized patients showing wait times, assigned bays, and escalation flags.
+5. **Bay Allocation Board:** Live tracking of 12 emergency bays across Resus, Acute, and Sub-Acute zones with occupancy and cleaning timers.
+6. **Doctor Workspace:** Integrated physician station displaying the 5-step circular journey stepper, vitals trend chart, latest vitals grid, and active orders.
+7. **Orders & Lab Results:** Diagnostic order entry (STAT lab, radiology, procedures) with flags for abnormal indicators.
+8. **Clinical SOAP Notes:** Structured clinical encounter documentation (Subjective, Objective, Assessment, Plan) with live character counters.
+9. **Disposition & Discharge:** Bed disposition recording, clinical outcome capture, and automated PDF discharge summary creation.
+10. **Patient Records & History:** Searchable archive of prior patient visits, medical history, and discharge notes.
+11. **Clinical Alerts Center:** Real-time alert notifications for critical arrivals, physiological deterioration, and SLA delays.
+12. **Reports & Analytics:** Acuity distribution pie charts, hourly volume bar charts with time axes, and SLA compliance benchmark metrics.
+13. **Admin Console:** User account management, role assignment, active staff switches, and chronological audit logs.
+14. **Triage Ticket & Barcode:** Instant generation of printable triage ticket cards containing barcodes and 2D QR codes.
 
-    PATIENTS {
-        int patient_id PK
-        string uhid UK
-        string token_number UK
-        string name
-        int age
-        string gender
-        string phone
-        string triage_category "CRITICAL | HIGH | MEDIUM | LOW"
-        int priority_score
-        string status "REGISTERED | TRIAGED | IN_TREATMENT | DISCHARGED | ADMITTED"
-        string chief_complaint
-        string allergies
-        string bay_assigned
-        int assigned_doctor_id FK
-        timestamp registration_time
-        timestamp triage_time
-        timestamp treatment_start_time
-        timestamp discharge_time
-    }
+### User Roles & Responsibilities:
 
-    DOCTORS {
-        int doctor_id PK
-        string full_name
-        string specialty
-        string status "AVAILABLE | BUSY | ON_BREAK | OFF_DUTY"
-        int active_patients_count
-    }
-
-    BAYS {
-        int bay_id PK
-        string bay_number UK
-        string bay_type "RESUS | ACUTE | SUB_ACUTE"
-        string status "OCCUPIED | VACANT | CLEANING"
-        int current_patient_id FK
-    }
-
-    CLINICAL_ORDERS {
-        int order_id PK
-        int patient_id FK
-        string order_type "LAB | IMAGING | MEDICATION | PROCEDURE"
-        string order_name
-        string priority "STAT | ROUTINE | URGENT"
-        string status "ORDERED | IN_PROGRESS | COMPLETED"
-        string result_value
-        string abnormal_flag
-        timestamp ordered_at
-    }
-
-    VITAL_SIGNS {
-        int vital_id PK
-        int patient_id FK
-        int heart_rate
-        int systolic_bp
-        int diastolic_bp
-        int spo2
-        int respiratory_rate
-        float temperature
-        int gcs_score
-        int news2_score
-        timestamp recorded_at
-    }
-
-    AUDIT_LOGS {
-        int log_id PK
-        string event_type
-        string description
-        int user_id FK
-        int patient_id FK
-        timestamp created_at
-    }
-```
+| User Role | Primary Work & Permissions |
+| :--- | :--- |
+| **Receptionist** | Patient registration, demographic updates, ticket printing, and record lookup. |
+| **Triage Nurse** | Vital signs entry, urgency confirmation, safety rule evaluation, and bay assignment. |
+| **Doctor** | Clinical examination, vitals review, SOAP notes, diagnostic orders, and final disposition. |
+| **Charge Nurse** | Bay board management, bed cleaning supervision, alerts monitoring, and mass casualty activation. |
+| **Administrator** | Staff account provisioning, system configuration, performance reports, and security audit inspection. |
 
 ---
 
-## 🚀 6. Getting Started & Installation
+## ☕ Object-Oriented Programming (OOP) & Design Patterns
 
-### Prerequisites
-* **Java Development Kit (JDK):** Version 17 LTS (OpenJDK Temurin or Oracle JDK 17+).
-* **Apache Maven:** Version 3.8.0 or higher.
-* **MySQL Server:** Version 8.0 or higher running locally on port `3306`.
-* **Git:** For cloning the repository.
+The system demonstrates practical application of fundamental OOP principles and software design patterns:
+
+### Core OOP Principles:
+* **Encapsulation:** Domain entities (`Patient`, `Vitals`, `Doctor`, `Bay`) keep fields strictly private with validated getters and setters to reject invalid physiological inputs (e.g., negative ages or impossible heart rates).
+* **Inheritance:** Custom exceptions (`InvalidStateTransitionException`, `InvalidPatientDataException`, `DatabaseOperationException`) extend standard Java exception hierarchies.
+* **Polymorphism:** The `PatientPriorityComparator` implements `Comparator<Patient>`, allowing `java.util.PriorityQueue` to sort patient instances polymorphically without knowing internal details.
+* **Abstraction:** Services interact exclusively with DAO interfaces (`PatientDao`, `TreatmentRecordDao`), completely hiding JDBC SQL queries and database connectivity mechanics.
+
+### Design Patterns Applied:
+
+| Design Pattern | Where It Is Used | Architectural Benefit |
+| :--- | :--- | :--- |
+| **Singleton** | `QueueService`, `BayService`, `UserSession`, `DBConnection` | Ensures a single shared instance manages queue states and database pools globally. |
+| **State Pattern** | `PatientStateMachine` | Enforces valid status progressions and blocks illegal state jumps. |
+| **Strategy Pattern** | `PatientPriorityComparator` | Decouples the 3-tier prioritization algorithm from the queue container. |
+| **Data Access Object (DAO)** | `PatientDaoImpl`, `DoctorDaoImpl`, `TreatmentRecordDaoImpl` | Isolates SQL persistence code from application business rules. |
+| **Observer Pattern** | JavaFX `ObservableList` and UI TableViews | Automatic UI synchronization whenever underlying collection items change. |
 
 ---
 
-### Step 1: Clone the Repository
-```bash
-git clone https://github.com/Jamal-Khan-I/HEPS.git
-cd HEPS
-```
+## 📊 Data Structures & Algorithms
+
+### In-Memory Min-Heap (`PriorityQueue<Patient>`):
+* Implemented using `java.util.PriorityQueue<Patient>`.
+* Guarantees $O(1)$ time complexity for inspecting the next patient (`peek()`), and $O(\log n)$ for adding (`offer()`) or serving (`poll()`) a patient.
+
+### 3-Tier Priority Comparator (`PatientPriorityComparator`):
+Triage order is determined by three evaluation rules applied in strict sequence:
+1. **Rule 1 (Urgency Rank):** Patients with a lower rank number (1 = Critical, 2 = High, 3 = Medium, 4 = Low) are served first.
+2. **Rule 2 (Anti-Starvation Escalation):** If two patients share the same urgency tier, a patient promoted by the waiting-time check is placed ahead.
+3. **Rule 3 (Arrival Order - FIFO):** If urgency and escalation status are identical, the patient with the earlier arrival timestamp is served first.
+
+### Supporting Collections:
+* `HashMap<String, Patient>`: Constant-time $O(1)$ lookup of active patients by unique token string.
+* `EnumMap<PatientStatus, Set<PatientStatus>>`: Validated status transition graph.
+* `EnumSet<PatientStatus>`: Compact, high-performance bit-vector representation of allowed target states.
+* `ArrayList<Patient>`: Ordered snapshot generation for table viewing and reporting without altering heap structures.
 
 ---
 
-### Step 2: Database Setup & Configuration
-1. Start your local MySQL server.
-2. Open your MySQL client (MySQL Workbench, phpMyAdmin, or CLI) and run the initialization scripts located in `database/`:
+## 🗄️ Database Architecture & Relational Tables
+
+The MySQL database (`hospital_emergency_db`) maintains 6 primary tables with foreign key constraints:
+
+| Table Name | Purpose | Key Columns |
+| :--- | :--- | :--- |
+| `patients` | One record per patient encounter | `patient_id` (PK), `token_no` (UK), `uhid`, `full_name`, `age`, `gender`, `emergency_level`, `status`, `arrival_time`, `assigned_bay`, `news2_score` |
+| `treatment_records`| Clinical notes and consultation outcomes | `record_id` (PK), `patient_id` (FK), `doctor_id` (FK), `treatment_notes`, `diagnosis`, `medications`, `disposition`, `start_time`, `end_time` |
+| `doctors` | Registry of emergency doctors | `doctor_id` (PK), `full_name`, `specialty`, `status`, `active_patients_count` |
+| `clinical_orders` | Laboratory, radiology, and ECG orders | `order_id` (PK), `patient_id` (FK), `order_type`, `order_name`, `priority`, `status`, `result_value`, `abnormal_flag`, `ordered_at` |
+| `users` | Authenticated staff login accounts | `user_id` (PK), `username` (UK), `password_hash`, `full_name`, `role`, `is_active`, `created_at` |
+| `audit_logs` | Immutable audit trail for clinical actions | `log_id` (PK), `action_type`, `performed_by`, `patient_token`, `previous_state`, `new_state`, `details`, `logged_at` |
+
+---
+
+## 🧪 Testing & Verification
+
+The project is backed by **37 automated JUnit 5 tests** checking all critical domain rules on every build, complemented by **15 manual test scenarios**:
+
+### Automated Test Suite:
+
+| Test Class | Tests | What is Checked |
+| :--- | :---: | :--- |
+| `PatientPriorityComparatorTest` | 4 | Critical before High, High before Medium, promoted patient prioritized, FIFO arrival tie-breaking |
+| `PriorityQueueOrderingTest` | 3 | Min-heap ordering integrity, correct patient extraction, re-ordering after urgency adjustment |
+| `PriorityQueueEscalationTest` | 2 | Medium promoted after 45 min wait, Low promoted after 90 min wait |
+| `JavaTriageRuleEngineTest` | 6 | Critical triggers: low SpO2 (<90%), high BP (>200), tachycardia (>130 bpm), hypothermia (<95°F), bradypnea (<8/min) |
+| `NEWS2ServiceTest` | 2 | Physiological score calculation for severely ill vs. stable patients |
+| `PatientStateMachineTest` | 3 | Legal state transitions permitted; invalid state jumps throw `InvalidStateTransitionException` |
+| `AIAgentOrchestratorTest` | 2 | Clinical advisory evaluation and safety override logic |
+| `DoctorRoutingServiceTest` | 3 | Specialty doctor matching, busy doctor fallback, and general physician routing |
+| `DatabaseQueueIntegrationTest` | 1 | In-memory heap queue state matches MySQL database table state |
+| `JdbcPersistenceIntegrationTest` | 1 | SQL persistence, parameter binding, and retrieval using PreparedStatements |
+| `TokenGeneratorTest` | 2 | Daily sequential token formatting (`TK-YYYY-XXXX`) and unique UHID generation |
+| `ValidationUtilTest` | 7 | Boundary validation for patient names, ages, phone numbers, and vital signs |
+| `ScreenCaptureTest` | 1 | UI rendering and lifecycle execution across all screen layouts |
+| **Total** | **37** | **All 37 Tests Passed Cleanly** |
+
+---
+
+## 💻 System Requirements & Dependencies
+
+### Minimum Requirements:
+* **Operating System:** Windows 10/11 (64-bit), Linux, or macOS.
+* **Java Development Kit:** JDK 17 (LTS), 64-bit (OpenJDK Temurin or Oracle JDK).
+* **Database:** MySQL Community Server 8.0 or 8.4 LTS.
+* **Build Tool:** Apache Maven 3.8 or higher.
+* **Memory & Storage:** 4 GB RAM (8 GB recommended), 500 MB free disk space.
+
+### Core Dependencies:
+* `org.openjfx:javafx-controls:21.0.2` & `javafx-fxml:21.0.2`: GUI runtime components.
+* `com.mysql:mysql-connector-j:8.4.0`: JDBC connectivity driver.
+* `org.mindrot:jbcrypt:0.4`: Salted password hashing.
+* `com.google.zxing:core:3.5.3` & `javase:3.5.3`: Barcode and QR code generation.
+* `org.apache.pdfbox:pdfbox:3.0.2`: PDF clinical discharge document creation.
+* `org.junit.jupiter:junit-jupiter:5.10.2`: Unit testing framework.
+
+---
+
+## 🚀 Setup & Execution Guide
+
+### 1. Database Setup
+Ensure MySQL Server is running locally on port `3306`. Execute the schema and sample data scripts:
 ```bash
 mysql -u root -p < database/schema.sql
 mysql -u root -p < database/sample-data.sql
 ```
-3. Verify your database credentials in `src/main/java/com/hospital/priority/util/DBConnection.java`:
+
+Verify your credentials in `src/main/java/com/hospital/priority/util/DBConnection.java`:
 ```java
 private static final String URL = "jdbc:mysql://localhost:3306/hospital_emergency_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
 private static final String USER = "root";
-private static final String PASSWORD = "your_mysql_password"; // Set to your MySQL password (default is empty "")
+private static final String PASSWORD = "your_mysql_password"; // Set to your password (default is empty "")
 ```
 
----
-
-### Step 3: Build & Compile
-Compile the project and run the automated test suite:
+### 2. Build and Test
+Verify the code and execute all automated tests:
 ```bash
-mvn clean compile
-mvn test
+mvn clean test
 ```
-*All 37 unit and integration tests should pass.*
 
----
-
-### Step 4: Run the Application
-Launch the JavaFX desktop client directly via Maven:
+### 3. Launch the Application
+Start the desktop application using Maven:
 ```bash
 mvn javafx:run
 ```
+*(Or double-click `start-app.bat` on Windows)*
 
-Or build an executable standalone uber-JAR:
+### 4. Create Standalone Windows Executable (Optional)
+Run the automated packaging script to build a self-contained runtime:
 ```bash
-mvn package -DskipTests
-java -jar target/hospital-emergency-priority-system-1.0.0.jar
+build-exe.bat
 ```
 
 ---
 
-## 🔑 7. Default Authentication Credentials
+## 🔑 Default Demonstration Accounts
 
-The system provides 4 pre-configured role profiles for demonstration and testing:
-
-| Role | Username | Password | Access Scope |
+| Role | Username | Password | Default Workspace |
 | :--- | :--- | :--- | :--- |
-| **Emergency Physician** | `dr.mehta` | `doctor123` | Doctor Workspace, SOAP Notes, Orders, Repeat Vitals, Discharge |
-| **Hospital Administrator** | `admin` | `admin123` | Full system access, Staff Management, Audit Trail, System Config |
-| **Triage Nurse** | `nurse.priya`| `nurse123` | Patient Registration, Queue Sorting, Vitals Entry, Bay Assignment |
-| **Receptionist** | `reception` | `recep123` | Initial Registration, Queue Board View, Ticket Printing |
+| **Emergency Doctor** | `dr.mehta` | `doctor123` | Doctor Workspace, SOAP Notes, Orders, Repeat Vitals, Discharge |
+| **Hospital Administrator** | `admin` | `admin123` | Command Center, User Management, Reports, Audit Trail |
+| **Triage Nurse** | `nurse.priya` | `nurse123` | Registration Wizard, Triage Assessment, Queue Management |
+| **Receptionist** | `reception` | `recep123` | Patient Intake, Queue Board, Ticket Printing |
 
 ---
 
-## 🧪 8. Test Suite & Quality Assurance
+## 📄 References & Standards
 
-HEPS includes **37 automated unit and integration tests** built on **JUnit 5**:
-
-```bash
-[INFO] -------------------------------------------------------
-[INFO]  T E S T S
-[INFO] -------------------------------------------------------
-[INFO] Running com.hospital.priority.AIAgentOrchestratorTest           [2 tests - PASSED]
-[INFO] Running com.hospital.priority.DatabaseQueueIntegrationTest       [1 test  - PASSED]
-[INFO] Running com.hospital.priority.DoctorRoutingServiceTest          [3 tests - PASSED]
-[INFO] Running com.hospital.priority.JavaTriageRuleEngineTest          [6 tests - PASSED]
-[INFO] Running com.hospital.priority.JdbcPersistenceIntegrationTest     [1 test  - PASSED]
-[INFO] Running com.hospital.priority.NEWS2ServiceTest                  [2 tests - PASSED]
-[INFO] Running com.hospital.priority.PatientPriorityComparatorTest     [4 tests - PASSED]
-[INFO] Running com.hospital.priority.PatientStateMachineTest           [3 tests - PASSED]
-[INFO] Running com.hospital.priority.PriorityQueueEscalationTest       [2 tests - PASSED]
-[INFO] Running com.hospital.priority.PriorityQueueOrderingTest         [3 tests - PASSED]
-[INFO] Running com.hospital.priority.ScreenCaptureTest                 [1 test  - PASSED]
-[INFO] Running com.hospital.priority.TokenGeneratorTest                [2 tests - PASSED]
-[INFO] Running com.hospital.priority.ValidationUtilTest                 [7 tests - PASSED]
-[INFO] 
-[INFO] Results:
-[INFO] Tests run: 37, Failures: 0, Errors: 0, Skipped: 0
-[INFO] BUILD SUCCESS
-```
-
----
-
-## 🎨 9. Clinical Design System Tokens
-
-HEPS strictly follows modern healthcare human-interface guidelines:
-- **Base Canvas:** `#F6F8FB` (Soothing clinical off-white canvas)
-- **Cards & Surfaces:** `#FFFFFF` (High-contrast card containers with 1px `#E5EAF1` border and 12px rounded radius)
-- **Primary Accent:** `#0D9488` (Teal) with subtle `#F0FDFA` selection tint
-- **Acuity Color Hierarchy:**
-  - 🔴 **Critical:** `#B91C1C` on `#FEE2E2`
-  - 🟠 **High:** `#C2410C` on `#FFEDD5`
-  - 🟡 **Medium:** `#A16207` on `#FEF9C3`
-  - 🟢 **Low:** `#15803D` on `#DCFCE7`
-- **Typography:** `Inter`, `Segoe UI Variable Display`, sans-serif
-- **Code Standards:** 0 inline styles in FXML, 0 emojis (all vector SVG paths), responsive fluid table layouts.
-
----
-
-## 📄 10. License & Author
-
-* **Author:** Jamal Khan ([@Jamal-Khan-I](https://github.com/Jamal-Khan-I))
-* **Academic Course:** Object-Oriented Programming using Java (CSE203)
-* **License:** This project is licensed under the [MIT License](LICENSE).
+1. Royal College of Physicians, *"National Early Warning Score (NEWS) 2: Standardising the assessment of acute-illness severity in the NHS,"* Report of a working party, London: RCP, 2017.
+2. K. Mackway-Jones, J. Marsden and J. Windle (Eds.), *Emergency Triage: Manchester Triage Group*, 3rd ed., Wiley-Blackwell, 2014.
+3. N. Gilboy, P. Tanabe, D. Travers and A. M. Rosenau, *Emergency Severity Index (ESI): A Triage Tool for Emergency Department Care*, Version 4, Implementation Handbook, AHRQ Publication No. 12-0014, 2012.
+4. M. Benson, K. L. Koenig and C. H. Schultz, *"Disaster triage: START, then SAVE,"* Prehospital and Disaster Medicine, vol. 11, no. 2, pp. 117-124, 1996.
+5. T. H. Cormen, C. E. Leiserson, R. L. Rivest and C. Stein, *Introduction to Algorithms*, MIT Press (Chapters on Binary Heaps and Priority Queues).
+6. E. Gamma, R. Helm, R. Johnson and J. Vlissides, *Design Patterns: Elements of Reusable Object-Oriented Software*, Addison-Wesley, 1994.
+7. Oracle Corporation, *Java Platform, Standard Edition 17 API Documentation (`java.util.PriorityQueue`)*.
+8. OpenJFX Project, *JavaFX 21 Documentation*.

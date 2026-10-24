@@ -29,3 +29,11 @@ dependency-reduced-pom.xml
 *.lnk
 target_page_9.png
 
+# Documentation, Design & Presentation Artifacts
+docs/
+*.pdf
+*.pptx
+HEPS_Full_Project_Documentation.txt
+project_full_context.txt
+
+
