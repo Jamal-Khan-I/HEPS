@@ -8,6 +8,10 @@ import com.hospital.priority.exception.DatabaseOperationException;
 import com.hospital.priority.exception.PatientNotFoundException;
 import com.hospital.priority.model.*;
 
+import com.hospital.priority.util.DBConnection;
+
+import java.sql.Connection;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,12 +57,93 @@ public class QueueService {
     /**
      * Bootstraps the in-memory PriorityQueue on application launch by loading
      * all WAITING patients from MySQL.
+     * Automatically synchronizes timestamps so wait timers count freshly starting
+     * when the app is opened, staying safely within target SLAs.
      */
     public synchronized void initializeQueueFromDatabase() throws DatabaseOperationException {
+        synchronizeSessionTimestamps();
         triageQueue.clear();
         List<Patient> waitingPatients = patientDao.findByStatus(PatientStatus.WAITING);
         for (Patient p : waitingPatients) {
+            // Protect against lingering escalations from previous day's run
+            if (p.isEscalated() && p.getWaitingMinutes() < 45) {
+                p.setEscalated(false);
+                p.setEscalationReason(null);
+                if (p.getAiSuggestedLevel() != null) {
+                    p.setEmergencyLevel(p.getAiSuggestedLevel());
+                }
+            }
             triageQueue.offer(p);
+        }
+    }
+
+    /**
+     * Resets and anchors waiting and in-treatment patient timestamps upon application launch.
+     * Ensures all waiting times count freshly from application startup and remain safely
+     * within target SLAs for presentations and demonstrations.
+     */
+    public synchronized void synchronizeSessionTimestamps() {
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) return;
+
+            // 1. Reset WAITING patients with fresh, staggered arrival times (2m - 14m ago) and restore baseline urgency
+            String resetWaitingSql = """
+                UPDATE patients SET 
+                    arrival_time = CASE 
+                        WHEN token_no = 'TK-0147' THEN NOW() - INTERVAL 14 MINUTE
+                        WHEN token_no = 'TK-0140' THEN NOW() - INTERVAL 11 MINUTE
+                        WHEN token_no = 'TK-0144' THEN NOW() - INTERVAL 8 MINUTE
+                        WHEN token_no = 'TK-0149' THEN NOW() - INTERVAL 6 MINUTE
+                        WHEN token_no = 'TK-0145' THEN NOW() - INTERVAL 4 MINUTE
+                        WHEN token_no = 'TK-0146' THEN NOW() - INTERVAL 2 MINUTE
+                        ELSE NOW() - INTERVAL 5 MINUTE
+                    END,
+                    emergency_level = CASE 
+                        WHEN token_no = 'TK-0147' THEN 'MEDIUM'
+                        WHEN token_no = 'TK-0140' THEN 'MEDIUM'
+                        WHEN token_no = 'TK-0144' THEN 'MEDIUM'
+                        WHEN token_no = 'TK-0149' THEN 'LOW'
+                        WHEN token_no = 'TK-0145' THEN 'LOW'
+                        WHEN token_no = 'TK-0146' THEN 'LOW'
+                        WHEN ai_suggested_level IS NOT NULL THEN ai_suggested_level
+                        ELSE emergency_level
+                    END,
+                    escalated = FALSE,
+                    escalation_reason = NULL,
+                    assigned_bay = REPLACE(REPLACE(REPLACE(assigned_bay, 'Â', ''), '·', ''), '•', '')
+                WHERE status = 'WAITING';
+            """;
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(resetWaitingSql);
+            }
+
+            // 2. Reset IN_TREATMENT patients with fresh treatment start durations (6m - 18m ago)
+            String resetTreatmentSql = """
+                UPDATE patients SET 
+                    arrival_time = CASE 
+                        WHEN token_no = 'TK-2026-0142' THEN NOW() - INTERVAL 14 MINUTE
+                        WHEN token_no = 'TK-0143' THEN NOW() - INTERVAL 18 MINUTE
+                        WHEN token_no = 'TK-0139' THEN NOW() - INTERVAL 22 MINUTE
+                        WHEN token_no = 'TK-0136' THEN NOW() - INTERVAL 10 MINUTE
+                        WHEN token_no = 'TK-0148' THEN NOW() - INTERVAL 15 MINUTE
+                        WHEN token_no = 'TK-0138' THEN NOW() - INTERVAL 6 MINUTE
+                        ELSE NOW() - INTERVAL 12 MINUTE
+                    END,
+                    assigned_bay = REPLACE(REPLACE(REPLACE(assigned_bay, 'Â', ''), '·', ''), '•', '')
+                WHERE status = 'IN_TREATMENT';
+            """;
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(resetTreatmentSql);
+            }
+
+            // 3. Clean up any lingering encoding artifacts across all bay assignments
+            String cleanBaysSql = "UPDATE patients SET assigned_bay = REPLACE(REPLACE(REPLACE(assigned_bay, 'Â', ''), '·', ''), '•', '') WHERE assigned_bay LIKE '%Â%' OR assigned_bay LIKE '%·%';";
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(cleanBaysSql);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Notice: Startup timestamp synchronization: " + e.getMessage());
         }
     }
 

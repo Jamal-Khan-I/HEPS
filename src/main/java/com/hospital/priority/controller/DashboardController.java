@@ -173,7 +173,7 @@ public class DashboardController implements Initializable {
         lblNextToken.setText(patient.getTokenNo());
         lblNextMeta.setText(patient.getAge() + " · " + patient.getGender() + " · " + patient.getUhid());
         lblNextComplaint.setText(patient.getSymptoms());
-        lblNextBay.setText(patient.getAssignedBay());
+        lblNextBay.setText(patient.getShortBay());
 
         EmergencyLevel level = patient.getEmergencyLevel();
         lblNextPriorityBadge.setText(level.name());
@@ -262,7 +262,7 @@ public class DashboardController implements Initializable {
         // 4. Bay · Doctor
         VBox bayDocBox = new VBox(2.0);
         bayDocBox.setPrefWidth(220.0);
-        Label lblBay = new Label(p.getAssignedBay());
+        Label lblBay = new Label(p.getShortBay());
         lblBay.setStyle("-fx-font-weight: 600; -fx-font-size: 12.5px; -fx-text-fill: #0F172A;");
         Label lblDoc = new Label(p.getAssignedDoctorName());
         lblDoc.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #64748B;");
