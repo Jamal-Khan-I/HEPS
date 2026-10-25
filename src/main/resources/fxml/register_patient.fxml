@@ -156,7 +156,7 @@
         <!-- ================================================================= -->
         <!-- STEP 2: TRIAGE ASSESSMENT (PAGE 5)                                -->
         <!-- ================================================================= -->
-        <VBox fx:id="paneStep2" visible="false" managed="false" spacing="16.0">
+        <VBox fx:id="paneStep2" visible="false" managed="false" spacing="16.0" focusTraversable="true">
             <!-- Patient Header Banner -->
             <HBox alignment="CENTER_RIGHT">
                 <Label fx:id="lblStep2PatientBanner" text="Ramesh Kumar · 58 M · UH-2026-000891"

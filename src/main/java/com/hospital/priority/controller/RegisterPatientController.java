@@ -3,10 +3,12 @@ package com.hospital.priority.controller;
 import com.hospital.priority.model.*;
 import com.hospital.priority.service.*;
 import com.hospital.priority.util.TriageTicketUtil;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -131,6 +133,18 @@ public class RegisterPatientController implements Initializable {
 
         // Pre-fill initial form matching Page 4
         handleUseReturningRecord(null);
+
+        // Prevent auto-selection of text in vitals fields on focus
+        txtSpo2.focusedProperty().addListener((obs, oldVal, isFocused) -> {
+            if (isFocused) {
+                Platform.runLater(txtSpo2::deselect);
+            }
+        });
+        txtHr.focusedProperty().addListener((obs, oldVal, isFocused) -> {
+            if (isFocused) {
+                Platform.runLater(txtHr::deselect);
+            }
+        });
     }
 
     // =========================================================================
@@ -285,8 +299,28 @@ public class RegisterPatientController implements Initializable {
 
     @FXML
     public void handleChipComplaint(ActionEvent event) {
-        if (event.getSource() instanceof Button btn) {
-            txtComplaint.setText(btn.getText() + " radiating to left arm, sweating, onset 30 minutes ago");
+        if (event.getSource() instanceof Button clickedBtn) {
+            // Update chip button active state (green for selected, secondary for others)
+            if (clickedBtn.getParent() instanceof HBox chipContainer) {
+                for (Node child : chipContainer.getChildren()) {
+                    if (child instanceof Button b) {
+                        b.getStyleClass().removeAll("btn-primary", "btn-secondary");
+                        b.getStyleClass().add(b == clickedBtn ? "btn-primary" : "btn-secondary");
+                    }
+                }
+            }
+
+            String text = clickedBtn.getText().trim();
+            String complaint = switch (text) {
+                case "Chest pain" -> "Chest pain radiating to left arm, sweating, onset 30 minutes ago";
+                case "Breathlessness" -> "Severe acute breathlessness, audible wheezing, respiratory distress";
+                case "Trauma" -> "Blunt physical trauma with localized pain, swelling, and restricted mobility";
+                case "Stroke signs" -> "Acute neurological deficit, facial asymmetry, slurred speech onset <1 hr";
+                case "Fever" -> "High grade fever (102.4 F) with severe rigors, chills, and prostration";
+                case "Bleeding" -> "Active profuse bleeding, open laceration, hemodynamically unstable";
+                default -> text + " acute onset with severe discomfort";
+            };
+            txtComplaint.setText(complaint);
             handleVitalsChange();
         }
     }
@@ -443,6 +477,20 @@ public class RegisterPatientController implements Initializable {
 
         paneStep3.setVisible(step == 3);
         paneStep3.setManaged(step == 3);
+
+        if (step == 2) {
+            paneStep2.setFocusTraversable(true);
+            Platform.runLater(() -> {
+                paneStep2.requestFocus();
+                txtSpo2.deselect();
+            });
+        } else if (step == 1) {
+            paneStep1.setFocusTraversable(true);
+            Platform.runLater(paneStep1::requestFocus);
+        } else if (step == 3) {
+            paneStep3.setFocusTraversable(true);
+            Platform.runLater(paneStep3::requestFocus);
+        }
 
         // Update Stepper circles
         updateCircle(step1Circle, lblStep1Num, lblStep1Text, step >= 1, step > 1);
