@@ -53,7 +53,8 @@ public class TriageAgent {
 
         // Acute Severe Distress
         if (s.contains("chest") || s.contains("angina") || s.contains("heart attack") || s.contains("stroke")
-                || s.contains("seizure") || s.contains("asthma") || s.contains("fracture")
+                || s.contains("seizure") || s.contains("asthma") || s.contains("breathless") || s.contains("wheezing")
+                || s.contains("bleeding") || s.contains("fracture")
                 || s.contains("paralysis") || (vitals != null && vitals.getSpo2() != null && vitals.getSpo2() <= 93)) {
             return new TriageRecommendation(EmergencyLevel.HIGH, 0.91,
                     "High clinical urgency: High risk of rapid organ deterioration without priority attention.");

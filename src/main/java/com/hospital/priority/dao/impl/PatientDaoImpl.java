@@ -482,9 +482,9 @@ public class PatientDaoImpl implements PatientDao {
                 String token = rs.getString("token_no");
                 if (token != null && token.contains("-")) {
                     String[] parts = token.split("-");
-                    if (parts.length == 3) {
+                    if (parts.length >= 2) {
                         try {
-                            int val = Integer.parseInt(parts[2]);
+                            int val = Integer.parseInt(parts[parts.length - 1]);
                             if (val > maxSeq) {
                                 maxSeq = val;
                             }

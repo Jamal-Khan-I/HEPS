@@ -158,8 +158,10 @@ public class JavaTriageRuleEngine {
 
             if (symClean.contains("chest pain") || symClean.contains("heart attack")
                     || symClean.contains("stroke") || symClean.contains("paralysis")
-                    || symClean.contains("severe asthma") || symClean.contains("open fracture")
-                    || symClean.contains("uncontrolled bleed") || symClean.contains("head injury")) {
+                    || symClean.contains("severe asthma") || symClean.contains("breathless")
+                    || symClean.contains("respiratory distress") || symClean.contains("open fracture")
+                    || symClean.contains("uncontrolled bleed") || symClean.contains("bleeding")
+                    || symClean.contains("head injury")) {
                 triggers.add("HIGH: Acute severe clinical presentation");
                 highTriggered = true;
             }

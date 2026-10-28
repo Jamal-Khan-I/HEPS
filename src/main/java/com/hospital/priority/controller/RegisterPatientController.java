@@ -1,7 +1,11 @@
 package com.hospital.priority.controller;
 
+import com.hospital.priority.dao.DoctorDao;
+import com.hospital.priority.dao.impl.DoctorDaoImpl;
 import com.hospital.priority.model.*;
 import com.hospital.priority.service.*;
+import com.hospital.priority.service.ai.AIAgentOrchestrator;
+import com.hospital.priority.util.TokenGenerator;
 import com.hospital.priority.util.TriageTicketUtil;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -19,6 +23,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.Year;
 import java.util.*;
 
 /**
@@ -91,6 +96,20 @@ public class RegisterPatientController implements Initializable {
     @FXML private TextField txtKnownConditions;
     @FXML private Label lblNews2ScoreBadge;
 
+    // Step 2: Clinical Decision Support Nodes
+    @FXML private Label lblStep2RuleLevel;
+    @FXML private Label lblStep2RuleDetail;
+    @FXML private Label lblStep2AiLevel;
+    @FXML private Label lblStep2AiDetail;
+    @FXML private HBox boxDisagreementBanner;
+    @FXML private Label lblDisagreementText;
+
+    // Step 3: Recommendation Nodes
+    @FXML private Label lblRecRuleLevel;
+    @FXML private Label lblRecAiLevel;
+    @FXML private Label lblRecFinalLevel;
+    @FXML private Label lblRecSummary;
+
     // Step 3: Decision Nodes
     @FXML private ComboBox<EmergencyLevel> cmbFinalUrgency;
     @FXML private ComboBox<Specialty> cmbSpecialty;
@@ -103,6 +122,10 @@ public class RegisterPatientController implements Initializable {
     private final QueueService queueService = QueueService.getInstance();
     private final PatientService patientService = PatientService.getInstance();
     private final BayService bayService = BayService.getInstance();
+    private final DoctorDao doctorDao = new DoctorDaoImpl();
+    private final DoctorRoutingService routingService = DoctorRoutingService.getInstance();
+    private final JavaTriageRuleEngine ruleEngine = JavaTriageRuleEngine.getInstance();
+    private final AIAgentOrchestrator aiOrchestrator = AIAgentOrchestrator.getInstance();
 
     private Patient draftPatient;
     private String generatedUhid;
@@ -124,12 +147,25 @@ public class RegisterPatientController implements Initializable {
             lblPainValue.setText(score + " / 10");
         });
 
-        // Initialize draft patient matching Page 4 defaults
-        draftPatient = new Patient();
-        generatedUhid = "UH-2026-000891";
-        generatedToken = "TK-2026-0142";
-        draftPatient.setUhid(generatedUhid);
-        draftPatient.setTokenNo(generatedToken);
+        // Initialize fresh patient draft with sequential unique token
+        patientService.initializeSequence();
+        initFreshPatientDraft();
+
+        // Step 3 reactive listeners: changing specialty re-filters doctors; changing urgency re-filters bays
+        cmbSpecialty.valueProperty().addListener((obs, oldVal, newSpecialty) -> {
+            if (newSpecialty != null) {
+                updateDoctorsForSpecialty(newSpecialty);
+                updateRecommendationSummary();
+            }
+        });
+
+        cmbFinalUrgency.valueProperty().addListener((obs, oldVal, newUrgency) -> {
+            if (newUrgency != null) {
+                updateBaysForLevel(newUrgency);
+                updateRoutingHint(newUrgency);
+                updateRecommendationSummary();
+            }
+        });
 
         // Pre-fill initial form matching Page 4
         handleUseReturningRecord(null);
@@ -145,6 +181,14 @@ public class RegisterPatientController implements Initializable {
                 Platform.runLater(txtHr::deselect);
             }
         });
+    }
+
+    private void initFreshPatientDraft() {
+        draftPatient = new Patient();
+        generatedToken = TokenGenerator.nextToken();
+        generatedUhid = String.format("UH-%d-%06d", Year.now().getValue(), (int)(System.currentTimeMillis() % 900000) + 100000);
+        draftPatient.setUhid(generatedUhid);
+        draftPatient.setTokenNo(generatedToken);
     }
 
     // =========================================================================
@@ -344,15 +388,76 @@ public class RegisterPatientController implements Initializable {
             badgeSpo2Alert.setVisible(spo2 < 90);
             badgeHrAlert.setVisible(hr > 130);
 
-            // Compute live NEWS2 score (Page 5: NEWS2: 9)
+            // Compute live NEWS2 score
             int news2 = NEWS2Service.calculateScore(v, gcs);
             draftPatient.setNews2Score(news2);
             lblNews2ScoreBadge.setText("NEWS2: " + news2);
-            lblNews2ScoreBadge.setStyle("-fx-background-color: " + (news2 >= 7 ? "#FEE2E2" : "#FEF9C3") +
-                    "; -fx-text-fill: " + (news2 >= 7 ? "#B91C1C" : "#A16207") + ";");
+            lblNews2ScoreBadge.getStyleClass().removeAll("badge-critical", "badge-high", "badge-medium", "badge-low");
+            lblNews2ScoreBadge.getStyleClass().add(news2 >= 7 ? "badge-critical" : (news2 >= 5 ? "badge-high" : (news2 >= 1 ? "badge-medium" : "badge-low")));
+
+            // Dynamically update clinical decision support & AI consensus cards in Step 2
+            updateClinicalDecisionSupport(v, gcs);
 
         } catch (Exception ignored) {
         }
+    }
+
+    private void updateClinicalDecisionSupport(Vitals v, int gcs) {
+        String symptoms = txtComplaint.getText() != null ? txtComplaint.getText().trim() : "";
+        int age = draftPatient.getAge() > 0 ? draftPatient.getAge() : 58;
+
+        // 1. Rule Engine Evaluation
+        JavaTriageRuleEngine.RuleEvaluation ruleEval = ruleEngine.evaluate(age, symptoms, v);
+        EmergencyLevel ruleLevel = ruleEval.getRecommendedLevel();
+        Specialty ruleSpec = ruleEval.getRecommendedSpecialty();
+
+        if (lblStep2RuleLevel != null) {
+            lblStep2RuleLevel.setText(ruleLevel.name());
+            lblStep2RuleLevel.setStyle("-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: " + getLevelColorHex(ruleLevel) + ";");
+        }
+        if (lblStep2RuleDetail != null) {
+            String detail = !ruleEval.getTriggeredRules().isEmpty()
+                    ? ruleEval.getTriggeredRules().get(0)
+                    : "Stable vitals, " + ruleSpec.getDisplayName() + " evaluation";
+            lblStep2RuleDetail.setText(detail);
+        }
+
+        // 2. Multi-Agent AI Assessment
+        AIAssessmentResult aiResult = aiOrchestrator.assessPatient(draftPatient.getFullName(), age, draftPatient.getGender(), symptoms, v);
+        EmergencyLevel aiLevel = aiResult.getSuggestedLevel();
+        Specialty aiSpec = aiResult.getSuggestedSpecialty();
+
+        if (lblStep2AiLevel != null) {
+            lblStep2AiLevel.setText(aiLevel.name());
+            lblStep2AiLevel.setStyle("-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: " + getLevelColorHex(aiLevel) + ";");
+        }
+        if (lblStep2AiDetail != null) {
+            String detail = aiResult.getIntakeSummary() != null && !aiResult.getIntakeSummary().isEmpty()
+                    ? aiResult.getIntakeSummary()
+                    : aiSpec.getDisplayName() + " clinical profile";
+            lblStep2AiDetail.setText(detail);
+        }
+
+        // 3. Disagreement Detection Banner
+        if (boxDisagreementBanner != null && lblDisagreementText != null) {
+            boolean disagreement = ruleLevel != aiLevel;
+            boxDisagreementBanner.setVisible(disagreement);
+            boxDisagreementBanner.setManaged(disagreement);
+            if (disagreement) {
+                EmergencyLevel higherLevel = ruleLevel.getRank() < aiLevel.getRank() ? ruleLevel : aiLevel;
+                lblDisagreementText.setText("Disagreement detected. Defaulting to higher acuity safety protocol: " + higherLevel.name());
+            }
+        }
+    }
+
+    private String getLevelColorHex(EmergencyLevel level) {
+        if (level == null) return "#64748B";
+        return switch (level) {
+            case CRITICAL -> "#B91C1C";
+            case HIGH -> "#C2410C";
+            case MEDIUM -> "#D97706";
+            case LOW -> "#0D9488";
+        };
     }
 
     @FXML
@@ -362,29 +467,182 @@ public class RegisterPatientController implements Initializable {
         draftPatient.setKnownConditions(txtKnownConditions.getText());
         draftPatient.setPainScore((int) sliderPain.getValue());
 
-        // Setup Step 3 defaults matching Page 6
-        cmbFinalUrgency.getSelectionModel().select(EmergencyLevel.CRITICAL);
-        cmbSpecialty.getSelectionModel().select(Specialty.CARDIOLOGY);
+        int age = draftPatient.getAge() > 0 ? draftPatient.getAge() : 58;
+        String symptoms = draftPatient.getSymptoms();
+        Vitals v = draftPatient.getVitals();
+        try {
+            int spo2 = Integer.parseInt(txtSpo2.getText().trim());
+            int hr = Integer.parseInt(txtHr.getText().trim());
+            double temp = Double.parseDouble(txtTemp.getText().trim());
+            int sys = Integer.parseInt(txtSysBp.getText().trim());
+            int dia = Integer.parseInt(txtDiaBp.getText().trim());
+            int rr = Integer.parseInt(txtRr.getText().trim());
+            v = new Vitals(spo2, hr, temp, sys, dia, rr);
+            draftPatient.setVitals(v);
+        } catch (Exception ignored) {
+            if (v == null) {
+                v = new Vitals(97, 82, 98.6, 120, 80, 16);
+                draftPatient.setVitals(v);
+            }
+        }
 
-        // Load available doctors matching Cardiology
-        cmbDoctor.setItems(FXCollections.observableArrayList(
-                "Dr. Mehta · available",
-                "Dr. Rajesh Sharma · available",
-                "Dr. Rao · busy"
-        ));
-        cmbDoctor.getSelectionModel().select(0);
+        JavaTriageRuleEngine.RuleEvaluation ruleEval = ruleEngine.evaluate(age, symptoms, v);
+        AIAssessmentResult aiResult = aiOrchestrator.assessPatient(draftPatient.getFullName(), age, draftPatient.getGender(), symptoms, v);
 
-        // Load free bays of Resus type (Page 6: Bay 1 Resus (free))
-        cmbBay.setItems(FXCollections.observableArrayList(
-                "Bay 1 · Resus (free)",
-                "Bay 2 · Trauma (occupied)",
-                "Bay 3 · Acute (free)"
-        ));
-        cmbBay.getSelectionModel().select(0);
+        // Deterministic safety guardrail: higher acuity wins (CRITICAL=1, HIGH=2, MEDIUM=3, LOW=4)
+        EmergencyLevel finalLevel = ruleEval.getRecommendedLevel().getRank() < aiResult.getSuggestedLevel().getRank()
+                ? ruleEval.getRecommendedLevel()
+                : aiResult.getSuggestedLevel();
+        Specialty finalSpecialty = ruleEval.getRecommendedSpecialty() != null
+                ? ruleEval.getRecommendedSpecialty()
+                : aiResult.getSuggestedSpecialty();
 
-        lblRoutingHint.setText("Critical: immediate care. Target wait: 0 min.");
+        draftPatient.setEmergencyLevel(finalLevel);
+        draftPatient.setAssignedSpecialty(finalSpecialty);
+        draftPatient.setAiSuggestedLevel(aiResult.getSuggestedLevel());
+        draftPatient.setRuleSuggestedLevel(ruleEval.getRecommendedLevel());
+
+        // Update Step 3 Recommendation Header
+        if (lblRecRuleLevel != null) lblRecRuleLevel.setText(ruleEval.getRecommendedLevel().name());
+        if (lblRecAiLevel != null) lblRecAiLevel.setText(aiResult.getSuggestedLevel().name());
+        if (lblRecFinalLevel != null) {
+            lblRecFinalLevel.setText(finalLevel.name());
+            lblRecFinalLevel.getStyleClass().removeAll("badge-critical", "badge-high", "badge-medium", "badge-low");
+            lblRecFinalLevel.getStyleClass().add(finalLevel.getCssBadgeClass());
+        }
+
+        // Set ComboBox selections based on clinical evaluation
+        cmbFinalUrgency.getSelectionModel().select(finalLevel);
+        cmbSpecialty.getSelectionModel().select(finalSpecialty);
+
+        // Populate doctors and bays for the dynamically inferred specialty and level
+        updateDoctorsForSpecialty(finalSpecialty);
+        updateBaysForLevel(finalLevel);
+        updateRoutingHint(finalLevel);
+        updateRecommendationSummary();
 
         setStep(3);
+    }
+
+    private void updateDoctorsForSpecialty(Specialty specialty) {
+        if (specialty == null) return;
+        List<String> docItems = new ArrayList<>();
+        Doctor bestDoc = null;
+        try {
+            DoctorRoutingService.RoutingDecision decision = routingService.routeDoctor(specialty);
+            bestDoc = decision != null ? decision.getAssignedDoctor() : null;
+            List<Doctor> specialists = doctorDao.findBySpecialty(specialty);
+            for (Doctor d : specialists) {
+                docItems.add(d.getName() + " · " + d.getStatus().getDisplayName().toLowerCase());
+            }
+        } catch (Exception e) {
+            System.err.println("Notice: Could not load doctors from DB: " + e.getMessage());
+        }
+
+        // Fallbacks for any specialty if DB list was empty
+        if (docItems.isEmpty()) {
+            switch (specialty) {
+                case PULMONOLOGY -> {
+                    docItems.add("Dr. Ananya Sen · available");
+                    docItems.add("Dr. Sneha Reddy · available");
+                }
+                case CARDIOLOGY -> {
+                    docItems.add("Dr. Rajesh Sharma · available");
+                    docItems.add("Dr. Arjun Mehta · available");
+                    docItems.add("Dr. Rao · busy");
+                }
+                case NEUROLOGY -> {
+                    docItems.add("Dr. Priya Nair · available");
+                    docItems.add("Dr. Verma · available");
+                }
+                case ORTHOPEDICS -> {
+                    docItems.add("Dr. Vikram Patel · available");
+                    docItems.add("Dr. Joshi · busy");
+                }
+                case PEDIATRICS -> {
+                    docItems.add("Dr. Sneha Reddy · available");
+                    docItems.add("Dr. Ana · available");
+                }
+                case TRAUMA_SURGERY -> {
+                    docItems.add("Dr. Arjun Mehta · available");
+                    docItems.add("Dr. Vikram Patel · available");
+                }
+                default -> {
+                    docItems.add("Dr. David Miller · available");
+                    docItems.add("Dr. Kavita Verma · available");
+                }
+            }
+        }
+
+        cmbDoctor.setItems(FXCollections.observableArrayList(docItems));
+        if (bestDoc != null) {
+            String bestName = bestDoc.getName();
+            for (String item : docItems) {
+                if (item.toLowerCase().contains(bestName.toLowerCase())) {
+                    cmbDoctor.getSelectionModel().select(item);
+                    return;
+                }
+            }
+        }
+        if (!docItems.isEmpty()) {
+            cmbDoctor.getSelectionModel().select(0);
+        }
+    }
+
+    private void updateBaysForLevel(EmergencyLevel level) {
+        if (level == null) level = EmergencyLevel.LOW;
+        List<Bay> matchedBays = bayService.getAvailableBaysForLevel(level);
+        List<String> bayItems = new ArrayList<>();
+        String bestFreeBay = null;
+
+        for (Bay b : matchedBays) {
+            String label = b.getName() + " (" + (b.isAvailable() ? "free" : b.getStatus().getDisplayName().toLowerCase()) + ")";
+            bayItems.add(label);
+            if (b.isAvailable() && bestFreeBay == null) {
+                bestFreeBay = label;
+            }
+        }
+
+        // Also add other bays so doctor can pick any free bay
+        for (Bay b : bayService.getAllBays()) {
+            String label = b.getName() + " (" + (b.isAvailable() ? "free" : b.getStatus().getDisplayName().toLowerCase()) + ")";
+            if (!bayItems.contains(label)) {
+                bayItems.add(label);
+                if (b.isAvailable() && bestFreeBay == null) {
+                    bestFreeBay = label;
+                }
+            }
+        }
+
+        cmbBay.setItems(FXCollections.observableArrayList(bayItems));
+        if (bestFreeBay != null) {
+            cmbBay.getSelectionModel().select(bestFreeBay);
+        } else if (!bayItems.isEmpty()) {
+            cmbBay.getSelectionModel().select(0);
+        }
+    }
+
+    private void updateRoutingHint(EmergencyLevel level) {
+        if (level == null) level = EmergencyLevel.LOW;
+        String hint = switch (level) {
+            case CRITICAL -> "Critical: immediate resuscitation care. Target wait: 0 min (SLA: 15m).";
+            case HIGH -> "High priority: urgent clinical care. Target wait: <15 min (SLA: 15m).";
+            case MEDIUM -> "Medium priority: monitored observation. Target wait: <45 min (SLA: 60m).";
+            case LOW -> "Low priority: ambulatory care and evaluation. Target wait: <90 min (SLA: 120m).";
+        };
+        lblRoutingHint.setText(hint);
+    }
+
+    private void updateRecommendationSummary() {
+        Specialty s = cmbSpecialty.getSelectionModel().getSelectedItem();
+        String doc = cmbDoctor.getSelectionModel().getSelectedItem();
+        String bay = cmbBay.getSelectionModel().getSelectedItem();
+        String specName = s != null ? s.getDisplayName() : "General Emergency";
+        String bayName = bay != null ? bay : "Bay 1 Resus";
+        String docName = doc != null ? doc : "Dr. On-Duty";
+        if (lblRecSummary != null) {
+            lblRecSummary.setText("Suggested: " + specName + " · " + bayName + " · " + docName);
+        }
     }
 
     // =========================================================================
@@ -428,13 +686,23 @@ public class RegisterPatientController implements Initializable {
         String bay = cmbBay.getSelectionModel().getSelectedItem();
 
         draftPatient.setEmergencyLevel(urgency != null ? urgency : EmergencyLevel.CRITICAL);
-        draftPatient.setAssignedSpecialty(specialty != null ? specialty : Specialty.CARDIOLOGY);
-        draftPatient.setAssignedDoctorName(doctor != null ? doctor.split("·")[0].trim() : "Dr. Mehta");
-        draftPatient.setAssignedBay(bay != null ? bay.split("\\(")[0].trim() : "Bay 1 · Resus");
+        draftPatient.setAssignedSpecialty(specialty != null ? specialty : Specialty.GENERAL_EMERGENCY);
+        draftPatient.setAssignedDoctorName(doctor != null ? doctor.split("·")[0].trim() : "Dr. On-Duty");
+        draftPatient.setAssignedBay(bay != null ? bay.split("\\(")[0].trim() : "Bay 1 Resus");
         draftPatient.setStatus(PatientStatus.WAITING);
         draftPatient.setArrivalTime(LocalDateTime.now());
 
         try {
+            // Guarantee a unique sequential token so duplicate key never occurs
+            String currentToken = draftPatient.getTokenNo();
+            if (currentToken == null || currentToken.isEmpty() || patientService.findByToken(currentToken).isPresent()) {
+                String freshToken = TokenGenerator.nextToken();
+                draftPatient.setTokenNo(freshToken);
+            }
+            if (draftPatient.getUhid() == null || draftPatient.getUhid().isEmpty()) {
+                draftPatient.setUhid(String.format("UH-%d-%06d", Year.now().getValue(), (int)(System.currentTimeMillis() % 900000) + 100000));
+            }
+
             // 1. Insert patient into database
             patientService.registerPatient(draftPatient);
 
@@ -446,7 +714,8 @@ public class RegisterPatientController implements Initializable {
 
             // 4. Log compliance audit entry (Page 18)
             AuditService.getInstance().log("PATIENT_REGISTERED", draftPatient.getTokenNo(), draftPatient.getUhid(),
-                    "REGISTERED", "WAITING", "Triage registration completed. Priority: " + draftPatient.getEmergencyLevel().name());
+                    "REGISTERED", "WAITING", "Triage registration completed. Priority: " + draftPatient.getEmergencyLevel().name()
+                            + ", Specialty: " + draftPatient.getAssignedSpecialty() + ", Bay: " + draftPatient.getAssignedBay());
 
             // 5. Open printable thermal triage ticket dialog (Page 7)
             TriageTicketUtil.showTicketDialog(draftPatient);
