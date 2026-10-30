@@ -181,6 +181,8 @@ public class DoctorWorkspaceController implements Initializable {
                     HBox row = new HBox(10);
                     row.setAlignment(Pos.CENTER_LEFT);
                     row.getStyleClass().setAll(isSelected ? "patient-list-item-selected" : "patient-list-item");
+                    row.maxWidthProperty().bind(listPatients.widthProperty().subtract(18));
+                    row.prefWidthProperty().bind(listPatients.widthProperty().subtract(18));
 
                     // Avatar Circle with Priority Tint
                     StackPane avatar = new StackPane();
@@ -200,18 +202,20 @@ public class DoctorWorkspaceController implements Initializable {
                     HBox line1 = new HBox(6);
                     line1.setAlignment(Pos.CENTER_LEFT);
                     Label name = new Label(p.getFullName());
-                    name.setStyle("-fx-font-size: 13.5px; -fx-font-weight: 700; -fx-text-fill: #0F172A;");
+                    name.setStyle("-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #0F172A;");
+                    name.setTextOverrun(OverrunStyle.ELLIPSIS);
+                    name.setMaxWidth(135);
                     Region spacer1 = new Region();
                     HBox.setHgrow(spacer1, Priority.ALWAYS);
                     Label wait = new Label(p.getFormattedWaitTime());
-                    wait.setStyle("-fx-font-size: 11.5px; -fx-font-weight: 600; -fx-text-fill: #64748B;");
+                    wait.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #64748B;");
                     line1.getChildren().addAll(name, spacer1, wait);
 
                     // Line 2: Token + Short Bay
                     HBox line2 = new HBox(4);
                     line2.setAlignment(Pos.CENTER_LEFT);
                     Label sub = new Label(p.getTokenNo() + " · " + p.getShortBay());
-                    sub.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #64748B;");
+                    sub.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748B;");
                     line2.getChildren().add(sub);
 
                     // Line 3: Priority Pill or Symptoms
@@ -219,10 +223,11 @@ public class DoctorWorkspaceController implements Initializable {
                     line3.setAlignment(Pos.CENTER_LEFT);
                     Label badge = new Label(p.getEmergencyLevel().getDisplayName().toUpperCase());
                     badge.getStyleClass().setAll("badge", p.getEmergencyLevel().getCssClass());
-                    badge.setStyle("-fx-font-size: 10px; -fx-padding: 1px 6px;");
+                    badge.setStyle("-fx-font-size: 9.5px; -fx-padding: 1px 6px;");
 
                     Label symptoms = new Label(p.getSymptoms());
                     symptoms.setStyle("-fx-font-size: 11px; -fx-text-fill: #94A3B8;");
+                    symptoms.setTextOverrun(OverrunStyle.ELLIPSIS);
                     symptoms.setMaxWidth(130);
                     line3.getChildren().addAll(badge, symptoms);
 

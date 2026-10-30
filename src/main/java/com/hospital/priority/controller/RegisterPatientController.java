@@ -5,6 +5,8 @@ import com.hospital.priority.dao.impl.DoctorDaoImpl;
 import com.hospital.priority.model.*;
 import com.hospital.priority.service.*;
 import com.hospital.priority.service.ai.AIAgentOrchestrator;
+import com.hospital.priority.service.ai.AIClientService;
+import com.hospital.priority.service.ai.AIClinicalExtraction;
 import com.hospital.priority.util.TokenGenerator;
 import com.hospital.priority.util.TriageTicketUtil;
 import javafx.application.Platform;
@@ -54,8 +56,15 @@ public class RegisterPatientController implements Initializable {
     @FXML private VBox paneStep2;
     @FXML private VBox paneStep3;
 
+    // AI Clinical Intake Nodes
+    @FXML private TextArea txtAiNarrative;
+    @FXML private Button btnAiAutoFill;
+    @FXML private HBox boxAiStatus;
+    @FXML private Label lblAiStatus;
+
     // Step 1: Identity Nodes
     @FXML private HBox bannerReturningPatient;
+    @FXML private Label lblReturningPatientInfo;
     @FXML private TextField txtName;
     @FXML private TextField txtPhone;
     @FXML private TextField txtDob;
@@ -76,7 +85,7 @@ public class RegisterPatientController implements Initializable {
     @FXML private Button chipReferred;
     @FXML private Button chipPolice;
     @FXML private Button chipRelatives;
-    private String selectedArrivalMode = "Ambulance";
+    private String selectedArrivalMode = "Walk-in";
 
     // Step 2: Triage Nodes
     @FXML private Label lblStep2PatientBanner;
@@ -126,8 +135,10 @@ public class RegisterPatientController implements Initializable {
     private final DoctorRoutingService routingService = DoctorRoutingService.getInstance();
     private final JavaTriageRuleEngine ruleEngine = JavaTriageRuleEngine.getInstance();
     private final AIAgentOrchestrator aiOrchestrator = AIAgentOrchestrator.getInstance();
+    private final AIClientService aiClientService = AIClientService.getInstance();
 
     private Patient draftPatient;
+    private Patient storedReturningPatient;
     private String generatedUhid;
     private String generatedToken;
 
@@ -151,6 +162,10 @@ public class RegisterPatientController implements Initializable {
         patientService.initializeSequence();
         initFreshPatientDraft();
 
+        // Default arrival mode to Walk-in for new patients
+        selectedArrivalMode = "Walk-in";
+        updateArrivalChips();
+
         // Step 3 reactive listeners: changing specialty re-filters doctors; changing urgency re-filters bays
         cmbSpecialty.valueProperty().addListener((obs, oldVal, newSpecialty) -> {
             if (newSpecialty != null) {
@@ -167,8 +182,30 @@ public class RegisterPatientController implements Initializable {
             }
         });
 
-        // Pre-fill initial form matching Page 4
-        handleUseReturningRecord(null);
+        // Dynamic Real-time Returning Patient Lookup when entering phone
+        txtPhone.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && newVal.replaceAll("[^0-9]", "").length() >= 10) {
+                String cleanPhone = newVal.replaceAll("[^0-9]", "");
+                try {
+                    patientService.findByPhone(cleanPhone).ifPresentOrElse(p -> {
+                        storedReturningPatient = p;
+                        if (lblReturningPatientInfo != null) {
+                            lblReturningPatientInfo.setText(p.getFullName() + " · " + p.getUhid() + " · Last visit: " + p.getFormattedArrivalTime());
+                        }
+                        bannerReturningPatient.setVisible(true);
+                        bannerReturningPatient.setManaged(true);
+                    }, () -> {
+                        storedReturningPatient = null;
+                        bannerReturningPatient.setVisible(false);
+                        bannerReturningPatient.setManaged(false);
+                    });
+                } catch (Exception ignored) {
+                }
+            } else {
+                bannerReturningPatient.setVisible(false);
+                bannerReturningPatient.setManaged(false);
+            }
+        });
 
         // Prevent auto-selection of text in vitals fields on focus
         txtSpo2.focusedProperty().addListener((obs, oldVal, isFocused) -> {
@@ -192,25 +229,119 @@ public class RegisterPatientController implements Initializable {
     }
 
     // =========================================================================
+    // AI CLINICAL INTAKE AUTO-FILL
+    // =========================================================================
+
+    @FXML
+    public void handleAiAutoFill(ActionEvent event) {
+        String narrative = txtAiNarrative != null ? txtAiNarrative.getText().trim() : "";
+        if (narrative.isEmpty()) {
+            if (boxAiStatus != null && lblAiStatus != null) {
+                boxAiStatus.setVisible(true);
+                boxAiStatus.setManaged(true);
+                lblAiStatus.setText("Please enter or paste the patient's symptoms/complaint above.");
+                lblAiStatus.setStyle("-fx-text-fill: #D97706; -fx-font-weight: 600;");
+            }
+            return;
+        }
+
+        if (boxAiStatus != null && lblAiStatus != null) {
+            boxAiStatus.setVisible(true);
+            boxAiStatus.setManaged(true);
+            lblAiStatus.setText("AI analyzing clinical narrative and extracting parameters...");
+            lblAiStatus.setStyle("-fx-text-fill: #0D9488; -fx-font-weight: 600;");
+        }
+        if (btnAiAutoFill != null) btnAiAutoFill.setDisable(true);
+
+        aiClientService.extractClinicalNarrativeAsync(narrative).thenAccept(ext -> {
+            Platform.runLater(() -> {
+                if (btnAiAutoFill != null) btnAiAutoFill.setDisable(false);
+
+                // Step 1: Demographics
+                if (ext.getFullName() != null && !ext.getFullName().isEmpty()) {
+                    txtName.setText(ext.getFullName());
+                }
+                if (ext.getAge() != null && ext.getAge() > 0) {
+                    txtAge.setText(ext.getAge() + " years");
+                    draftPatient.setAge(ext.getAge());
+                }
+                if (ext.getGender() != null) {
+                    cmbGender.getSelectionModel().select(ext.getGender());
+                }
+                if (ext.getPhone() != null && !ext.getPhone().isEmpty()) {
+                    txtPhone.setText(ext.getPhone());
+                }
+                if (ext.getArrivalMode() != null) {
+                    selectedArrivalMode = ext.getArrivalMode();
+                    updateArrivalChips();
+                }
+
+                // Step 2: Vitals & History
+                if (ext.getSpo2() != null) txtSpo2.setText(String.valueOf(ext.getSpo2()));
+                if (ext.getHeartRate() != null) txtHr.setText(String.valueOf(ext.getHeartRate()));
+                if (ext.getTemperature() != null) txtTemp.setText(String.valueOf(ext.getTemperature()));
+                if (ext.getSystolicBp() != null) txtSysBp.setText(String.valueOf(ext.getSystolicBp()));
+                if (ext.getDiastolicBp() != null) txtDiaBp.setText(String.valueOf(ext.getDiastolicBp()));
+                if (ext.getRespiratoryRate() != null) txtRr.setText(String.valueOf(ext.getRespiratoryRate()));
+                if (ext.getPainScore() != null) {
+                    sliderPain.setValue(ext.getPainScore());
+                    lblPainValue.setText(ext.getPainScore() + " / 10");
+                }
+                if (ext.getChiefComplaint() != null && !ext.getChiefComplaint().isEmpty()) {
+                    txtComplaint.setText(ext.getChiefComplaint());
+                }
+                if (ext.getAllergies() != null) txtAllergies.setText(ext.getAllergies());
+                if (ext.getKnownConditions() != null) txtKnownConditions.setText(ext.getKnownConditions());
+
+                // Trigger live decision support calculation
+                handleVitalsChange();
+
+                // Step 3 Pre-configuration based on AI clinical inference
+                if (ext.getSpecialty() != null) {
+                    cmbSpecialty.getSelectionModel().select(ext.getSpecialty());
+                    updateDoctorsForSpecialty(ext.getSpecialty());
+                }
+                if (ext.getUrgency() != null) {
+                    cmbFinalUrgency.getSelectionModel().select(ext.getUrgency());
+                    updateBaysForLevel(ext.getUrgency());
+                    updateRoutingHint(ext.getUrgency());
+                }
+                updateRecommendationSummary();
+
+                if (boxAiStatus != null && lblAiStatus != null) {
+                    lblAiStatus.setText("✓ AI Extraction Complete! All fields auto-populated with clinical consensus.");
+                    lblAiStatus.setStyle("-fx-text-fill: #0D9488; -fx-font-weight: 700;");
+                }
+            });
+        });
+    }
+
+    // =========================================================================
     // STEP 1 HANDLERS
     // =========================================================================
 
     @FXML
     public void handleUseReturningRecord(ActionEvent event) {
-        txtName.setText("Ramesh Kumar");
-        txtPhone.setText("9876543210");
-        txtDob.setText("14 / 03 / 1968");
-        txtAge.setText("58 years");
-        cmbGender.getSelectionModel().select("Male");
-        txtAddress.setText("12, Lake View Road, Chennai");
-        cmbBloodGroup.getSelectionModel().select("B+");
-        txtEmergName.setText("Sunita Kumar");
-        txtEmergRelation.setText("Spouse");
-        txtEmergPhone.setText("9876511122");
-        txtAllergies.setText("Penicillin");
-        txtKnownConditions.setText("Diabetes, hypertension");
-        selectedArrivalMode = "Ambulance";
-        updateArrivalChips();
+        if (storedReturningPatient != null) {
+            txtName.setText(storedReturningPatient.getFullName());
+            txtPhone.setText(storedReturningPatient.getPhone());
+            txtDob.setText(storedReturningPatient.getDateOfBirth() != null ? storedReturningPatient.getDateOfBirth() : "");
+            txtAge.setText(storedReturningPatient.getAge() > 0 ? storedReturningPatient.getAge() + " years" : "");
+            if (storedReturningPatient.getGender() != null) {
+                cmbGender.getSelectionModel().select(storedReturningPatient.getGender());
+            }
+            txtAddress.setText(storedReturningPatient.getAddress() != null ? storedReturningPatient.getAddress() : "");
+            if (storedReturningPatient.getBloodGroup() != null) {
+                cmbBloodGroup.getSelectionModel().select(storedReturningPatient.getBloodGroup());
+            }
+            txtEmergName.setText(storedReturningPatient.getEmergencyContactName() != null ? storedReturningPatient.getEmergencyContactName() : "");
+            txtEmergRelation.setText(storedReturningPatient.getEmergencyContactRelation() != null ? storedReturningPatient.getEmergencyContactRelation() : "");
+            txtEmergPhone.setText(storedReturningPatient.getEmergencyContactPhone() != null ? storedReturningPatient.getEmergencyContactPhone() : "");
+            txtAllergies.setText(storedReturningPatient.getAllergies() != null ? storedReturningPatient.getAllergies() : "");
+            txtKnownConditions.setText(storedReturningPatient.getKnownConditions() != null ? storedReturningPatient.getKnownConditions() : "");
+            bannerReturningPatient.setVisible(false);
+            bannerReturningPatient.setManaged(false);
+        }
     }
 
     @FXML

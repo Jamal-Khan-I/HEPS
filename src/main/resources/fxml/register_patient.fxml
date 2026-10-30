@@ -55,16 +55,32 @@
         <!-- STEP 1: IDENTITY (PAGE 4)                                         -->
         <!-- ================================================================= -->
         <VBox fx:id="paneStep1" spacing="16.0">
-            <!-- Returning Patient Found Banner (Page 4) -->
-            <HBox fx:id="bannerReturningPatient" alignment="CENTER_LEFT" spacing="12.0"
+            <!-- Returning Patient Found Banner (Dynamically shown on search) -->
+            <HBox fx:id="bannerReturningPatient" visible="false" managed="false" alignment="CENTER_LEFT" spacing="12.0"
                   style="-fx-background-color: #EFF6FF; -fx-border-color: #BFDBFE; -fx-border-width: 1px; -fx-border-radius: 10px; -fx-background-radius: 10px; -fx-padding: 12px 16px;">
                 <SVGPath content="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" style="-fx-stroke: #2563EB; -fx-stroke-width: 2; -fx-fill: transparent;" />
                 <VBox spacing="1.0" HBox.hgrow="ALWAYS">
                     <Label text="Returning patient found" style="-fx-font-weight: 700; -fx-text-fill: #1E3A8A; -fx-font-size: 13px;" />
-                    <Label text="Ramesh Kumar · UH-2026-000891 · last visit 02 Aug 2026 (fever)" style="-fx-text-fill: #3B82F6; -fx-font-size: 12px;" />
+                    <Label fx:id="lblReturningPatientInfo" text="Patient record found in database" style="-fx-text-fill: #3B82F6; -fx-font-size: 12px;" />
                 </VBox>
                 <Button text="Use this record" onAction="#handleUseReturningRecord" styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 6px 14px; -fx-background-color: #2563EB;" />
             </HBox>
+
+            <!-- AI CLINICAL INTAKE & SMART AUTO-FILL CARD -->
+            <VBox styleClass="card" spacing="12.0" style="-fx-border-color: #0D9488; -fx-border-width: 1.5px; -fx-background-color: #F0FDFA; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-padding: 14px 16px;">
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <SVGPath content="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6.4-4.8-6.4 4.8 2.4-7.2-6-4.8h7.6z" style="-fx-fill: #0D9488;" />
+                    <VBox spacing="2.0" HBox.hgrow="ALWAYS">
+                        <Label text="AI Clinical Intake &amp; Smart Auto-Fill" style="-fx-font-weight: 800; -fx-text-fill: #0F766E; -fx-font-size: 13.5px;" />
+                        <Label text="Optional: Type or paste what the patient feels or reports — AI automatically extracts demographics, vitals, triage level, and routes specialty." style="-fx-text-fill: #115E59; -fx-font-size: 11.5px;" />
+                    </VBox>
+                    <Button fx:id="btnAiAutoFill" text="✨ Auto-Fill with AI" onAction="#handleAiAutoFill" styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 7px 16px; -fx-background-color: #0D9488;" />
+                </HBox>
+                <TextArea fx:id="txtAiNarrative" promptText="e.g. 54-year-old male arrived with severe crushing chest pain radiating to left jaw, diaphoresis, SpO2 91%, HR 112, BP 160/95. History of hypertension, allergic to penicillin." prefRowCount="2" wrapText="true" style="-fx-font-size: 12.5px; -fx-background-color: #FFFFFF; -fx-border-color: #CCFBF1; -fx-border-radius: 6px;" />
+                <HBox fx:id="boxAiStatus" visible="false" managed="false" alignment="CENTER_LEFT" spacing="8.0">
+                    <Label fx:id="lblAiStatus" text="Analyzing narrative with AI..." style="-fx-font-size: 11.5px; -fx-font-weight: 600; -fx-text-fill: #0D9488;" />
+                </HBox>
+            </VBox>
 
             <!-- Patient Details Card -->
             <VBox styleClass="card" spacing="16.0">
@@ -136,8 +152,8 @@
             <VBox styleClass="card" spacing="14.0">
                 <Label text="Arrival" styleClass="card-title" />
                 <HBox spacing="10.0" alignment="CENTER_LEFT">
-                    <Button fx:id="chipWalkIn" text="Walk-in" onAction="#handleSelectArrivalWalkIn" styleClass="btn-secondary" />
-                    <Button fx:id="chipAmbulance" text="🚑 Ambulance" onAction="#handleSelectArrivalAmbulance" styleClass="btn-primary" />
+                    <Button fx:id="chipWalkIn" text="Walk-in" onAction="#handleSelectArrivalWalkIn" styleClass="btn-primary" />
+                    <Button fx:id="chipAmbulance" text="🚑 Ambulance" onAction="#handleSelectArrivalAmbulance" styleClass="btn-secondary" />
                     <Button fx:id="chipReferred" text="Referred" onAction="#handleSelectArrivalReferred" styleClass="btn-secondary" />
                     <Button fx:id="chipPolice" text="Police" onAction="#handleSelectArrivalPolice" styleClass="btn-secondary" />
                     <Button fx:id="chipRelatives" text="Brought by relatives" onAction="#handleSelectArrivalRelatives" styleClass="btn-secondary" />
@@ -159,7 +175,7 @@
         <VBox fx:id="paneStep2" visible="false" managed="false" spacing="16.0" focusTraversable="true">
             <!-- Patient Header Banner -->
             <HBox alignment="CENTER_RIGHT">
-                <Label fx:id="lblStep2PatientBanner" text="Ramesh Kumar · 58 M · UH-2026-000891"
+                <Label fx:id="lblStep2PatientBanner" text="Patient Intake · Triage Assessment"
                        style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
             </HBox>
 
@@ -172,8 +188,8 @@
                     <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <Label text="SpO2 (%)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
                         <HBox alignment="CENTER_LEFT" spacing="6.0">
-                            <TextField fx:id="txtSpo2" text="88" onKeyReleased="#handleVitalsChange" prefWidth="140.0" />
-                            <Label fx:id="badgeSpo2Alert" text="Critical" styleClass="badge, badge-critical" />
+                            <TextField fx:id="txtSpo2" promptText="e.g. 98" onKeyReleased="#handleVitalsChange" prefWidth="140.0" />
+                            <Label fx:id="badgeSpo2Alert" text="Critical" visible="false" managed="false" styleClass="badge, badge-critical" />
                         </HBox>
                     </VBox>
 
@@ -181,48 +197,48 @@
                     <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
                         <Label text="Heart rate (bpm)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
                         <HBox alignment="CENTER_LEFT" spacing="6.0">
-                            <TextField fx:id="txtHr" text="134" onKeyReleased="#handleVitalsChange" prefWidth="140.0" />
-                            <Label fx:id="badgeHrAlert" text="High" styleClass="badge, badge-high" />
+                            <TextField fx:id="txtHr" promptText="e.g. 78" onKeyReleased="#handleVitalsChange" prefWidth="140.0" />
+                            <Label fx:id="badgeHrAlert" text="High" visible="false" managed="false" styleClass="badge, badge-high" />
                         </HBox>
                     </VBox>
 
                     <!-- Temperature -->
                     <VBox spacing="6.0" GridPane.columnIndex="2" GridPane.rowIndex="0">
                         <Label text="Temperature (F)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
-                        <TextField fx:id="txtTemp" text="98.6" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                        <TextField fx:id="txtTemp" promptText="e.g. 98.6" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
                     </VBox>
 
                     <!-- Systolic BP -->
                     <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                         <Label text="Systolic BP (mmHg)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
-                        <TextField fx:id="txtSysBp" text="150" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                        <TextField fx:id="txtSysBp" promptText="e.g. 120" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
                     </VBox>
 
                     <!-- Diastolic BP -->
                     <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                         <Label text="Diastolic BP (mmHg)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
-                        <TextField fx:id="txtDiaBp" text="95" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                        <TextField fx:id="txtDiaBp" promptText="e.g. 80" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
                     </VBox>
 
                     <!-- Respiratory Rate -->
                     <VBox spacing="6.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                         <Label text="Respiratory rate (/min)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
-                        <TextField fx:id="txtRr" text="26" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                        <TextField fx:id="txtRr" promptText="e.g. 16" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
                     </VBox>
 
                     <!-- GCS -->
                     <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
                         <Label text="GCS (3 to 15)" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
-                        <TextField fx:id="txtGcs" text="15" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
+                        <TextField fx:id="txtGcs" promptText="e.g. 15" onKeyReleased="#handleVitalsChange" prefWidth="180.0" />
                     </VBox>
 
                     <!-- Pain Score Slider (0 to 10) -->
                     <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2">
                         <HBox alignment="CENTER_LEFT">
                             <Label text="Pain score: " style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
-                            <Label fx:id="lblPainValue" text="8 / 10" style="-fx-font-weight: 800; -fx-text-fill: #B91C1C;" />
+                            <Label fx:id="lblPainValue" text="0 / 10" style="-fx-font-weight: 800; -fx-text-fill: #0D9488;" />
                         </HBox>
-                        <Slider fx:id="sliderPain" min="0" max="10" value="8" majorTickUnit="1" snapToTicks="true" showTickLabels="true" />
+                        <Slider fx:id="sliderPain" min="0" max="10" value="0" majorTickUnit="1" snapToTicks="true" showTickLabels="true" />
                     </VBox>
                 </GridPane>
             </VBox>
@@ -231,7 +247,7 @@
             <VBox styleClass="card" spacing="14.0">
                 <Label text="Chief complaint *" styleClass="card-title" />
                 <HBox spacing="8.0" alignment="CENTER_LEFT">
-                    <Button text="Chest pain" onAction="#handleChipComplaint" styleClass="btn-primary" />
+                    <Button text="Chest pain" onAction="#handleChipComplaint" styleClass="btn-secondary" />
                     <Button text="Breathlessness" onAction="#handleChipComplaint" styleClass="btn-secondary" />
                     <Button text="Trauma" onAction="#handleChipComplaint" styleClass="btn-secondary" />
                     <Button text="Stroke signs" onAction="#handleChipComplaint" styleClass="btn-secondary" />
@@ -239,17 +255,17 @@
                     <Button text="Bleeding" onAction="#handleChipComplaint" styleClass="btn-secondary" />
                 </HBox>
 
-                <TextField fx:id="txtComplaint" text="Chest pain radiating to left arm, sweating, onset 30 minutes ago"
+                <TextField fx:id="txtComplaint" promptText="Describe patient symptoms or click a quick complaint chip above..."
                            style="-fx-font-size: 13px;" />
 
                 <GridPane hgap="16.0" vgap="12.0" style="-fx-padding: 8px 0 0 0;">
                     <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <Label text="Allergies" style="-fx-font-weight: 600; -fx-text-fill: #B91C1C;" />
-                        <TextField fx:id="txtAllergies" text="Penicillin" style="-fx-border-color: #FECACA; -fx-background-color: #FEF2F2;" prefWidth="420.0" />
+                        <TextField fx:id="txtAllergies" promptText="e.g. None or Penicillin" prefWidth="420.0" />
                     </VBox>
                     <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
                         <Label text="Known conditions" style="-fx-font-weight: 600; -fx-text-fill: #334155;" />
-                        <TextField fx:id="txtKnownConditions" text="Diabetes, hypertension" prefWidth="420.0" />
+                        <TextField fx:id="txtKnownConditions" promptText="e.g. None or Hypertension" prefWidth="420.0" />
                     </VBox>
                 </GridPane>
             </VBox>
@@ -259,7 +275,7 @@
                 <HBox alignment="CENTER_LEFT">
                     <Label text="Clinical decision support" styleClass="card-title" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label fx:id="lblNews2ScoreBadge" text="NEWS2: 9" styleClass="badge, badge-critical" style="-fx-font-size: 13px; -fx-padding: 4px 12px;" />
+                    <Label fx:id="lblNews2ScoreBadge" text="NEWS2: 0" styleClass="badge, badge-low" style="-fx-font-size: 13px; -fx-padding: 4px 12px;" />
                 </HBox>
 
                 <HBox spacing="24.0">

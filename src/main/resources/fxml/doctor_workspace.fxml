@@ -24,7 +24,7 @@
       fx:controller="com.hospital.priority.controller.DoctorWorkspaceController">
 
     <!-- LEFT PANE: PATIENT SELECTOR -->
-    <VBox prefWidth="280.0" minWidth="260.0" maxWidth="300.0" spacing="12.0" styleClass="patient-list-card">
+    <VBox prefWidth="315.0" minWidth="295.0" maxWidth="335.0" spacing="12.0" styleClass="patient-list-card">
         <HBox alignment="CENTER_LEFT" spacing="8.0">
             <Label fx:id="lblPatientHeader" text="Active Patients" styleClass="card-title" />
             <Region HBox.hgrow="ALWAYS" />

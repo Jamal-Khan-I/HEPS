@@ -23,6 +23,8 @@ public interface PatientDao {
 
     Optional<Patient> findByToken(String tokenNo) throws DatabaseOperationException;
 
+    Optional<Patient> findByPhone(String phone) throws DatabaseOperationException;
+
     List<Patient> findByStatus(PatientStatus status) throws DatabaseOperationException;
 
     List<Patient> findAll() throws DatabaseOperationException;

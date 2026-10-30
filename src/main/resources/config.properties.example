@@ -1,6 +1,14 @@
-# Hospital Emergency Priority System - Safe Configuration Template
-# Copy this file to 'config.properties' in the same folder and set your local credentials.
-
+# Local Active Database Configuration
 db.url=jdbc:mysql://127.0.0.1:3306/hospital_emergency_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 db.user=root
-db.password=YOUR_MYSQL_ROOT_PASSWORD_HERE
+db.password=your_mysql_password_here
+
+# AI Clinical Intelligence Configuration
+ai.api.key=your_ai_api_key_here
+ai.model=openai/gpt-oss-120b
+ai.endpoint=https://api.groq.com/openai/v1/chat/completions
+
+# Firebase Cloud Sync Configuration (Configurable Real-time Sync)
+firebase.enabled=false
+firebase.database.url=https://your-project-id-default-rtdb.firebaseio.com
+firebase.auth.token=your_firebase_auth_token_here

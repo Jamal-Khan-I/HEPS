@@ -134,6 +134,9 @@ public class PatientService {
         // Step 5: Add immediately to in-memory PriorityQueue
         queueService.enqueue(patient);
 
+        // Step 6: Asynchronous Cloud Dual-Store Sync (Firebase)
+        FirebaseSyncService.getInstance().syncPatientAsync(patient);
+
         return patient;
     }
 
@@ -149,6 +152,9 @@ public class PatientService {
         }
         int generatedId = patientDao.insert(patient);
         patient.setPatientId(generatedId);
+
+        // Asynchronous Cloud Dual-Store Sync (Firebase)
+        FirebaseSyncService.getInstance().syncPatientAsync(patient);
         return patient;
     }
 
@@ -193,6 +199,10 @@ public class PatientService {
 
     public Optional<Patient> findByToken(String tokenNo) throws DatabaseOperationException {
         return patientDao.findByToken(tokenNo);
+    }
+
+    public Optional<Patient> findByPhone(String phone) throws DatabaseOperationException {
+        return patientDao.findByPhone(phone);
     }
 
     public Optional<Patient> findById(int id) throws DatabaseOperationException {

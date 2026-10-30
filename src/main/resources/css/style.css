@@ -1029,6 +1029,14 @@
     -fx-border-color: transparent;
     -fx-border-width: 0;
     -fx-padding: 0;
+    -fx-hbar-policy: never;
+}
+
+.patient-list-view .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-padding: -10;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
 }
 
 .patient-list-view .list-cell {

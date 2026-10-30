@@ -323,6 +323,25 @@ public class PatientDaoImpl implements PatientDao {
     }
 
     @Override
+    public Optional<Patient> findByPhone(String phone) throws DatabaseOperationException {
+        String sql = "SELECT * FROM patients WHERE phone = ? OR phone LIKE ? ORDER BY patient_id DESC LIMIT 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, phone);
+            stmt.setString(2, "%" + phone + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToPatient(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseOperationException("Error finding patient by phone: " + e.getMessage(), e);
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<Patient> findByToken(String tokenNo) throws DatabaseOperationException {
         String sql = "SELECT * FROM patients WHERE token_no = ?";
         try (Connection conn = DBConnection.getConnection();
