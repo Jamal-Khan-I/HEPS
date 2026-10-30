@@ -1,0 +1,1044 @@
+================================================================================
+HOSPITAL EMERGENCY PRIORITY SYSTEM (HEPS 2.0)
+ENTERPRISE CLINICAL TRIAGE, REAL-TIME RESOURCE ROUTING & DSA ARCHITECTURE
+FULL SYSTEM CONTEXT, MATHEMATICAL FORMULAS, DATA STRUCTURES & ALGORITHMS
+================================================================================
+Project Name       : Hospital Emergency Priority System (HEPS)
+Hospital Target    : City General Hospital Emergency Department
+Runtime Version    : Java 21 LTS (Oracle / OpenJDK)
+GUI Framework      : JavaFX 21.0.2 (Declarative FXML + Clean Modern CSS)
+Database Engine    : MySQL 8.4 Server (InnoDB engine, auto-recovery JDBC)
+Cloud Sync Layer   : Google Firebase Realtime Database (dual-store REST engine)
+AI Engine          : Multi-Agent Clinical Intake & Safety Guardrail Architecture
+Build Tooling      : Apache Maven 3.9+ (shaded uber-JAR packaging)
+Native Packaging   : jpackage standalone Windows executable bundle (HEPS.exe)
+Repository         : https://github.com/Jamal-Khan-I/HEPS
+Target Operating OS: Windows 10 / 11 (64-bit)
+================================================================================
+
+
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. SYSTEM OVERVIEW & CLINICAL MISSION
+2. HIGH-LEVEL ARCHITECTURE & COMPONENT TOPOLOGY
+3. DATA STRUCTURES & CORE ALGORITHMS (EXHAUSTIVE DSA BREAKDOWN)
+   3.1 Min-Heap Emergency Queue Scheduling Algorithm
+   3.2 Multi-Tiered Patient Priority Comparator Algorithm
+   3.3 Dynamic SLA Wait-Time Escalation & Heap Restoration Engine
+   3.4 National Early Warning Score 2 (NEWS2) Physiological Algorithm
+   3.5 Deterministic Java Triage Rule Engine & Safety Guardrails
+   3.6 Doctor Routing & Workload Balancing Algorithm
+   3.7 Emergency Bay Allocation, Zero Double-Booking & Sanitization Timer
+   3.8 Multi-Agent AI Clinical Intake & Disagreement Detection Architecture
+   3.9 Mass Casualty Incident (MCI) START Triage Algorithm
+   3.10 Patient State Machine & Clinical Lifecycle
+4. PERSISTENCE ARCHITECTURE & DATABASE SCHEMA
+   4.1 Complete MySQL 8.4 DDL Schema, Constraints & Tables
+   4.2 Self-Healing JDBC Daemon Connection Recovery
+   4.3 Dual-Store Persistence & Firebase Cloud Realtime Sync
+5. UI / UX MODULES & CLINICAL SCREENS SPECIFICATION
+   5.1 Authentication & Role-Based Access Control (RBAC)
+   5.2 Command Center (Executive Real-Time Dashboard)
+   5.3 Register Patient Wizard (3-Step Triage with AI Auto-Fill)
+   5.4 Emergency Queue (Min-Heap Sorted Clinical Table)
+   5.5 Bay Board (12-Bay Visual Occupancy & Sanitization Grid)
+   5.6 Doctor Workspace (Patient Treatment, Serial Vitals, Orders, SOAP Notes)
+   5.7 Centralized Orders & Diagnostic Results Monitor
+   5.8 Patient Records & Audit History Browser
+   5.9 Disposition, Discharge & Apache PDFBox Summary Generation
+   5.10 Operational Reports & Analytics (Heatmaps, SLA Compliance)
+   5.11 Mass Casualty Incident (MCI Command & Triage Protocol)
+6. CONFIGURATION, PROJECT DIRECTORY TREE & SOURCE CODE MAP
+
+
+================================================================================
+1. SYSTEM OVERVIEW & CLINICAL MISSION
+================================================================================
+The Hospital Emergency Priority System (HEPS) is an enterprise-grade clinical
+information management, real-time emergency triage, and dynamic hospital
+resource routing application built for the Emergency Department (ED) of City
+General Hospital.
+
+In high-volume emergency departments, delays in triaging and attending to
+critically ill patients often lead to preventable clinical deterioration, SLA
+breaches, and avoidable mortality. Traditional ED software often functions
+merely as a passive electronic record with hardcoded simulated data, lacking
+algorithmic intelligence to prioritize care dynamically based on physiological
+urgency, wait-time degradation, doctor workload, and bed availability.
+
+HEPS solves this by integrating:
+1. Rigorous Data Structures & Algorithms (DSA): Utilizing an in-memory binary
+   Min-Heap (PriorityQueue) governed by a composite clinical priority comparator
+   and an active wait-time escalation daemon that prevents patient neglect.
+2. Objective Physiological Acuity (NEWS2): Automatic computation of the UK
+   Royal College of Physicians National Early Warning Score 2 across all vital
+   signs (SpO2, Heart Rate, Blood Pressure, Respiration Rate, Temperature, and
+   Glasgow Coma Scale).
+3. Hybrid AI Clinical Intelligence: A multi-agent clinical intake engine that
+   extracts structured clinical data from natural language nurse narratives,
+   recommends triage urgency levels, predicts medical specialties, and flags
+   occult risks, all cross-validated against deterministic Java safety guardrails.
+4. Deterministic Resource Routing: Automatic routing to on-duty specialist
+   physicians based on clinical complaint and workload balancing, paired with
+   physical bed allocation across 12 designated ED bays with sanitization timers.
+5. Dual-Store Persistence: High-performance local MySQL 8.4 relational database
+   with an automated daemon auto-recovery mechanism coupled with a configurable
+   Google Firebase Realtime Database cloud sync connector.
+
+
+================================================================================
+2. HIGH-LEVEL ARCHITECTURE & COMPONENT TOPOLOGY
+================================================================================
+HEPS is architectured using a Model-View-Controller-Service-DAO (MVCSD) pattern
+with strict separation of concerns, ensuring high testability, thread safety,
+and resilience:
+
+                         +-----------------------------+
+                         |      Desktop Client GUI     |
+                         |   (JavaFX 21 + FXML Views)  |
+                         +--------------+--------------+
+                                        |
+                         +--------------v--------------+
+                         |   UI Controller Subsystem   |
+                         |  (11 Specialized FXML Ctrls)|
+                         +--------------+--------------+
+                                        |
+               +------------------------+------------------------+
+               |                                                 |
++--------------v--------------+                   +--------------v--------------+
+|   Core Business & DSA       |                   |   AI Clinical Intake        |
+|   Services                  |                   |   Multi-Agent Subsystem     |
+| - QueueService (Min-Heap)   |                   | - IntakeAgent               |
+| - NEWS2Service              |                   | - TriageAgent               |
+| - JavaTriageRuleEngine      |                   | - SpecialtyAgent            |
+| - DoctorRoutingService      |                   | - RiskAgent                 |
+| - BayService                |                   | - AIClientService           |
+| - OrderService              |                   | - AIAgentOrchestrator       |
+| - PatientStateMachine       |                   +--------------+--------------+
++--------------+--------------+                                  |
+               |                                                 |
+               +------------------------+------------------------+
+                                        |
+                         +--------------v--------------+
+                         |      Data Access Layer      |
+                         |  (DAOs / Interfaces / Impls)|
+                         | - PatientDao / Impl         |
+                         | - DoctorDao / Impl          |
+                         | - TreatmentRecordDao / Impl |
+                         | - UserDao / Impl            |
+                         +--------------+--------------+
+                                        |
+               +------------------------+------------------------+
+               |                                                 |
++--------------v--------------+                   +--------------v--------------+
+|     Local Relational DB     |                   |    Cloud Realtime Sync      |
+|    MySQL 8.4 Community      |                   |  Firebase Realtime Database |
+| (Auto-Starting Daemon &     |                   |  (REST Async Dispatcher)    |
+| Connection Pool Management) |                   +-----------------------------+
++-----------------------------+
+
+
+================================================================================
+3. DATA STRUCTURES & CORE ALGORITHMS (EXHAUSTIVE DSA BREAKDOWN)
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1 MIN-HEAP EMERGENCY QUEUE SCHEDULING ALGORITHM
+--------------------------------------------------------------------------------
+The core of the emergency department priority scheduling is implemented in
+`com.hospital.priority.service.QueueService` utilizing a Java Collections
+binary Min-Heap (`java.util.PriorityQueue<Patient>`) parameterized with a custom
+`PatientPriorityComparator`.
+
+Algorithmic Invariants:
+1. Heap Invariant: For every node `i` other than the root (index 0), the priority
+   of the patient at parent `floor((i - 1) / 2)` is strictly higher than or equal
+   to the priority of the patient at node `i`.
+2. Time Complexities:
+   - Insertion / Enqueue (`offer`): O(log N)
+   - Peek Head (`peekNext`): O(1) instantaneous access to highest-priority patient
+   - Remove / Dequeue Head (`serveNext`): O(log N) extraction and reheapify
+   - Arbitrary Cancellation (`remove`): O(N) search + O(log N) reheapify
+   - Full Sorted Snapshot (`getSortedSnapshot`): O(N log N) using Dual-Pivot
+     Quicksort on an isolated ArrayList copy, ensuring thread-safe reads without
+     mutating the live PriorityQueue.
+
+Thread-Safety Model:
+All queue operations (`enqueue`, `peekNext`, `serveNext`, `removeFromQueue`,
+`checkAndApplyEscalations`, `getSortedSnapshot`) are guarded by `synchronized`
+method locks on the singleton `QueueService` instance, preventing race
+conditions during concurrent patient admissions, background triage scans, and
+doctor attendances.
+
+
+--------------------------------------------------------------------------------
+3.2 MULTI-TIERED PATIENT PRIORITY COMPARATOR ALGORITHM
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.model.PatientPriorityComparator`.
+The comparator implements a deterministic multi-stage priority evaluation:
+
+Algorithm Steps (`compare(Patient p1, Patient p2)`):
+Step 1: Urgency Rank Evaluation
+  Extract integer clinical rank of each patient:
+    - CRITICAL = 1
+    - HIGH     = 2
+    - MEDIUM   = 3
+    - LOW      = 4
+  Lower numerical rank signifies higher clinical urgency.
+  Comparison:
+    `urgencyComparison = Integer.compare(p1.getRank(), p2.getRank());`
+  If `urgencyComparison != 0`, return `urgencyComparison`.
+
+Step 2: Tie-Breaker 1 - First-Come, First-Served (FIFO) Arrival Time
+  If urgency levels are equal, the patient who arrived earlier must be seen
+  first to minimize waiting duration and prevent queue starvation:
+  Comparison:
+    `arrivalComparison = p1.getArrivalTime().compareTo(p2.getArrivalTime());`
+  If `arrivalComparison != 0`, return `arrivalComparison`.
+
+Step 3: Tie-Breaker 2 - Deterministic Unique Token Ordering
+  If both urgency rank and arrival timestamps are identical to the nanosecond,
+  a strictly deterministic tie-breaker is applied using the patient token number:
+  Comparison:
+    `return p1.getTokenNo().compareTo(p2.getTokenNo());`
+
+
+--------------------------------------------------------------------------------
+3.3 DYNAMIC SLA WAIT-TIME ESCALATION & HEAP RESTORATION ENGINE
+--------------------------------------------------------------------------------
+Patients left unattended in an emergency queue face clinical risk. To solve
+the starvation problem inherent in static priority systems, HEPS implements a
+dynamic SLA Wait-Time Escalation Engine in `QueueService.checkAndApplyEscalations()`.
+
+SLA Target Thresholds by Urgency Level:
+- CRITICAL : Immediate access (Target SLA: 0 min / Resus immediate)
+- HIGH     : Target SLA: 15 minutes
+- MEDIUM   : Target SLA: 60 minutes
+- LOW      : Target SLA: 120 minutes
+
+Escalation Transition Rules:
+1. LOW Priority:
+   If `waitMinutes >= 90`:
+     - Escalated Level  : MEDIUM (Rank 4 -> Rank 3)
+     - Flag `isEscalated`: TRUE
+     - Escalation Reason: "Wait time reached Xm (Exceeded 90m threshold for Low priority)"
+2. MEDIUM Priority:
+   If `waitMinutes >= 45`:
+     - Escalated Level  : HIGH (Rank 3 -> Rank 2)
+     - Flag `isEscalated`: TRUE
+     - Escalation Reason: "Wait time reached Xm (Exceeded 45m threshold for Medium priority)"
+3. HIGH Priority:
+   If `waitMinutes >= 25` and not already escalated:
+     - Flag `isEscalated`: TRUE
+     - Escalation Reason: "Prolonged High wait (Xm) - Immediate treatment recommended"
+
+Heap Invariant Restoration (Re-Heapification):
+Because Java's standard `PriorityQueue` does not automatically detect mutations
+of internal element fields while items remain inside the heap array, modifying
+a patient's `emergencyLevel` violates the heap ordering.
+HEPS detects if any patient's status was changed during the scan (`heapModified == true`):
+1. Captures all elements into a snapshot list: `List<Patient> currentList = new ArrayList<>(triageQueue);`
+2. Clears the heap: `triageQueue.clear();`
+3. Re-inserts each element: `triageQueue.offer(p);` (rebuilding the tree via binary sift-up operations)
+4. Persists the updated priority levels, escalation flags, and audit reasons to MySQL.
+
+
+--------------------------------------------------------------------------------
+3.4 NATIONAL EARLY WARNING SCORE 2 (NEWS2) PHYSIOLOGICAL ALGORITHM
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.service.NEWS2Service`.
+Calculates the aggregate physiological score standardized by the UK Royal
+College of Physicians across 6 physiological vital parameters and Glasgow Coma
+Scale (GCS).
+
+Parametric Point Allocations:
+
+1. Respiration Rate (breaths per minute):
+   - <= 8 breaths/min   : +3 points
+   - 9 - 11 breaths/min : +1 point
+   - 12 - 20 breaths/min: 0 points (normal)
+   - 21 - 24 breaths/min: +2 points
+   - >= 25 breaths/min  : +3 points
+
+2. Oxygen Saturation SpO2 (%) - Scale 1 (Normocapnic / Standard):
+   - <= 91%             : +3 points
+   - 92% - 93%          : +2 points
+   - 94% - 95%          : +1 point
+   - >= 96%             : 0 points (normal)
+
+3. Systolic Blood Pressure (mmHg):
+   - <= 90 mmHg         : +3 points
+   - 91 - 100 mmHg      : +2 points
+   - 101 - 110 mmHg     : +1 point
+   - 111 - 219 mmHg     : 0 points (normal)
+   - >= 220 mmHg        : +3 points
+
+4. Heart Rate / Pulse (beats per minute):
+   - <= 40 bpm          : +3 points
+   - 41 - 50 bpm        : +1 point
+   - 51 - 90 bpm        : 0 points (normal)
+   - 91 - 110 bpm       : +1 point
+   - 111 - 130 bpm      : +2 points
+   - >= 131 bpm         : +3 points
+
+5. Body Temperature (Fahrenheit):
+   - <= 95.0 F (35.0 C) : +3 points
+   - 95.1 - 96.8 F      : +1 point
+   - 96.9 - 100.4 F     : 0 points (normal)
+   - 100.5 - 102.2 F    : +1 point
+   - >= 102.3 F         : +2 points
+
+6. Consciousness / GCS:
+   - GCS == 15 (Alert)  : 0 points
+   - GCS < 15 (Voice, Pain, Unresponsive / Confusion): +3 points
+
+Aggregate Risk Classification:
+- Total Score 0 - 4 : LOW Clinical Risk (Standard ward/ambulatory monitoring)
+- Total Score 5 - 6 : MEDIUM Clinical Risk (Urgent clinical review, continuous telemetry)
+- Total Score >= 7  : HIGH / CRITICAL Risk (Immediate emergency resuscitation)
+
+
+--------------------------------------------------------------------------------
+3.5 DETERMINISTIC JAVA TRIAGE RULE ENGINE & SAFETY GUARDRAILS
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.service.JavaTriageRuleEngine`.
+Functions as the authoritative, fail-safe safety guardrail of the triage process.
+
+Key Safety Principle:
+No probabilistic or AI language model is permitted to downgrade a patient whose
+physiological parameters violate clinical danger thresholds. Even if AI suggests
+LOW urgency, Java rules force an immediate escalation to CRITICAL.
+
+Rule Hierarchy & Trigger Matrix:
+
+Stage 1: Red Line Critical Thresholds
+- Severe Hypoxemia     : SpO2 < 90%
+- Severe Bradycardia   : Heart Rate < 40 bpm
+- Extreme Tachycardia  : Heart Rate > 140 bpm
+- Hypotensive Shock    : Systolic BP < 80 mmHg
+- Hypertensive Crisis  : Systolic BP > 200 mmHg
+- Extreme Respiratory  : RR < 8 or RR > 32 breaths/min
+- Hyperpyrexia         : Temperature >= 104.0 F
+- Life-Threat Symptoms : "cardiac arrest", "unresponsive", "choking",
+                         "not breathing", "massive bleed", "gunshot"
+Action: Immediate override to `EmergencyLevel.CRITICAL`.
+
+Stage 2: High Urgency Conditions
+- Moderate Hypoxia     : SpO2 90% - 94%
+- Significant Tachy    : Heart Rate 115 - 140 bpm
+- Severe Hypertension  : Systolic BP 180 - 200 mmHg
+- High Fever           : Temperature 102.5 F - 104.0 F
+- Acute Presentations  : "chest pain", "heart attack", "stroke", "paralysis",
+                         "severe asthma", "breathless", "respiratory distress",
+                         "open fracture", "uncontrolled bleed", "head injury"
+Action: Assignment to `EmergencyLevel.HIGH`.
+
+Stage 3: Medium Urgency Conditions
+- Borderline abnormal vitals (checked via `Vitals.hasAbnormalVitals()`)
+- Symptoms: "fracture", "deep cut", "stitches", "vomiting", "moderate pain",
+            "sprain", "fever", "burn"
+Action: Assignment to `EmergencyLevel.MEDIUM`.
+
+Stage 4: Low Urgency
+- Stable vitals and non-urgent complaints.
+Action: Assignment to `EmergencyLevel.LOW`.
+
+Specialty Determination Heuristic:
+- Age <= 14                             -> PEDIATRICS
+- Chest pain, cardiac, angina, rhythm   -> CARDIOLOGY
+- Stroke, numbness, seizure, paralysis  -> NEUROLOGY
+- Asthma, wheeze, breathlessness, lungs -> PULMONOLOGY
+- Fracture, bone, dislocation, sprain   -> ORTHOPEDICS
+- Gunshot, stab, vehicle accident, bleed-> TRAUMA_SURGERY
+- All other general presentations       -> GENERAL_EMERGENCY
+
+
+--------------------------------------------------------------------------------
+3.6 DOCTOR ROUTING & WORKLOAD BALANCING ALGORITHM
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.service.DoctorRoutingService`.
+Ensures that admitted emergency patients are assigned to the most qualified,
+available specialist with the lowest active patient workload.
+
+4-Tier Routing Strategy:
+
+Step 1: Available Target Specialist Match
+- Query database for doctors where `specialty == targetSpecialty` and `status == AVAILABLE`.
+- If candidates exist, execute workload balancing:
+    `Doctor selected = min(candidates, comparingInt(Doctor::getCurrentWorkload).thenComparingInt(Doctor::getDoctorId));`
+- Result: Exact specialty match with lowest active patient queue.
+
+Step 2: Fallback to Available General Emergency Physicians
+- If target specialists are all busy or off-duty, query doctors where
+  `specialty == GENERAL_EMERGENCY` and `status == AVAILABLE`.
+- Pick physician with lowest active workload.
+
+Step 3: Fallback to Any Available Hospital Physician
+- If General Emergency physicians are also fully occupied, query all hospital
+  doctors currently marked `AVAILABLE`.
+- Pick available physician with lowest active workload.
+
+Step 4: All Doctors Busy (Queue Backlog Mitigation)
+- If every single physician in the hospital is occupied (`BUSY`), search
+  specialists in `targetSpecialty` regardless of busy status.
+- Pick doctor with the least active backlog:
+    `min(specialists, comparingInt(Doctor::getCurrentWorkload));`
+
+Workload Lifecycle Synchronization:
+- Upon Patient Admission: `doctor.incrementWorkload()` updates active count in MySQL.
+- Upon Patient Discharge: `doctor.decrementWorkload()` decrements active count and
+  restores status to `AVAILABLE` if workload drops below capacity threshold.
+
+
+--------------------------------------------------------------------------------
+3.7 EMERGENCY BAY ALLOCATION, ZERO DOUBLE-BOOKING & SANITIZATION TIMER
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.service.BayService`.
+Manages the 12 physical emergency resuscitation and observation bays.
+
+Physical Bay Configuration & Zones:
+1. Resus & Trauma (Critical Red Zone):
+   - Bay 1 (Resus)  -> Dedicated for CRITICAL resuscitation
+   - Bay 2 (Trauma) -> Dedicated for CRITICAL trauma surgery
+2. Acute Care (Orange Zone):
+   - Bay 3 (Acute)  -> Dedicated for HIGH urgency acute care
+   - Bay 3b (Acute) -> Dedicated for HIGH urgency acute care
+3. Monitored Observation (Yellow Zone):
+   - Bay 4 (Obs)    -> Monitored cardiac/neurological telemetry
+   - Bay 4b (Obs)   -> Monitored observation
+   - Bay 7 (Obs)    -> Observation bed
+   - Bed 8 (Obs)    -> Extended observation
+   - Bed 9 (Obs)    -> Extended observation
+   - Bed 10 (Obs)   -> Extended observation
+4. Fast Track & Ambulatory (Green Zone):
+   - Bay 5 (Fast track) -> Rapid minor injuries & pediatric assessment
+   - Bay 6 (Ambulatory) -> Walk-in outpatient treatment
+
+Concurrency & Zero Double-Booking Guarantee:
+Bays are stored in a thread-safe `ConcurrentHashMap<Integer, Bay>`. State mutations
+(`allocateBay`, `releaseBay`, `transferPatient`) use synchronized atomic validation:
+- A bay cannot be allocated unless its status is strictly `BayStatus.FREE`.
+- Releasing a bay transitions its state from `OCCUPIED` to `CLEANING`.
+
+Automated Sanitization Countdown:
+- When a patient is discharged, the bay enters `CLEANING` state with a timestamp.
+- Default sanitization turnaround time: 3 minutes.
+- `checkCleaningStatus()` runs on every query: if `now() - cleaningStartTime >= 3 min`,
+  the bay automatically reverts to `BayStatus.FREE` and becomes available for intake.
+- Manual override: Clinical nurses can click "Mark Cleaned Now" to bypass countdown.
+
+
+--------------------------------------------------------------------------------
+3.8 MULTI-AGENT AI CLINICAL INTAKE & DISAGREEMENT DETECTION ARCHITECTURE
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.service.ai.*`.
+Coordinates 4 specialized clinical agents and interacts with the AI service.
+
+Multi-Agent Ensemble:
+1. Intake Agent (`IntakeAgent.java`):
+   Parses unstructured narrative notes entered by triage nurses. Extracts:
+   - Patient demographics (name, age, gender, contact)
+   - Vital signs (SpO2, Heart Rate, Blood Pressure, Respiratory Rate, Temp)
+   - Chief complaint and pain score
+   - Known drug allergies
+   - Arrival mode (Walk-in, Ambulance, Referred, Police)
+2. Triage Agent (`TriageAgent.java`):
+   Evaluates clinical urgency against emergency medicine protocols. Generates:
+   - Recommended emergency urgency level (CRITICAL, HIGH, MEDIUM, LOW)
+   - Statistical confidence score (0.0 to 1.0)
+3. Specialty Agent (`SpecialtyAgent.java`):
+   Analyzes organ systems, symptomatic presentation, and patient history to
+   determine optimal medical department.
+4. Risk Agent (`RiskAgent.java`):
+   Performs heuristic and NLP analysis searching for occult clinical deterioration:
+   - Silent hypoxemia risks
+   - Pre-shock index (Heart Rate / Systolic BP >= 1.0)
+   - Atypical myocardial infarction presentations (e.g. diabetic females)
+   - Sepsis screening criteria (SIRS)
+
+Disagreement Detection Engine (`AIAgentOrchestrator.detectDisagreements`):
+Cross-checks AI recommendations against `JavaTriageRuleEngine`:
+1. Priority Conflict: If Java Rule Engine recommends higher urgency rank than AI,
+   a safety guardrail flag is raised, logging the exact triggering physiological vitals.
+2. Risk Conflict: If AI suggests LOW urgency but Risk Agent detects cardiac or
+   pre-shock indicators, an automatic alert is dispatched to the clinician.
+3. Department Conflict: Highlights variance between AI specialty prediction and
+   rule-based mapping, allowing the clinical nurse to make an informed choice.
+
+
+--------------------------------------------------------------------------------
+3.9 MASS CASUALTY INCIDENT (MCI) START TRIAGE ALGORITHM
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.controller.MassCasualtyController`.
+Implements the Simple Triage and Rapid Treatment (START) protocol for mass-disaster
+scenarios:
+
+Step 1: Ambulatory Assessment
+  Can the patient walk?
+  - YES -> Classified as GREEN (Minor / Walking Wounded).
+  - NO  -> Proceed to Step 2.
+
+Step 2: Spontaneous Respiration Check
+  Is the patient breathing spontaneously?
+  - NO: Open airway manually.
+        - Still not breathing -> BLACK (Deceased / Expectant).
+        - Breathing resumes   -> RED (Immediate Resuscitation).
+  - YES: Proceed to Step 3.
+
+Step 3: Respiratory Rate Evaluation
+  - RR > 30 breaths/min -> RED (Immediate).
+  - RR < 10 or RR 10-30 -> Proceed to Step 4.
+
+Step 4: Perfusion & Radial Pulse Assessment
+  - Radial pulse absent OR Capillary refill > 2.0 seconds -> RED (Immediate).
+  - Radial pulse present AND Capillary refill <= 2.0 seconds -> Proceed to Step 5.
+
+Step 5: Mental Status Check
+  Can the patient follow simple commands? ("Squeeze my hand")
+  - NO  -> RED (Immediate).
+  - YES -> YELLOW (Delayed / Urgent care).
+
+
+--------------------------------------------------------------------------------
+3.10 PATIENT STATE MACHINE & CLINICAL LIFECYCLE
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.model.PatientStatus` and
+`com.hospital.priority.model.PatientStateMachine`.
+
+Strict Deterministic Transition Rules:
+[REGISTERED] -> (Triage Completed)         -> [TRIAGED]
+[TRIAGED]    -> (Enqueued to Min-Heap)     -> [WAITING]
+[WAITING]    -> (Bed Allocated / Doctor)   -> [IN_TREATMENT]
+[IN_TREATMENT]-> (Clinical Discharge)      -> [DISCHARGED]
+[IN_TREATMENT]-> (Hospital Admission)      -> [ADMITTED]
+[IN_TREATMENT]-> (External Transfer)       -> [TRANSFERRED]
+[ANY ACTIVE] -> (Patient Mortality)        -> [DECEASED]
+
+Validation Engine:
+`PatientStateMachine.isValidTransition(currentStatus, nextStatus)` rejects illegal
+state jumps (e.g., jumping from `REGISTERED` directly to `DISCHARGED`), throwing
+an `IllegalStateException` and recording unauthorized attempts to the audit log.
+
+
+================================================================================
+4. PERSISTENCE ARCHITECTURE & DATABASE SCHEMA
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1 COMPLETE MYSQL 8.4 DDL SCHEMA, CONSTRAINTS & TABLES
+--------------------------------------------------------------------------------
+The database name is `hospital_emergency_db`. Engine: InnoDB. Charset: utf8mb4.
+
+1. Table: `doctors`
+   Stores medical staff credentials, specialty, active patient workload, and status.
+   -----------------------------------------------------------------------------
+   Column Name       | Data Type            | Constraints
+   ------------------+----------------------+-----------------------------------
+   doctor_id         | INT AUTO_INCREMENT   | PRIMARY KEY
+   name              | VARCHAR(100)         | NOT NULL
+   specialty         | VARCHAR(50)          | NOT NULL
+   status            | ENUM(...)            | NOT NULL, DEFAULT 'AVAILABLE'
+                     | ('AVAILABLE','BUSY', |
+                     |  'OFF_DUTY')         |
+   current_workload  | INT                  | NOT NULL DEFAULT 0
+   assigned_station  | VARCHAR(50)          | NULL
+   contact_info      | VARCHAR(100)         | NULL
+   created_at        | TIMESTAMP            | DEFAULT CURRENT_TIMESTAMP
+
+2. Table: `patients`
+   Master entity tracking demographics, physiological vitals, triage level, and status.
+   -----------------------------------------------------------------------------
+   Column Name       | Data Type            | Constraints
+   ------------------+----------------------+-----------------------------------
+   patient_id        | INT AUTO_INCREMENT   | PRIMARY KEY
+   token_no          | VARCHAR(20)          | NOT NULL UNIQUE
+   uhid              | VARCHAR(30)          | NOT NULL UNIQUE
+   full_name         | VARCHAR(100)         | NOT NULL
+   date_of_birth     | DATE                 | NULL
+   age               | INT                  | NOT NULL
+   gender            | ENUM(...)            | NOT NULL ('Male','Female','Other')
+   phone_number      | VARCHAR(20)          | NULL
+   address           | TEXT                 | NULL
+   blood_group       | VARCHAR(10)          | NULL
+   emergency_contact_name     | VARCHAR(100)| NULL
+   emergency_contact_relation | VARCHAR(50) | NULL
+   emergency_contact_phone    | VARCHAR(20) | NULL
+   arrival_mode      | VARCHAR(50)          | DEFAULT 'Walk-in'
+   is_mlc            | BOOLEAN              | DEFAULT FALSE
+   symptoms          | TEXT                 | NOT NULL
+   pain_score        | INT                  | DEFAULT 0
+   spo2              | INT                  | NULL
+   heart_rate        | INT                  | NULL
+   temperature       | DOUBLE               | NULL
+   systolic_bp       | INT                  | NULL
+   diastolic_bp      | INT                  | NULL
+   respiratory_rate  | INT                  | NULL
+   news2_score       | INT                  | DEFAULT 0
+   emergency_level   | ENUM(...)            | NOT NULL ('CRITICAL','HIGH','MEDIUM','LOW')
+   assigned_specialty| VARCHAR(50)          | NULL
+   assigned_doctor_id| INT                  | FOREIGN KEY REFERENCES doctors(doctor_id)
+   assigned_doctor_name | VARCHAR(100)      | NULL
+   assigned_bay      | VARCHAR(50)          | NULL
+   status            | ENUM(...)            | NOT NULL DEFAULT 'REGISTERED'
+                     | ('REGISTERED',       |
+                     |  'TRIAGED',          |
+                     |  'WAITING',          |
+                     |  'IN_TREATMENT',     |
+                     |  'DISCHARGED',       |
+                     |  'ADMITTED',         |
+                     |  'TRANSFERRED',      |
+                     |  'DECEASED')         |
+   is_escalated      | BOOLEAN              | DEFAULT FALSE
+   escalation_reason | VARCHAR(255)         | NULL
+   allergies         | VARCHAR(255)         | NULL
+   arrival_time      | TIMESTAMP            | DEFAULT CURRENT_TIMESTAMP
+   updated_at        | TIMESTAMP            | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+   Indexes:
+   - `idx_patient_status` ON (status)
+   - `idx_patient_level` ON (emergency_level)
+   - `idx_patient_token` ON (token_no)
+   - `idx_patient_phone` ON (phone_number)
+
+3. Table: `treatment_records`
+   Clinical encounter log created when treatment begins.
+   -----------------------------------------------------------------------------
+   Column Name       | Data Type            | Constraints
+   ------------------+----------------------+-----------------------------------
+   record_id         | INT AUTO_INCREMENT   | PRIMARY KEY
+   patient_id        | INT                  | NOT NULL, FOREIGN KEY -> patients(patient_id)
+   attending_doctor  | VARCHAR(100)         | NOT NULL
+   treatment_notes   | TEXT                 | NULL
+   treatment_start   | TIMESTAMP            | DEFAULT CURRENT_TIMESTAMP
+   treatment_end     | TIMESTAMP            | NULL
+   disposition_type  | VARCHAR(50)          | NULL
+   disposition_summary | TEXT               | NULL
+
+4. Table: `diagnostic_orders`
+   Tracks laboratory, radiology, cardiac ECG, and medication orders.
+   -----------------------------------------------------------------------------
+   Column Name       | Data Type            | Constraints
+   ------------------+----------------------+-----------------------------------
+   order_id          | INT AUTO_INCREMENT   | PRIMARY KEY
+   patient_id        | INT                  | NOT NULL, FOREIGN KEY -> patients(patient_id)
+   token_no          | VARCHAR(20)          | NOT NULL
+   patient_name      | VARCHAR(100)         | NOT NULL
+   bay_name          | VARCHAR(50)          | NOT NULL
+   order_type        | ENUM(...)            | NOT NULL ('LAB','IMAGING','CARDIAC_ECG','MEDICATION')
+   order_name        | VARCHAR(150)         | NOT NULL
+   ordered_by        | VARCHAR(100)         | NOT NULL
+   status            | ENUM(...)            | NOT NULL ('ORDERED','IN_PROGRESS','RESULTED')
+   results_summary   | TEXT                 | NULL
+   is_abnormal       | BOOLEAN              | DEFAULT FALSE
+   ordered_at        | TIMESTAMP            | DEFAULT CURRENT_TIMESTAMP
+
+5. Table: `clinical_notes`
+   SOAP notes (Subjective, Objective, Assessment, Plan) entered by physicians.
+   -----------------------------------------------------------------------------
+   Column Name       | Data Type            | Constraints
+   ------------------+----------------------+-----------------------------------
+   note_id           | INT AUTO_INCREMENT   | PRIMARY KEY
+   patient_id        | INT                  | NOT NULL, FOREIGN KEY -> patients(patient_id)
+   token_no          | VARCHAR(20)          | NOT NULL
+   author_name       | VARCHAR(100)         | NOT NULL
+   note_type         | VARCHAR(50)          | NOT NULL DEFAULT 'SOAP'
+   subjective        | TEXT                 | NULL
+   objective         | TEXT                 | NULL
+   assessment        | TEXT                 | NULL
+   plan              | TEXT                 | NULL
+   created_at        | TIMESTAMP            | DEFAULT CURRENT_TIMESTAMP
+
+6. Table: `audit_log`
+   Comprehensive HIPAA-compliant audit trail recording every clinical event.
+   -----------------------------------------------------------------------------
+   Column Name       | Data Type            | Constraints
+   ------------------+----------------------+-----------------------------------
+   audit_id          | INT AUTO_INCREMENT   | PRIMARY KEY
+   event_type        | VARCHAR(50)          | NOT NULL
+   patient_token     | VARCHAR(20)          | NULL
+   patient_uhid      | VARCHAR(30)          | NULL
+   previous_state    | VARCHAR(50)          | NULL
+   new_state         | VARCHAR(50)          | NULL
+   performer_user    | VARCHAR(100)         | NULL
+   description       | TEXT                 | NULL
+   timestamp         | TIMESTAMP            | DEFAULT CURRENT_TIMESTAMP
+
+7. Table: `ai_audit_logs`
+   Tracks AI multi-agent recommendations, latency, confidence, and guardrails.
+   -----------------------------------------------------------------------------
+   Column Name       | Data Type            | Constraints
+   ------------------+----------------------+-----------------------------------
+   log_id            | INT AUTO_INCREMENT   | PRIMARY KEY
+   patient_token     | VARCHAR(20)          | NOT NULL
+   ai_suggested_level| VARCHAR(20)          | NOT NULL
+   rule_suggested_level| VARCHAR(20)        | NOT NULL
+   suggested_specialty| VARCHAR(50)         | NOT NULL
+   confidence_score  | DOUBLE               | NOT NULL
+   disagreement_detected | BOOLEAN          | NOT NULL
+   latency_ms        | BIGINT               | NOT NULL
+   raw_agent_outputs | JSON                 | NULL
+   created_at        | TIMESTAMP            | DEFAULT CURRENT_TIMESTAMP
+
+8. Table: `users`
+   Application users and role assignments for authentication.
+   -----------------------------------------------------------------------------
+   Column Name       | Data Type            | Constraints
+   ------------------+----------------------+-----------------------------------
+   user_id           | INT AUTO_INCREMENT   | PRIMARY KEY
+   username          | VARCHAR(50)          | NOT NULL UNIQUE
+   password_hash     | VARCHAR(255)         | NOT NULL (BCrypt hash)
+   full_name         | VARCHAR(100)         | NOT NULL
+   role              | ENUM(...)            | NOT NULL ('ADMIN','DOCTOR','NURSE','REGISTRATION')
+   department        | VARCHAR(50)          | NULL
+   is_active         | BOOLEAN              | DEFAULT TRUE
+
+
+--------------------------------------------------------------------------------
+4.2 SELF-HEALING JDBC DAEMON CONNECTION RECOVERY
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.util.DBConnection`.
+To prevent application crashes if MySQL is stopped after a Windows system reboot:
+1. `getConnection()` detects `SQLException` when connecting to `127.0.0.1:3306`.
+2. Inspects local filesystem for MySQL server binary:
+   `C:/Program Files/MySQL/MySQL Server 8.4/bin/mysqld.exe`
+3. If located, automatically launches `mysqld.exe` in the background via Java
+   `ProcessBuilder` with `--defaults-file="C:/ProgramData/MySQL/MySQL Server 8.4/my.ini"`.
+4. Polls localhost port 3306 with socket connections (up to 6 seconds) until the
+   server begins accepting connections.
+5. Retries the JDBC connection automatically, achieving zero-downtime self-healing.
+
+
+--------------------------------------------------------------------------------
+4.3 DUAL-STORE PERSISTENCE & FIREBASE CLOUD REALTIME SYNC
+--------------------------------------------------------------------------------
+Implemented in `com.hospital.priority.service.FirebaseService`.
+HEPS operates a dual-store architecture:
+- Primary Store: High-throughput local ACID-compliant MySQL 8.4 database.
+- Cloud Realtime Sync: Google Firebase Realtime Database.
+  - When enabled (`firebase.enabled=true` in `config.properties`), any update
+    to patient priority, queue status, or bed allocation triggers an asynchronous
+    HTTP `PUT`/`PATCH` to Firebase REST endpoints (`/patients/{tokenNo}.json` and
+    `/queue/{tokenNo}.json`).
+  - Allows mobile staff and remote administrators to view real-time department
+    status without direct VPN access into the hospital's local network.
+
+
+================================================================================
+5. UI / UX MODULES & CLINICAL SCREENS SPECIFICATION
+================================================================================
+
+--------------------------------------------------------------------------------
+5.1 AUTHENTICATION & ROLE-BASED ACCESS CONTROL (RBAC)
+--------------------------------------------------------------------------------
+- View: `fxml/login.fxml` | Controller: `LoginController.java`
+- Features:
+  - Secure credential verification with BCrypt hashing (`BCrypt.checkpw`).
+  - Role-specific workspace activation:
+    * DOCTOR: Auto-navigates to Doctor Workspace, pre-filtering "My Patients".
+    * NURSE: Auto-navigates to Register Patient and Emergency Queue.
+    * ADMIN: Unlocks complete system settings, database management, and audit logs.
+  - Demo fast-login pills for immediate testing without manual typing.
+
+--------------------------------------------------------------------------------
+5.2 COMMAND CENTER (EXECUTIVE REAL-TIME DASHBOARD)
+--------------------------------------------------------------------------------
+- View: `fxml/dashboard.fxml` | Controller: `DashboardController.java`
+- Features:
+  - Real-Time KPI Cards: Active Waiting, Critical Patients in Resus, SLA Breaches,
+    and Bed Utilization percentage.
+  - Pipeline Progress Strip: Real-time patient counts across clinical stages
+    (Registered -> Triaged -> Waiting -> In Treatment -> Disposition).
+  - Next Patient to Treat Card: O(1) peek at the PriorityQueue head with live
+    vital chips (SpO2, HR, BP, NEWS2, Allergies) and target wait time SLA.
+  - Min-Heap Live Waiting Queue Table: Displays queue rank, patient token, name,
+    presenting complaint, and dynamic wait-time progress bar.
+
+--------------------------------------------------------------------------------
+5.3 REGISTER PATIENT WIZARD (3-STEP TRIAGE WITH AI AUTO-FILL)
+--------------------------------------------------------------------------------
+- View: `fxml/register_patient.fxml` | Controller: `RegisterPatientController.java`
+- Step 1: Patient Identity & Demographics
+  - Returning Patient Search: Real-time lookup by phone number auto-fills existing
+    records and links medical history.
+  - AI Clinical Intake & Smart Auto-Fill: Triage nurse can type or paste unstructured
+    clinical notes (e.g. "54yo male severe crushing chest pain radiating to jaw,
+    SpO2 91, HR 112, BP 160/95"). Clicking "Auto-Fill with AI" invokes the
+    intake engine, extracting demographics, vital signs, triage level, and
+    medical department.
+- Step 2: Triage Assessment
+  - Physiological vital signs entry with real-time NEWS2 score calculation.
+  - Visual pain scale slider (0 to 10).
+  - Chief complaint quick-chips (Chest pain, Breathlessness, Trauma, Fracture, etc.).
+- Step 3: Decision & Recommendation
+  - Side-by-side comparison of AI suggestion vs Deterministic Java Rule Engine.
+  - Suggested available bay and specialist doctor routing summary.
+  - "Accept Recommendation" or "Clinical Override" (requires reason logging).
+  - Generates unique sequential emergency token (e.g. `TK-2026-0001`) and printable
+    triage slip.
+
+--------------------------------------------------------------------------------
+5.4 EMERGENCY QUEUE (MIN-HEAP SORTED CLINICAL TABLE)
+--------------------------------------------------------------------------------
+- View: `fxml/emergency_queue.fxml` | Controller: `EmergencyQueueController.java`
+- Features:
+  - Table sorted in real-time by Min-Heap order.
+  - Columns: Queue Rank (#), Token, Patient Name, Age, Priority Badge, Assigned
+    Bay, Specialty, Assigned Doctor, Wait Time / Target SLA, Physiological Vitals,
+    and Presenting Complaint.
+  - "Scan Wait Escalations" trigger to test dynamic priority promotion.
+  - "Begin Treatment" action to admit the head patient directly into treatment.
+  - "Print Triage Slip" barcode slip generation.
+
+--------------------------------------------------------------------------------
+5.5 BAY BOARD (12-BAY VISUAL OCCUPANCY & SANITIZATION GRID)
+--------------------------------------------------------------------------------
+- View: `fxml/bay_board.fxml` | Controller: `BayBoardController.java`
+- Features:
+  - 12 interactive bay cards reflecting real-time physical occupancy.
+  - Filter by Zone: All Bays (12), Resus & Trauma (2), Acute Care (2),
+    Observation (6), Fast Track & Ambulatory (2).
+  - Status Indicators: FREE (Green), OCCUPIED (Red with patient token, doctor,
+    and stay duration), CLEANING (Yellow with countdown timer).
+  - Bay Actions:
+    * "Assign Waiting Patient": Select from waiting queue to occupy free bay.
+    * "Transfer": Transfer patient between emergency bays with audit logging.
+    * "Release / Clean": Release patient and initiate 3-minute sanitization countdown.
+    * "Mark Cleaned Now": Immediate nurse override to reset bay to FREE.
+
+--------------------------------------------------------------------------------
+5.6 DOCTOR WORKSPACE (CLINICAL DASHBOARD)
+--------------------------------------------------------------------------------
+- View: `fxml/doctor_workspace.fxml` | Controller: `DoctorWorkspaceController.java`
+- Features:
+  - Active Patients Sidebar: Zero horizontal scrollbar, styled patient cards
+    showing name, token, bay, wait time, priority pill, and complaint.
+  - Filter Tabs: All Patients, My Patients (matching logged-in doctor), Waiting,
+    In Treatment.
+  - Sticky Patient Header: Initials avatar, name, age, gender, priority,
+    allergies, assigned bay, attending doctor, and clinical journey stepper.
+  - Tab 1: Overview & Serial Vitals Chart (Line chart rendering real-time SpO2
+    and Heart Rate trajectory over the last 30 minutes).
+  - Tab 2: SOAP Notes (Interactive Subjective, Objective, Assessment, Plan editor
+    with timestamped physician note history).
+  - Tab 3: Orders and Results (Quick-order bar for STAT/Urgent Lab, Imaging, ECG,
+    and Medications).
+  - Tab 4: Repeat Vitals & Deterioration Watchdog (Immediate alert banner if
+    serial vitals trigger NEWS2 >= 7).
+
+--------------------------------------------------------------------------------
+5.7 CENTRALIZED ORDERS & DIAGNOSTIC RESULTS MONITOR
+--------------------------------------------------------------------------------
+- View: `fxml/orders_results.fxml` | Controller: `OrdersResultsController.java`
+- Features:
+  - Diagnostic tracker for laboratory tests, radiology imaging, cardiac ECGs,
+    and medication administrations.
+  - Real-time status counters: Total Orders, Pending, Resulted, Abnormal.
+  - Filter tabs: All, Lab, Imaging, Cardiac ECG, Medications, and Status dropdown.
+  - Physician action: "Acknowledge" results and "Sign Off" diagnostic findings.
+
+--------------------------------------------------------------------------------
+5.8 PATIENT RECORDS & AUDIT HISTORY BROWSER
+--------------------------------------------------------------------------------
+- View: `fxml/patient_history.fxml` | Controller: `PatientHistoryController.java`
+- Features:
+  - Searchable electronic medical record registry by token, UHID, name, or phone.
+  - Filters by Emergency Priority Level and Patient Status.
+  - Clinical Encounter Inspector: Displays arrival mode, vitals at intake,
+    assigned physician, diagnosis summary, and SOAP clinical notes.
+  - Reprint triage slips and export encounter records.
+
+--------------------------------------------------------------------------------
+5.9 DISPOSITION, DISCHARGE & APACHE PDFBOX SUMMARY GENERATION
+--------------------------------------------------------------------------------
+- View: `fxml/disposition.fxml` | Controller: `DispositionController.java`
+- Features:
+  - 6 Disposition Destinations:
+    1. Discharge Home
+    2. Admit to ICU (Resus handover)
+    3. Admit to Inpatient Ward
+    4. Emergency Surgery / OT
+    5. Transfer to Tertiary Hospital
+    6. Left Against Medical Advice (LAMA)
+  - Pre-populated discharge medication templates and follow-up care instructions.
+  - PDF Generation via Apache PDFBox 3.0: Generates high-resolution, branded
+    Discharge Summary and Medical Fitness Certificates.
+  - "Finalize Disposition & Release Bay": Marks patient `DISCHARGED` and moves
+    assigned bay to `CLEANING`.
+
+--------------------------------------------------------------------------------
+5.10 OPERATIONAL REPORTS & ANALYTICS
+--------------------------------------------------------------------------------
+- View: `fxml/reports.fxml` | Controller: `ReportsController.java`
+- Features:
+  - Hourly Patient Arrival Heatmap: Distribution of arrivals throughout the 24-hour cycle.
+  - SLA Compliance Gauge: Percentage of patients seen within target thresholds.
+  - Specialty Distribution Bar Chart: Proportional volume across departments.
+  - Operational Metrics: Average wait to triage, average physician contact time,
+    left-without-being-seen (LWBS) rate.
+  - CSV Export: Dumps complete operational audit dataset for hospital administration.
+
+--------------------------------------------------------------------------------
+5.11 MASS CASUALTY INCIDENT (MCI CRISIS COMMAND)
+--------------------------------------------------------------------------------
+- View: `fxml/mass_casualty.fxml` | Controller: `MassCasualtyController.java`
+- Features:
+  - Emergency Department Disaster Protocol Activation button.
+  - Live START Triage Roster:
+    * RED    (Immediate / Resuscitation)
+    * YELLOW (Delayed / Urgent)
+    * GREEN  (Minor / Walking wounded)
+    * BLACK  (Deceased / Expectant)
+  - Rapid Victim Admission: One-click fast admission of unidentified disaster
+    victims directly into the Min-Heap queue.
+  - Emergency On-Call Staff Recall tool.
+
+
+================================================================================
+6. CONFIGURATION, PROJECT DIRECTORY TREE & SOURCE CODE MAP
+================================================================================
+
+--------------------------------------------------------------------------------
+6.1 CONFIGURATION FILE: `src/main/resources/config.properties`
+--------------------------------------------------------------------------------
+# Database Connectivity (MySQL 8.4 Server)
+db.url=jdbc:mysql://127.0.0.1:3306/hospital_emergency_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+db.user=root
+db.password=
+
+# AI Clinical Intelligence Engine (LLM Endpoint)
+ai.api.key=your_ai_api_key_here
+ai.model=openai/gpt-oss-120b
+ai.endpoint=https://api.groq.com/openai/v1/chat/completions
+
+# Firebase Cloud Realtime Sync (Dual-Store Persistence)
+firebase.enabled=false
+firebase.database.url=https://heps-emergency-default-rtdb.firebaseio.com
+firebase.auth.token=
+
+
+--------------------------------------------------------------------------------
+6.2 PROJECT SOURCE TREE
+--------------------------------------------------------------------------------
+HEPS/
+├── pom.xml                                    (Maven dependencies & shaded fat JAR build)
+├── database/
+│   ├── schema.sql                             (Complete MySQL DDL table schema)
+│   └── sample-data.sql                        (Verified database bootstrap script)
+├── release/
+│   └── HEPS/
+│       ├── HEPS.exe                           (Packaged standalone Windows executable)
+│       └── app/
+│           ├── HEPS.cfg                       (JVM runtime config, UTF-8 file encoding)
+│           └── hospital-emergency-priority-system-1.0.0.jar (Production fat JAR)
+└── src/
+    ├── main/
+    │   ├── java/com/hospital/priority/
+    │   │   ├── App.java                       (JavaFX Application entry point)
+    │   │   ├── Launcher.java                  (Bootstrap main class setting UTF-8)
+    │   │   ├── controller/
+    │   │   │   ├── AdminController.java
+    │   │   │   ├── AlertsController.java
+    │   │   │   ├── BayBoardController.java
+    │   │   │   ├── DashboardController.java   (Dynamic KPI & Min-Heap queue view)
+    │   │   │   ├── DispositionController.java (Discharge & Apache PDFBox generation)
+    │   │   │   ├── DoctorWorkspaceController.java (Active patient queue & vitals chart)
+    │   │   │   ├── EmergencyQueueController.java  (Min-Heap priority table)
+    │   │   │   ├── LoginController.java
+    │   │   │   ├── MainController.java        (Root navigation shell & FXML loader)
+    │   │   │   ├── MassCasualtyController.java(MCI START triage engine)
+    │   │   │   ├── OrdersResultsController.java(Diagnostic order monitor)
+    │   │   │   ├── PatientHistoryController.java(Patient records & audit logs)
+    │   │   │   ├── RegisterPatientController.java (3-step wizard & AI auto-fill)
+    │   │   │   └── ReportsController.java     (Operational analytics & CSV export)
+    │   │   ├── dao/
+    │   │   │   ├── DoctorDao.java
+    │   │   │   ├── PatientDao.java
+    │   │   │   ├── TreatmentRecordDao.java
+    │   │   │   ├── UserDao.java
+    │   │   │   └── impl/
+    │   │   │       ├── DoctorDaoImpl.java
+    │   │   │       ├── PatientDaoImpl.java
+    │   │   │       ├── TreatmentRecordDaoImpl.java
+    │   │   │       └── UserDaoImpl.java
+    │   │   ├── model/
+    │   │   │   ├── AIAssessmentResult.java
+    │   │   │   ├── Alert.java
+    │   │   │   ├── Bay.java
+    │   │   │   ├── ClinicalNote.java
+    │   │   │   ├── Doctor.java
+    │   │   │   ├── DoctorStatus.java
+    │   │   │   ├── EmergencyLevel.java        (CRITICAL=1, HIGH=2, MEDIUM=3, LOW=4)
+    │   │   │   ├── Order.java
+    │   │   │   ├── Patient.java
+    │   │   │   ├── PatientPriorityComparator.java (DSA Min-Heap comparator)
+    │   │   │   ├── PatientStateMachine.java   (Clinical lifecycle validator)
+    │   │   │   ├── PatientStatus.java
+    │   │   │   ├── Role.java
+    │   │   │   ├── Specialty.java
+    │   │   │   ├── TreatmentRecord.java
+    │   │   │   ├── User.java
+    │   │   │   └── Vitals.java
+    │   │   ├── service/
+    │   │   │   ├── AlertService.java
+    │   │   │   ├── AuditService.java          (HIPAA event logging)
+    │   │   │   ├── AuthService.java
+    │   │   │   ├── BayService.java            (12-bay allocation & cleaning timer)
+    │   │   │   ├── DoctorRoutingService.java  (4-tier doctor workload routing)
+    │   │   │   ├── FirebaseService.java       (Cloud real-time synchronization)
+    │   │   │   ├── JavaTriageRuleEngine.java  (Deterministic clinical safety guardrail)
+    │   │   │   ├── NEWS2Service.java          (National Early Warning Score 2)
+    │   │   │   ├── OrderService.java
+    │   │   │   ├── PatientService.java
+    │   │   │   ├── QueueService.java          (PriorityQueue & SLA wait escalation)
+    │   │   │   ├── UserSession.java
+    │   │   │   └── ai/
+    │   │   │       ├── AIAgentOrchestrator.java (4-agent ensemble & conflict detector)
+    │   │   │       ├── AIClientService.java   (Clinical LLM extraction client)
+    │   │   │       ├── IntakeAgent.java
+    │   │   │       ├── RiskAgent.java
+    │   │   │       ├── SpecialtyAgent.java
+    │   │   │       └── TriageAgent.java
+    │   │   └── util/
+    │   │       ├── DBConnection.java          (Resilient auto-recovering JDBC pool)
+    │   │       ├── TokenGenerator.java        (Sequential token generator)
+    │   │       ├── TriageTicketUtil.java      (Barcode slip printing)
+    │   │       └── ValidationUtil.java
+    │   └── resources/
+    │       ├── config.properties              (Active credentials & configurations)
+    │       ├── css/style.css                  (Modern design system & UI tokens)
+    │       ├── db/clean_seed.sql              (Clean database initialization)
+    │       └── fxml/
+    │           ├── admin.fxml
+    │           ├── alerts.fxml
+    │           ├── bay_board.fxml             (100% pure ASCII sanitized)
+    │           ├── dashboard.fxml             (100% pure ASCII sanitized)
+    │           ├── disposition.fxml           (100% pure ASCII sanitized)
+    │           ├── doctor_workspace.fxml      (100% pure ASCII sanitized)
+    │           ├── emergency_queue.fxml       (100% pure ASCII sanitized)
+    │           ├── login.fxml                 (100% pure ASCII sanitized)
+    │           ├── main_layout.fxml
+    │           ├── mass_casualty.fxml         (100% pure ASCII sanitized)
+    │           ├── orders_results.fxml        (100% pure ASCII sanitized)
+    │           ├── patient_history.fxml       (100% pure ASCII sanitized)
+    │           ├── register_patient.fxml      (100% pure ASCII sanitized)
+    │           └── reports.fxml               (100% pure ASCII sanitized)
+    └── test/java/com/hospital/priority/
+        ├── AIAgentOrchestratorTest.java
+        ├── DatabaseQueueIntegrationTest.java
+        ├── DoctorRoutingServiceTest.java
+        ├── JavaTriageRuleEngineTest.java
+        ├── JdbcPersistenceIntegrationTest.java
+        ├── MainControllerViewTest.java
+        ├── NEWS2ServiceTest.java
+        ├── PatientPriorityComparatorTest.java
+        ├── PatientStateMachineTest.java
+        ├── PriorityQueueEscalationTest.java
+        ├── PriorityQueueOrderingTest.java
+        ├── RegisterPatientFxmlTest.java
+        ├── ScreenCaptureTest.java
+        ├── TokenGeneratorTest.java
+        └── ValidationUtilTest.java
+
+================================================================================
+END OF FULL CONTEXT SPECIFICATION
+================================================================================
