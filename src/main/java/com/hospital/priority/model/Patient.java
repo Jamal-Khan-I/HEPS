@@ -278,12 +278,12 @@ public class Patient {
     }
 
     public static String getDefaultBayForLevel(EmergencyLevel level) {
-        if (level == null) return "Bay 4 [Observation - Yellow]";
+        if (level == null) return "Bay 4 - Obs";
         return switch (level) {
-            case CRITICAL -> "Bay 1 [Resuscitation - Red]";
-            case HIGH -> "Bay 3 [Acute Care - Yellow]";
-            case MEDIUM -> "Bay 4 [Observation - Yellow]";
-            case LOW -> "Bay 6 [Ambulatory - Green]";
+            case CRITICAL -> "Bay 1 - Resus";
+            case HIGH -> "Bay 3 - Acute";
+            case MEDIUM -> "Bay 4 - Obs";
+            case LOW -> "Bay 6 - Ambulatory";
         };
     }
 

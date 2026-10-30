@@ -41,26 +41,26 @@ public class BayService {
         bays.clear();
 
         // 1. Resus & Trauma (Critical Red Zone)
-        bays.put(1, new Bay(1, "Bay 1 · Resus", Bay.BayType.RESUS, Bay.BayStatus.FREE));
-        bays.put(2, new Bay(2, "Bay 2 · Trauma", Bay.BayType.TRAUMA, Bay.BayStatus.FREE));
+        bays.put(1, new Bay(1, "Bay 1 - Resus", Bay.BayType.RESUS, Bay.BayStatus.FREE));
+        bays.put(2, new Bay(2, "Bay 2 - Trauma", Bay.BayType.TRAUMA, Bay.BayStatus.FREE));
 
         // 2. Acute Care (Orange Zone)
-        bays.put(3, new Bay(3, "Bay 3 · Acute", Bay.BayType.ACUTE, Bay.BayStatus.FREE));
-        bays.put(4, new Bay(4, "Bay 3b · Acute", Bay.BayType.ACUTE, Bay.BayStatus.FREE));
+        bays.put(3, new Bay(3, "Bay 3 - Acute", Bay.BayType.ACUTE, Bay.BayStatus.FREE));
+        bays.put(4, new Bay(4, "Bay 3b - Acute", Bay.BayType.ACUTE, Bay.BayStatus.FREE));
 
         // 3. Monitored Observation (Yellow Zone)
-        bays.put(5, new Bay(5, "Bay 4 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
-        bays.put(6, new Bay(6, "Bay 4b · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(5, new Bay(5, "Bay 4 - Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(6, new Bay(6, "Bay 4b - Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
 
         // 4. Fast Track & Ambulatory (Green Zone)
-        bays.put(7, new Bay(7, "Bay 5 · Fast track", Bay.BayType.FAST_TRACK, Bay.BayStatus.FREE));
-        bays.put(8, new Bay(8, "Bay 6 · Ambulatory", Bay.BayType.AMBULATORY, Bay.BayStatus.FREE));
+        bays.put(7, new Bay(7, "Bay 5 - Fast track", Bay.BayType.FAST_TRACK, Bay.BayStatus.FREE));
+        bays.put(8, new Bay(8, "Bay 6 - Ambulatory", Bay.BayType.AMBULATORY, Bay.BayStatus.FREE));
 
         // 5. Extended Observation Beds (Beds 7 through 10)
-        bays.put(9, new Bay(9, "Bay 7 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
-        bays.put(10, new Bay(10, "Bed 8 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
-        bays.put(11, new Bay(11, "Bed 9 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
-        bays.put(12, new Bay(12, "Bed 10 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(9, new Bay(9, "Bay 7 - Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(10, new Bay(10, "Bed 8 - Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(11, new Bay(11, "Bed 9 - Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(12, new Bay(12, "Bed 10 - Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
     }
 
     public synchronized List<Bay> getAllBays() {
@@ -101,15 +101,82 @@ public class BayService {
         return Optional.ofNullable(bays.get(bayId));
     }
 
+    public static String normalizeBayKey(String name) {
+        if (name == null) return "";
+        return name.toLowerCase()
+                .replaceAll("\\(.*?\\)", "")     // remove (free), (occupied)
+                .replaceAll("\\[.*?\\]", "")     // remove [Resuscitation - Red]
+                .replaceAll("[^a-z0-9]", "");    // strip all non-alphanumeric chars
+    }
+
     public synchronized Optional<Bay> getBayByName(String name) {
-        if (name == null) return Optional.empty();
+        if (name == null || name.trim().isEmpty()) return Optional.empty();
         checkCleaningStatus();
+        String targetKey = normalizeBayKey(name);
+        if (targetKey.isEmpty()) return Optional.empty();
+
+        // 1. Exact match on normalized key
         for (Bay b : bays.values()) {
-            if (b.getName().equalsIgnoreCase(name.trim())) {
+            if (normalizeBayKey(b.getName()).equals(targetKey)) {
                 return Optional.of(b);
             }
         }
+
+        // 2. Prefix or contains match (e.g. "bay1" matches "bay1resus")
+        for (Bay b : bays.values()) {
+            String bKey = normalizeBayKey(b.getName());
+            if (bKey.startsWith(targetKey) || targetKey.startsWith(bKey)) {
+                return Optional.of(b);
+            }
+        }
+
+        // 3. Match by bay identifier number (e.g. "1" or "bay1")
+        for (Bay b : bays.values()) {
+            String bNum = String.valueOf(b.getBayId());
+            if (targetKey.equals("bay" + bNum) || targetKey.equals("bed" + bNum) || targetKey.equals(bNum)) {
+                return Optional.of(b);
+            }
+        }
+
         return Optional.empty();
+    }
+
+    /**
+     * Resiliently allocates and occupies a bay for a patient.
+     * Matches requested bay by name or ID. If that bay is already occupied or missing,
+     * seamlessly finds the best available bay for the patient's triage emergency level.
+     */
+    public synchronized Bay allocateBayForPatient(String bayNameOrId, Patient patient) {
+        if (patient == null) return null;
+        checkCleaningStatus();
+
+        Optional<Bay> targetOpt = getBayByName(bayNameOrId);
+        Bay bayToOccupy = null;
+
+        if (targetOpt.isPresent() && targetOpt.get().isAvailable()) {
+            bayToOccupy = targetOpt.get();
+        } else {
+            // Find best available for patient priority level
+            List<Bay> availableForLevel = getAvailableBaysForLevel(patient.getEmergencyLevel());
+            if (!availableForLevel.isEmpty()) {
+                bayToOccupy = availableForLevel.get(0);
+            } else {
+                List<Bay> anyFree = getAvailableBays();
+                if (!anyFree.isEmpty()) {
+                    bayToOccupy = anyFree.get(0);
+                } else if (targetOpt.isPresent()) {
+                    // Fallback to target bay even if forcing assignment
+                    bayToOccupy = targetOpt.get();
+                }
+            }
+        }
+
+        if (bayToOccupy != null) {
+            bayToOccupy.occupy(patient);
+            patient.setAssignedBay(bayToOccupy.getName());
+            return bayToOccupy;
+        }
+        return null;
     }
 
     public synchronized Optional<Bay> findBayForPatient(String patientToken) {

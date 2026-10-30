@@ -66,22 +66,6 @@
                 <Button text="Use this record" onAction="#handleUseReturningRecord" styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 6px 14px; -fx-background-color: #2563EB;" />
             </HBox>
 
-            <!-- AI CLINICAL INTAKE & SMART AUTO-FILL CARD -->
-            <VBox styleClass="card" spacing="12.0" style="-fx-border-color: #0D9488; -fx-border-width: 1.5px; -fx-background-color: #F0FDFA; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-padding: 14px 16px;">
-                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                    <SVGPath content="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6.4-4.8-6.4 4.8 2.4-7.2-6-4.8h7.6z" style="-fx-fill: #0D9488;" />
-                    <VBox spacing="2.0" HBox.hgrow="ALWAYS">
-                        <Label text="AI Clinical Intake &amp; Smart Auto-Fill" style="-fx-font-weight: 800; -fx-text-fill: #0F766E; -fx-font-size: 13.5px;" />
-                        <Label text="Optional: Type or paste what the patient feels or reports - AI automatically extracts demographics, vitals, triage level, and routes specialty." style="-fx-text-fill: #115E59; -fx-font-size: 11.5px;" />
-                    </VBox>
-                    <Button fx:id="btnAiAutoFill" text="Auto-Fill with AI" onAction="#handleAiAutoFill" styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 7px 16px; -fx-background-color: #0D9488;" />
-                </HBox>
-                <TextArea fx:id="txtAiNarrative" promptText="e.g. 54-year-old male arrived with severe crushing chest pain radiating to left jaw, diaphoresis, SpO2 91%, HR 112, BP 160/95. History of hypertension, allergic to penicillin." prefRowCount="2" wrapText="true" style="-fx-font-size: 12.5px; -fx-background-color: #FFFFFF; -fx-border-color: #CCFBF1; -fx-border-radius: 6px;" />
-                <HBox fx:id="boxAiStatus" visible="false" managed="false" alignment="CENTER_LEFT" spacing="8.0">
-                    <Label fx:id="lblAiStatus" text="Analyzing narrative with AI..." style="-fx-font-size: 11.5px; -fx-font-weight: 600; -fx-text-fill: #0D9488;" />
-                </HBox>
-            </VBox>
-
             <!-- Patient Details Card -->
             <VBox styleClass="card" spacing="16.0">
                 <Label text="Patient details" styleClass="card-title" />
@@ -243,9 +227,17 @@
                 </GridPane>
             </VBox>
 
-            <!-- Chief Complaint Card (Page 5) -->
+            <!-- Chief Complaint Card with AI Auto-Fill (Page 5) -->
             <VBox styleClass="card" spacing="14.0">
-                <Label text="Chief complaint *" styleClass="card-title" />
+                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                    <VBox spacing="2.0" HBox.hgrow="ALWAYS">
+                        <Label text="Chief complaint *" styleClass="card-title" />
+                        <Label text="Type symptoms, click quick chips, or paste clinical narrative for AI auto-fill." style="-fx-font-size: 11.5px; -fx-text-fill: #64748B;" />
+                    </VBox>
+                    <Button fx:id="btnAiAutoFill" text="Auto-Fill with AI" onAction="#handleAiAutoFill" styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 7px 16px; -fx-background-color: #0D9488;" />
+                </HBox>
+
+                <!-- Quick complaint chips -->
                 <HBox spacing="8.0" alignment="CENTER_LEFT">
                     <Button text="Chest pain" onAction="#handleChipComplaint" styleClass="btn-secondary" />
                     <Button text="Breathlessness" onAction="#handleChipComplaint" styleClass="btn-secondary" />
@@ -255,10 +247,28 @@
                     <Button text="Bleeding" onAction="#handleChipComplaint" styleClass="btn-secondary" />
                 </HBox>
 
-                <TextField fx:id="txtComplaint" promptText="Describe patient symptoms or click a quick complaint chip above..."
-                           style="-fx-font-size: 13px;" />
+                <!-- Optional AI Narrative / Symptoms Input -->
+                <VBox spacing="6.0">
+                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                        <Label text="Clinical narrative / Symptoms description" style="-fx-font-weight: 600; -fx-text-fill: #334155; -fx-font-size: 12px;" />
+                        <Label text="(Optional: Describe patient symptoms or paste intake notes for automatic triage extraction)" style="-fx-font-size: 11px; -fx-text-fill: #94A3B8;" />
+                    </HBox>
+                    <TextArea fx:id="txtAiNarrative" promptText="e.g. 54-year-old arrived with severe crushing chest pain radiating to left jaw, diaphoresis, SpO2 91%, HR 112, BP 160/95. History of hypertension, allergic to penicillin." prefRowCount="2" wrapText="true" style="-fx-font-size: 12.5px; -fx-background-color: #FFFFFF; -fx-border-color: #CBD5E1; -fx-border-radius: 6px;" />
+                </VBox>
 
-                <GridPane hgap="16.0" vgap="12.0" style="-fx-padding: 8px 0 0 0;">
+                <HBox fx:id="boxAiStatus" visible="false" managed="false" alignment="CENTER_LEFT" spacing="8.0"
+                      style="-fx-background-color: #F0FDFA; -fx-padding: 8px 12px; -fx-border-color: #CCFBF1; -fx-border-radius: 6px; -fx-background-radius: 6px;">
+                    <Label fx:id="lblAiStatus" text="Analyzing narrative with AI..." style="-fx-font-size: 11.5px; -fx-font-weight: 600; -fx-text-fill: #0D9488;" />
+                </HBox>
+
+                <!-- Chief Complaint Summary -->
+                <VBox spacing="6.0">
+                    <Label text="Chief complaint summary *" style="-fx-font-weight: 600; -fx-text-fill: #334155; -fx-font-size: 12px;" />
+                    <TextField fx:id="txtComplaint" promptText="Describe patient symptoms or click a quick complaint chip above..."
+                               style="-fx-font-size: 13px;" />
+                </VBox>
+
+                <GridPane hgap="16.0" vgap="12.0" style="-fx-padding: 4px 0 0 0;">
                     <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <Label text="Allergies" style="-fx-font-weight: 600; -fx-text-fill: #B91C1C;" />
                         <TextField fx:id="txtAllergies" promptText="e.g. None or Penicillin" prefWidth="420.0" />
@@ -332,7 +342,7 @@
                     </VBox>
                 </HBox>
 
-                <Label fx:id="lblRecSummary" text="Suggested: Cardiology - Bay 1 Resus (free) - Dr. Mehta (available)"
+                <Label fx:id="lblRecSummary" text="Suggested: Cardiology - Bay 1 - Resus (free) - Dr. Mehta (available)"
                        style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0D9488;" />
             </VBox>
 

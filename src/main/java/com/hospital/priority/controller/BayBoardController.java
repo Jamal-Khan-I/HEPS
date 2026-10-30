@@ -248,14 +248,14 @@ public class BayBoardController implements Initializable {
             metaRow.setStyle("-fx-padding: 4px 0 0 0;");
 
             String doc = bay.getAssignedDoctorName() != null ? bay.getAssignedDoctorName() : "Doctor unassigned";
-            Label lblDoc = new Label("👨‍⚕️ " + doc);
+            Label lblDoc = new Label("Dr: " + doc);
             lblDoc.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #475569;");
 
             Region metaSpacer = new Region();
             HBox.setHgrow(metaSpacer, Priority.ALWAYS);
 
             long minutesInBay = bay.getMinutesOccupied();
-            Label lblTime = new Label("⏱️ " + minutesInBay + "m in bay");
+            Label lblTime = new Label(minutesInBay + "m in bay");
             lblTime.setStyle("-fx-font-size: 11.5px; -fx-font-weight: 600; -fx-text-fill: #64748B;");
 
             metaRow.getChildren().addAll(lblDoc, metaSpacer, lblTime);

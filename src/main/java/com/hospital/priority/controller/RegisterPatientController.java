@@ -235,11 +235,14 @@ public class RegisterPatientController implements Initializable {
     @FXML
     public void handleAiAutoFill(ActionEvent event) {
         String narrative = txtAiNarrative != null ? txtAiNarrative.getText().trim() : "";
+        if (narrative.isEmpty() && txtComplaint != null) {
+            narrative = txtComplaint.getText().trim();
+        }
         if (narrative.isEmpty()) {
             if (boxAiStatus != null && lblAiStatus != null) {
                 boxAiStatus.setVisible(true);
                 boxAiStatus.setManaged(true);
-                lblAiStatus.setText("Please enter or paste the patient's symptoms/complaint above.");
+                lblAiStatus.setText("Please describe patient symptoms or paste clinical narrative.");
                 lblAiStatus.setStyle("-fx-text-fill: #D97706; -fx-font-weight: 600;");
             }
             return;
@@ -257,7 +260,7 @@ public class RegisterPatientController implements Initializable {
             Platform.runLater(() -> {
                 if (btnAiAutoFill != null) btnAiAutoFill.setDisable(false);
 
-                // Step 1: Demographics
+                // Step 1: Demographics (populate if extracted and currently empty)
                 if (ext.getFullName() != null && !ext.getFullName().isEmpty()) {
                     txtName.setText(ext.getFullName());
                 }
@@ -309,7 +312,7 @@ public class RegisterPatientController implements Initializable {
                 updateRecommendationSummary();
 
                 if (boxAiStatus != null && lblAiStatus != null) {
-                    lblAiStatus.setText("✓ AI Extraction Complete! All fields auto-populated with clinical consensus.");
+                    lblAiStatus.setText("[OK] AI Clinical Triage Complete. Vitals, priority, and bay routing updated.");
                     lblAiStatus.setStyle("-fx-text-fill: #0D9488; -fx-font-weight: 700;");
                 }
             });
@@ -496,6 +499,9 @@ public class RegisterPatientController implements Initializable {
                 default -> text + " acute onset with severe discomfort";
             };
             txtComplaint.setText(complaint);
+            if (txtAiNarrative != null && (txtAiNarrative.getText() == null || txtAiNarrative.getText().trim().isEmpty())) {
+                txtAiNarrative.setText(complaint);
+            }
             handleVitalsChange();
         }
     }
@@ -769,7 +775,7 @@ public class RegisterPatientController implements Initializable {
         String doc = cmbDoctor.getSelectionModel().getSelectedItem();
         String bay = cmbBay.getSelectionModel().getSelectedItem();
         String specName = s != null ? s.getDisplayName() : "General Emergency";
-        String bayName = bay != null ? bay : "Bay 1 Resus";
+        String bayName = bay != null ? bay : "Bay 1 - Resus";
         String docName = doc != null ? doc : "Dr. On-Duty";
         if (lblRecSummary != null) {
             lblRecSummary.setText("Suggested: " + specName + " · " + bayName + " · " + docName);
@@ -818,8 +824,9 @@ public class RegisterPatientController implements Initializable {
 
         draftPatient.setEmergencyLevel(urgency != null ? urgency : EmergencyLevel.CRITICAL);
         draftPatient.setAssignedSpecialty(specialty != null ? specialty : Specialty.GENERAL_EMERGENCY);
-        draftPatient.setAssignedDoctorName(doctor != null ? doctor.split("·")[0].trim() : "Dr. On-Duty");
-        draftPatient.setAssignedBay(bay != null ? bay.split("\\(")[0].trim() : "Bay 1 Resus");
+        draftPatient.setAssignedDoctorName(doctor != null ? doctor.split("·")[0].split("-")[0].trim() : "Dr. On-Duty");
+        String requestedBay = bay != null ? bay.split("\\(")[0].trim() : "Bay 1 - Resus";
+        draftPatient.setAssignedBay(requestedBay);
         draftPatient.setStatus(PatientStatus.WAITING);
         draftPatient.setArrivalTime(LocalDateTime.now());
 
@@ -834,14 +841,17 @@ public class RegisterPatientController implements Initializable {
                 draftPatient.setUhid(String.format("UH-%d-%06d", Year.now().getValue(), (int)(System.currentTimeMillis() % 900000) + 100000));
             }
 
-            // 1. Insert patient into database
+            // 1. Allocate & occupy Bay in BayService (ensures physical bay occupancy)
+            Bay allocatedBay = bayService.allocateBayForPatient(draftPatient.getAssignedBay(), draftPatient);
+            if (allocatedBay != null) {
+                draftPatient.setAssignedBay(allocatedBay.getName());
+            }
+
+            // 2. Insert patient into database (persists confirmed allocated bay)
             patientService.registerPatient(draftPatient);
 
-            // 2. Enqueue into Min-Heap PriorityQueue
+            // 3. Enqueue into Min-Heap PriorityQueue
             queueService.enqueue(draftPatient);
-
-            // 3. Reserve Bay
-            bayService.getBayByName(draftPatient.getAssignedBay()).ifPresent(b -> b.occupy(draftPatient));
 
             // 4. Log compliance audit entry (Page 18)
             AuditService.getInstance().log("PATIENT_REGISTERED", draftPatient.getTokenNo(), draftPatient.getUhid(),
