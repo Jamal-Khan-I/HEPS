@@ -25,10 +25,10 @@
         <Region HBox.hgrow="ALWAYS" />
 
         <!-- ESCALATION SCAN BUTTON -->
-        <Button fx:id="btnScanEscalations" onAction="#handleScanEscalations" styleClass="btn-secondary" text="⚡ Scan Wait Escalations" />
+        <Button fx:id="btnScanEscalations" onAction="#handleScanEscalations" styleClass="btn-secondary" text="Scan Wait Escalations" />
 
         <!-- BEGIN NEXT PATIENT (PRIMARY ACTION) -->
-        <Button fx:id="btnServeHead" onAction="#handleServeNext" styleClass="btn-primary" text="Begin Treatment →" />
+        <Button fx:id="btnServeHead" onAction="#handleServeNext" styleClass="btn-primary" text="Begin Treatment ->" />
     </HBox>
 
     <!-- FLOATING MAIN CARD CONTAINER -->
@@ -37,7 +37,7 @@
         <!-- MODERN FILTER ROW -->
         <HBox alignment="CENTER_LEFT" styleClass="filter-pill-bar" spacing="14.0">
             <HBox alignment="CENTER_LEFT" spacing="6.0" styleClass="search-pill-box">
-                <Label text="🔍" style="-fx-font-size: 13px; -fx-text-fill: #94A3B8;" />
+                <Label text="" style="-fx-font-size: 13px; -fx-text-fill: #94A3B8;" />
                 <TextField fx:id="txtSearch" prefWidth="220.0" promptText="Search token or patient..." styleClass="search-pill-input" />
             </HBox>
 
@@ -52,7 +52,7 @@
             <StackPane styleClass="counter-pill">
                 <Label fx:id="lblQueueCounter" text="0 Patients Waiting" styleClass="counter-pill-text" />
             </StackPane>
-            <Button onAction="#refreshQueue" styleClass="btn-secondary" text="🔄 Refresh" />
+            <Button onAction="#refreshQueue" styleClass="btn-secondary" text="Refresh" />
         </HBox>
 
         <!-- QUEUE TABLE VIEW (SPACIOUS COLUMN WIDTHS - NO CUT-OFFS) -->
@@ -79,8 +79,8 @@
             </StackPane>
             <Label fx:id="lblSelectedInfo" text="Select a patient in the table to view details or begin treatment."
                    styleClass="selected-info-text" HBox.hgrow="ALWAYS" />
-            <Button fx:id="btnPrintTicket" onAction="#handlePrintTicket" styleClass="btn-modern-pill-secondary" text="🖨️ Print Triage Slip" minWidth="-Infinity" />
-            <Button fx:id="btnServeSelected" onAction="#handleServeSelected" styleClass="btn-modern-pill-primary" text="Begin Treatment →" minWidth="-Infinity" />
+            <Button fx:id="btnPrintTicket" onAction="#handlePrintTicket" styleClass="btn-modern-pill-secondary" text="Print Triage Slip" minWidth="-Infinity" />
+            <Button fx:id="btnServeSelected" onAction="#handleServeSelected" styleClass="btn-modern-pill-primary" text="Begin Treatment ->" minWidth="-Infinity" />
         </HBox>
 
     </VBox>

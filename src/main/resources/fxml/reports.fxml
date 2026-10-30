@@ -32,8 +32,8 @@
 
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <ComboBox fx:id="cmbDateRange" prefWidth="140.0" styleClass="filter-combo-pill" />
-            <Button onAction="#handleExportCsv" styleClass="btn-secondary" text="📥 Export CSV" />
-            <Button onAction="#handleRefresh" styleClass="btn-primary" text="🔄 Refresh Analytics" />
+            <Button onAction="#handleExportCsv" styleClass="btn-secondary" text="Export CSV" />
+            <Button onAction="#handleRefresh" styleClass="btn-primary" text="Refresh Analytics" />
         </HBox>
     </HBox>
 

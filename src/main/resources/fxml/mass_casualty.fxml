@@ -29,13 +29,13 @@
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
 
-        <Button fx:id="btnToggleMci" onAction="#handleToggleMci" styleClass="btn-danger" text="🚨 Active MCI Mode (ON)" />
+        <Button fx:id="btnToggleMci" onAction="#handleToggleMci" styleClass="btn-danger" text="Active MCI Mode (ON)" />
     </HBox>
 
     <!-- PROMINENT DISASTER SURGE BANNER -->
     <HBox fx:id="mciBanner" alignment="CENTER_LEFT" spacing="14.0"
           style="-fx-background-color: #FEE2E2; -fx-padding: 12px 18px; -fx-background-radius: 10px; -fx-border-color: #FECACA; -fx-border-radius: 10px;">
-        <Label text="⚠️" style="-fx-font-size: 20px;" />
+        <Label text="" style="-fx-font-size: 20px;" />
         <VBox spacing="2.0">
             <Label text="MASS CASUALTY SURGE PROTOCOL ACTIVE" style="-fx-font-size: 13.5px; -fx-font-weight: 800; -fx-text-fill: #991B1B;" />
             <Label text="Full administrative registration bypassed. 1-click START tags admitted directly to emergency queue." style="-fx-font-size: 11.5px; -fx-text-fill: #B91C1C;" />
@@ -47,25 +47,25 @@
     <!-- 4 START TRIAGE CARDS (RED, YELLOW, GREEN, BLACK) -->
     <HBox spacing="14.0">
         <VBox styleClass="kpi-card" style="-fx-background-color: #FEF2F2; -fx-border-color: #FECACA;" HBox.hgrow="ALWAYS">
-            <Label text="RED · IMMEDIATE" style="-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #B91C1C;" />
+            <Label text="RED - IMMEDIATE" style="-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #B91C1C;" />
             <Label fx:id="lblRedCount" text="1" styleClass="kpi-value" style="-fx-text-fill: #B91C1C;" />
             <Label text="RR &gt; 30, no radial pulse, cannot follow commands" style="-fx-font-size: 11px; -fx-text-fill: #991B1B;" wrapText="true" />
         </VBox>
 
         <VBox styleClass="kpi-card" style="-fx-background-color: #FEFCE8; -fx-border-color: #FEF08A;" HBox.hgrow="ALWAYS">
-            <Label text="YELLOW · DELAYED" style="-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #A16207;" />
+            <Label text="YELLOW - DELAYED" style="-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #A16207;" />
             <Label fx:id="lblYellowCount" text="2" styleClass="kpi-value" style="-fx-text-fill: #A16207;" />
             <Label text="Serious, non-ambulatory, but stable vitals" style="-fx-font-size: 11px; -fx-text-fill: #854D0E;" wrapText="true" />
         </VBox>
 
         <VBox styleClass="kpi-card" style="-fx-background-color: #F0FDF4; -fx-border-color: #BBF7D0;" HBox.hgrow="ALWAYS">
-            <Label text="GREEN · MINOR" style="-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #15803D;" />
+            <Label text="GREEN - MINOR" style="-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #15803D;" />
             <Label fx:id="lblGreenCount" text="1" styleClass="kpi-value" style="-fx-text-fill: #15803D;" />
             <Label text="Walking wounded, minor injuries" style="-fx-font-size: 11px; -fx-text-fill: #166534;" wrapText="true" />
         </VBox>
 
         <VBox styleClass="kpi-card" style="-fx-background-color: #F8FAFC; -fx-border-color: #E2E8F0;" HBox.hgrow="ALWAYS">
-            <Label text="BLACK · DECEASED" style="-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #0F172A;" />
+            <Label text="BLACK - DECEASED" style="-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #0F172A;" />
             <Label fx:id="lblBlackCount" text="0" styleClass="kpi-value" style="-fx-text-fill: #0F172A;" />
             <Label text="No spontaneous respiration after airway opening" style="-fx-font-size: 11px; -fx-text-fill: #475569;" wrapText="true" />
         </VBox>
@@ -116,7 +116,7 @@
 
             <Region VBox.vgrow="ALWAYS" />
 
-            <Button onAction="#handleRapidAdmit" styleClass="btn-danger" maxWidth="Infinity" text="⚡ Rapid Admit to Queue (Immediate)" />
+            <Button onAction="#handleRapidAdmit" styleClass="btn-danger" maxWidth="Infinity" text="Rapid Admit to Queue (Immediate)" />
         </VBox>
 
         <!-- DISASTER VICTIMS ROSTER (RIGHT) -->
@@ -124,7 +124,7 @@
             <HBox alignment="CENTER_LEFT">
                 <Label text="Triaged Disaster Victims Log" style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #0F172A;" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button onAction="#handleRefreshRoster" styleClass="btn-secondary" text="🔄 Refresh" />
+                <Button onAction="#handleRefreshRoster" styleClass="btn-secondary" text="Refresh" />
             </HBox>
 
             <TableView fx:id="tableMciVictims" VBox.vgrow="ALWAYS">

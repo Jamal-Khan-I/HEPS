@@ -27,18 +27,18 @@
 
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <StackPane styleClass="counter-pill">
-                <Label fx:id="lblTotalOrders" text="5 Orders Total" styleClass="counter-pill-text" />
+                <Label fx:id="lblTotalOrders" text="0 Orders Total" styleClass="counter-pill-text" />
             </StackPane>
             <StackPane styleClass="counter-pill" style="-fx-background-color: #FEF9C3; -fx-border-color: #FEF08A;">
-                <Label fx:id="lblPendingOrders" text="3 Pending" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #A16207;" />
+                <Label fx:id="lblPendingOrders" text="0 Pending" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #A16207;" />
             </StackPane>
             <StackPane styleClass="counter-pill" style="-fx-background-color: #DCFCE7; -fx-border-color: #BBF7D0;">
-                <Label fx:id="lblResultedOrders" text="2 Resulted" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #15803D;" />
+                <Label fx:id="lblResultedOrders" text="0 Resulted" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #15803D;" />
             </StackPane>
             <StackPane styleClass="counter-pill" style="-fx-background-color: #FEE2E2; -fx-border-color: #FECACA;">
-                <Label fx:id="lblAbnormalOrders" text="2 Abnormal" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
+                <Label fx:id="lblAbnormalOrders" text="0 Abnormal" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
             </StackPane>
-            <Button onAction="#handleRefresh" styleClass="btn-secondary" text="🔄 Refresh" />
+            <Button onAction="#handleRefresh" styleClass="btn-secondary" text="Refresh" />
         </HBox>
     </HBox>
 

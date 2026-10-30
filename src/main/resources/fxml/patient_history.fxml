@@ -24,7 +24,7 @@
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
         <Button fx:id="btnCompleteTreatmentAction" disable="true" onAction="#handleCompleteSelected"
-                styleClass="btn-primary" text="✓ Complete Treatment" />
+                styleClass="btn-primary" text="Complete Treatment" />
     </HBox>
 
     <!-- MAIN FLOATING CARD CONTAINER -->
@@ -33,7 +33,7 @@
         <!-- FILTER ROW -->
         <HBox alignment="CENTER_LEFT" styleClass="filter-pill-bar" spacing="14.0">
             <HBox alignment="CENTER_LEFT" spacing="6.0" styleClass="search-pill-box">
-                <Label text="🔍" style="-fx-font-size: 13px; -fx-text-fill: #94A3B8;" />
+                <Label text="" style="-fx-font-size: 13px; -fx-text-fill: #94A3B8;" />
                 <TextField fx:id="txtSearch" prefWidth="240.0" promptText="Search token, name, phone..." styleClass="search-pill-input" />
             </HBox>
 
@@ -44,7 +44,7 @@
             <ComboBox fx:id="cmbStatusFilter" prefWidth="140.0" styleClass="filter-combo-pill" />
 
             <Region HBox.hgrow="ALWAYS" />
-            <Button onAction="#refreshHistory" styleClass="btn-secondary" text="🔄 Refresh" />
+            <Button onAction="#refreshHistory" styleClass="btn-secondary" text="Refresh" />
         </HBox>
 
         <!-- PATIENT RECORDS TABLE VIEW -->
@@ -74,7 +74,7 @@
                 <Label fx:id="lblSelectedTokenAndName" text="Select a patient above to inspect clinical history."
                        styleClass="selected-record-title" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnPrintHistoryTicket" onAction="#handlePrintTicket" styleClass="btn-secondary" text="🖨️ Print Slip" visible="false" minWidth="-Infinity" />
+                <Button fx:id="btnPrintHistoryTicket" onAction="#handlePrintTicket" styleClass="btn-secondary" text="Print Slip" visible="false" minWidth="-Infinity" />
                 <Label fx:id="lblDetailStatus" styleClass="badge-pill, badge-completed" text="Status" visible="false" minWidth="-Infinity" />
             </HBox>
 

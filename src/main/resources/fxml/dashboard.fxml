@@ -27,8 +27,8 @@
                              style="-fx-stroke: #0284C7; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
                     <Label text="Waiting" styleClass="kpi-label" />
                 </HBox>
-                <Label fx:id="lblKpiWaiting" text="6" styleClass="kpi-value" />
-                <Label fx:id="lblKpiWaitingSub" text="avg 12 min to triage" styleClass="kpi-subtext" />
+                <Label fx:id="lblKpiWaiting" text="0" styleClass="kpi-value" />
+                <Label fx:id="lblKpiWaitingSub" text="queue clear" styleClass="kpi-subtext" />
             </VBox>
 
             <!-- Critical KPI -->
@@ -38,8 +38,8 @@
                              style="-fx-fill: #B91C1C;" />
                     <Label text="Critical" styleClass="kpi-label" />
                 </HBox>
-                <Label fx:id="lblKpiCritical" text="2" styleClass="kpi-value" style="-fx-text-fill: #B91C1C;" />
-                <Label fx:id="lblKpiCriticalSub" text="in resus bays" styleClass="kpi-subtext" />
+                <Label fx:id="lblKpiCritical" text="0" styleClass="kpi-value" style="-fx-text-fill: #B91C1C;" />
+                <Label fx:id="lblKpiCriticalSub" text="resus clear" styleClass="kpi-subtext" />
             </VBox>
 
             <!-- SLA Breaches KPI -->
@@ -49,8 +49,8 @@
                              style="-fx-stroke: #C2410C; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
                     <Label text="SLA breaches" styleClass="kpi-label" />
                 </HBox>
-                <Label fx:id="lblKpiBreaches" text="1" styleClass="kpi-value" style="-fx-text-fill: #C2410C;" />
-                <Label fx:id="lblKpiBreachesSub" text="2 near limit" styleClass="kpi-subtext" />
+                <Label fx:id="lblKpiBreaches" text="0" styleClass="kpi-value" style="-fx-text-fill: #C2410C;" />
+                <Label fx:id="lblKpiBreachesSub" text="all within target" styleClass="kpi-subtext" />
             </VBox>
 
             <!-- Bed Occupancy KPI -->
@@ -60,22 +60,22 @@
                              style="-fx-stroke: #0D9488; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
                     <Label text="Bed use" styleClass="kpi-label" />
                 </HBox>
-                <Label fx:id="lblKpiBedUse" text="9/12" styleClass="kpi-value" style="-fx-text-fill: #0D9488;" />
-                <Label fx:id="lblKpiBedUseSub" text="75% occupied" styleClass="kpi-subtext" />
+                <Label fx:id="lblKpiBedUse" text="0/12" styleClass="kpi-value" style="-fx-text-fill: #0D9488;" />
+                <Label fx:id="lblKpiBedUseSub" text="0% occupied" styleClass="kpi-subtext" />
             </VBox>
         </HBox>
 
         <!-- 2. PIPELINE STRIP (PAGE 2) -->
         <HBox alignment="CENTER_LEFT" styleClass="pipeline-strip">
-            <Label fx:id="lblPipeRegistered" text="1 Registered" styleClass="pipeline-step-text" />
-            <Label text="›" styleClass="pipeline-arrow" />
-            <Label fx:id="lblPipeTriaged" text="2 Triaged" styleClass="pipeline-step-text" />
-            <Label text="›" styleClass="pipeline-arrow" />
-            <Label fx:id="lblPipeWaiting" text="3 Waiting" styleClass="pipeline-step-text" />
-            <Label text="›" styleClass="pipeline-arrow" />
-            <Label fx:id="lblPipeInTreatment" text="5 In treatment" styleClass="pipeline-step-text" />
-            <Label text="›" styleClass="pipeline-arrow" />
-            <Label fx:id="lblPipeDisposition" text="2 Disposition" styleClass="pipeline-step-text" />
+            <Label fx:id="lblPipeRegistered" text="0 Registered" styleClass="pipeline-step-text" />
+            <Label text=">" styleClass="pipeline-arrow" />
+            <Label fx:id="lblPipeTriaged" text="0 Triaged" styleClass="pipeline-step-text" />
+            <Label text=">" styleClass="pipeline-arrow" />
+            <Label fx:id="lblPipeWaiting" text="0 Waiting" styleClass="pipeline-step-text" />
+            <Label text=">" styleClass="pipeline-arrow" />
+            <Label fx:id="lblPipeInTreatment" text="0 In treatment" styleClass="pipeline-step-text" />
+            <Label text=">" styleClass="pipeline-arrow" />
+            <Label fx:id="lblPipeDisposition" text="0 Disposition" styleClass="pipeline-step-text" />
         </HBox>
 
         <!-- 3. NEXT PATIENT TO TREAT CARD (PAGE 2 - MIN-HEAP PEEK) -->
@@ -85,8 +85,8 @@
             <!-- Header Row -->
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <Label text="Next patient to treat" style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
-                <Label fx:id="lblNextPriorityBadge" text="Critical" styleClass="badge, badge-critical" />
-                <Label fx:id="lblNextBay" text="Bay 1 · Resus" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0F172A;" />
+                <Label fx:id="lblNextPriorityBadge" text="Normal" styleClass="badge, badge-low" />
+                <Label fx:id="lblNextBay" text="No bay assigned" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0F172A;" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="lblNextTarget" text="Target: None" style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
             </HBox>
@@ -134,7 +134,7 @@
                 <Label text="#" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="0" prefWidth="30.0" />
                 <Label text="Patient" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="1" prefWidth="320.0" />
                 <Label text="Priority" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="2" prefWidth="120.0" />
-                <Label text="Bay · doctor" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="3" prefWidth="220.0" />
+                <Label text="Bay - doctor" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="3" prefWidth="220.0" />
                 <Label text="Wait vs SLA" style="-fx-font-weight: 700; -fx-text-fill: #94A3B8; -fx-font-size: 12px;" GridPane.columnIndex="4" prefWidth="200.0" />
             </GridPane>
 

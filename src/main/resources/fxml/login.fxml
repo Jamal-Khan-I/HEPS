@@ -71,7 +71,7 @@
             </HBox>
         </VBox>
 
-        <Label text="Hospital Emergency Priority System · v1.0 Enterprise" style="-fx-font-size: 11px; -fx-text-fill: #94A3B8;" />
+        <Label text="Hospital Emergency Priority System - v1.0 Enterprise" style="-fx-font-size: 11px; -fx-text-fill: #94A3B8;" />
     </VBox>
 
     <!-- RIGHT SIGN IN WORKSPACE (FULL-HEIGHT WHITE, CENTERED FORM - PAGE 3) -->
@@ -102,7 +102,7 @@
                 <Label text="Password" style="-fx-font-weight: 600; -fx-font-size: 13px; -fx-text-fill: #334155;" />
                 <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8FAFC; -fx-border-color: #E2E8F0; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 4px 12px;">
                     <SVGPath content="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zM7 11V7a5 5 0 0 1 10 0v4" style="-fx-stroke: #94A3B8; -fx-stroke-width: 1.8; -fx-fill: transparent;" />
-                    <PasswordField fx:id="txtPassword" promptText="••••••••" styleClass="search-pill-input" HBox.hgrow="ALWAYS" />
+                    <PasswordField fx:id="txtPassword" promptText="********" styleClass="search-pill-input" HBox.hgrow="ALWAYS" />
                 </HBox>
             </VBox>
 

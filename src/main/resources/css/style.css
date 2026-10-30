@@ -1032,11 +1032,17 @@
     -fx-hbar-policy: never;
 }
 
-.patient-list-view .scroll-bar:horizontal {
+.patient-list-view .scroll-bar:horizontal,
+.patient-list-view .scroll-bar:horizontal .thumb,
+.patient-list-view .scroll-bar:horizontal .track,
+.patient-list-view .corner {
     -fx-opacity: 0;
-    -fx-padding: -10;
+    -fx-padding: 0;
     -fx-pref-height: 0;
     -fx-max-height: 0;
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+    -fx-background-color: transparent;
 }
 
 .patient-list-view .list-cell {

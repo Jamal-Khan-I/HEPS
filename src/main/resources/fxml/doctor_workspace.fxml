@@ -66,14 +66,14 @@
                     <!-- Line 2: Identifiers & Disposition Button -->
                     <HBox alignment="CENTER_LEFT" spacing="6.0">
                         <Label fx:id="lblUhid" text="--" styleClass="caption-mono" />
-                        <Label text="·" styleClass="dot-separator" />
+                        <Label text="-" styleClass="dot-separator" />
                         <Label fx:id="lblToken" text="--" styleClass="caption-mono" />
-                        <Label text="·" styleClass="dot-separator" />
+                        <Label text="-" styleClass="dot-separator" />
                         <Label fx:id="lblBay" text="--" styleClass="caption-bold" />
-                        <Label text="·" styleClass="dot-separator" />
+                        <Label text="-" styleClass="dot-separator" />
                         <Label fx:id="lblDoctor" text="--" styleClass="caption-text" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <Button onAction="#handleGoToDisposition" styleClass="btn-primary" text="Disposition &amp; discharge →" />
+                        <Button onAction="#handleGoToDisposition" styleClass="btn-primary" text="Disposition &amp; discharge ->" />
                     </HBox>
                 </VBox>
             </HBox>
@@ -81,19 +81,19 @@
             <!-- HORIZONTAL CIRCULAR JOURNEY STEPPER (Page 9) -->
             <HBox fx:id="stepperContainer" alignment="CENTER_LEFT" spacing="8.0" styleClass="stepper-box">
                 <StackPane fx:id="stepCircle1" styleClass="journey-step-circle-completed">
-                    <Label fx:id="stepCheck1" text="✓" styleClass="step-check-label" />
+                    <Label fx:id="stepCheck1" text="" styleClass="step-check-label" />
                 </StackPane>
                 <Label fx:id="stepLabel1" text="Registered" styleClass="journey-label-completed" />
                 <Region fx:id="stepLine1" HBox.hgrow="ALWAYS" styleClass="journey-line-completed" />
 
                 <StackPane fx:id="stepCircle2" styleClass="journey-step-circle-completed">
-                    <Label fx:id="stepCheck2" text="✓" styleClass="step-check-label" />
+                    <Label fx:id="stepCheck2" text="" styleClass="step-check-label" />
                 </StackPane>
                 <Label fx:id="stepLabel2" text="Triaged" styleClass="journey-label-completed" />
                 <Region fx:id="stepLine2" HBox.hgrow="ALWAYS" styleClass="journey-line-completed" />
 
                 <StackPane fx:id="stepCircle3" styleClass="journey-step-circle-completed">
-                    <Label fx:id="stepCheck3" text="✓" styleClass="step-check-label" />
+                    <Label fx:id="stepCheck3" text="" styleClass="step-check-label" />
                 </StackPane>
                 <Label fx:id="stepLabel3" text="Assigned" styleClass="journey-label-completed" />
                 <Region fx:id="stepLine3" HBox.hgrow="ALWAYS" styleClass="journey-line-completed" />
@@ -280,7 +280,7 @@
                             <Label text="Keystroke live NEWS2 calculation monitors therapeutic response and triggers automated escalation." styleClass="sub-label" />
                         </VBox>
                         <Region HBox.hgrow="ALWAYS" />
-                        <Label fx:id="lblNews2Live" text="NEWS2: 6 · Medium Risk" styleClass="priority-pill-medium" />
+                        <Label fx:id="lblNews2Live" text="NEWS2: 6 - Medium Risk" styleClass="priority-pill-medium" />
                     </HBox>
 
                     <!-- Vitals Inputs Grid -->
@@ -301,7 +301,7 @@
                             <Label text="Resp Rate (/min):" GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="form-field-label" />
                             <TextField fx:id="txtRr" promptText="e.g. 20" GridPane.columnIndex="4" GridPane.rowIndex="1" styleClass="form-input" />
 
-                            <Label text="Temperature (°F):" GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="form-field-label" />
+                            <Label text="Temperature (F):" GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="form-field-label" />
                             <TextField fx:id="txtTemp" promptText="e.g. 98.6" GridPane.columnIndex="5" GridPane.rowIndex="1" styleClass="form-input" />
 
                             <Label text="GCS (3-15):" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="form-field-label" />

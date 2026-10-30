@@ -31,7 +31,7 @@
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label text="Select Patient:" styleClass="filter-label" />
             <ComboBox fx:id="cmbPatientSelector" prefWidth="280.0" promptText="Choose active patient..." styleClass="filter-combo-pill" />
-            <Button onAction="#handleRefreshPatients" styleClass="btn-secondary" text="🔄 Refresh" />
+            <Button onAction="#handleRefreshPatients" styleClass="btn-secondary" text="Refresh" />
         </HBox>
     </HBox>
 
@@ -82,7 +82,7 @@
                     <!-- TILE 1: DISCHARGED HOME -->
                     <VBox fx:id="tileDischargeHome" onMouseClicked="#selectDischargeHome" styleClass="outcome-tile-selected" GridPane.columnIndex="0" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                         <HBox alignment="CENTER_LEFT" spacing="8.0">
-                            <Label text="🏠" style="-fx-font-size: 16px;" />
+                            <Label text="" style="-fx-font-size: 16px;" />
                             <RadioButton fx:id="optDischargeHome" text="Discharged Home" toggleGroup="$outcomeGroup" selected="true" style="-fx-font-weight: 700; -fx-font-size: 13.5px; -fx-text-fill: #0F172A;" />
                         </HBox>
                         <Label text="Routine outpatient discharge with medications &amp; follow-up advice." style="-fx-font-size: 11.5px; -fx-text-fill: #64748B; -fx-padding: 4px 0 0 26px;" wrapText="true" />
@@ -91,7 +91,7 @@
                     <!-- TILE 2: ADMIT TO WARD -->
                     <VBox fx:id="tileAdmitWard" onMouseClicked="#selectAdmitWard" styleClass="outcome-tile" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                         <HBox alignment="CENTER_LEFT" spacing="8.0">
-                            <Label text="🏥" style="-fx-font-size: 16px;" />
+                            <Label text="" style="-fx-font-size: 16px;" />
                             <RadioButton fx:id="optAdmitWard" text="Admit to Ward" toggleGroup="$outcomeGroup" style="-fx-font-weight: 700; -fx-font-size: 13.5px; -fx-text-fill: #0F172A;" />
                         </HBox>
                         <Label text="Inpatient bed allocation (General Medicine, Surgery, Orthopedics)." style="-fx-font-size: 11.5px; -fx-text-fill: #64748B; -fx-padding: 4px 0 0 26px;" wrapText="true" />
@@ -100,7 +100,7 @@
                     <!-- TILE 3: ICU / OT -->
                     <VBox fx:id="tileIcuOt" onMouseClicked="#selectIcuOt" styleClass="outcome-tile" GridPane.columnIndex="2" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                         <HBox alignment="CENTER_LEFT" spacing="8.0">
-                            <Label text="🚨" style="-fx-font-size: 16px;" />
+                            <Label text="" style="-fx-font-size: 16px;" />
                             <RadioButton fx:id="optIcuOt" text="Transfer ICU / Cath Lab / OT" toggleGroup="$outcomeGroup" style="-fx-font-weight: 700; -fx-font-size: 13.5px; -fx-text-fill: #0F172A;" />
                         </HBox>
                         <Label text="Emergency critical care, coronary catheterization or surgical theatre." style="-fx-font-size: 11.5px; -fx-text-fill: #64748B; -fx-padding: 4px 0 0 26px;" wrapText="true" />
@@ -109,7 +109,7 @@
                     <!-- TILE 4: TRANSFER OUT -->
                     <VBox fx:id="tileTransferOut" onMouseClicked="#selectTransferOut" styleClass="outcome-tile" GridPane.columnIndex="0" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
                         <HBox alignment="CENTER_LEFT" spacing="8.0">
-                            <Label text="🚑" style="-fx-font-size: 16px;" />
+                            <Label text="" style="-fx-font-size: 16px;" />
                             <RadioButton fx:id="optTransferOut" text="Transfer Out (Tertiary)" toggleGroup="$outcomeGroup" style="-fx-font-weight: 700; -fx-font-size: 13.5px; -fx-text-fill: #0F172A;" />
                         </HBox>
                         <Label text="Transfer to higher tertiary specialized trauma or neuro facility." style="-fx-font-size: 11.5px; -fx-text-fill: #64748B; -fx-padding: 4px 0 0 26px;" wrapText="true" />
@@ -118,7 +118,7 @@
                     <!-- TILE 5: LAMA / AMA -->
                     <VBox fx:id="tileLama" onMouseClicked="#selectLama" styleClass="outcome-tile" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
                         <HBox alignment="CENTER_LEFT" spacing="8.0">
-                            <Label text="⚠️" style="-fx-font-size: 16px;" />
+                            <Label text="" style="-fx-font-size: 16px;" />
                             <RadioButton fx:id="optLama" text="LAMA / AMA" toggleGroup="$outcomeGroup" style="-fx-font-weight: 700; -fx-font-size: 13.5px; -fx-text-fill: #0F172A;" />
                         </HBox>
                         <Label text="Left Against Medical Advice after informed clinical risk counseling." style="-fx-font-size: 11.5px; -fx-text-fill: #64748B; -fx-padding: 4px 0 0 26px;" wrapText="true" />
@@ -127,7 +127,7 @@
                     <!-- TILE 6: REFERRED -->
                     <VBox fx:id="tileReferred" onMouseClicked="#selectReferred" styleClass="outcome-tile" GridPane.columnIndex="2" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
                         <HBox alignment="CENTER_LEFT" spacing="8.0">
-                            <Label text="📋" style="-fx-font-size: 16px;" />
+                            <Label text="" style="-fx-font-size: 16px;" />
                             <RadioButton fx:id="optReferred" text="Referred Outpatient" toggleGroup="$outcomeGroup" style="-fx-font-weight: 700; -fx-font-size: 13.5px; -fx-text-fill: #0F172A;" />
                         </HBox>
                         <Label text="Discharged with referral to specialty outpatient clinic or primary GP." style="-fx-font-size: 11.5px; -fx-text-fill: #64748B; -fx-padding: 4px 0 0 26px;" wrapText="true" />
@@ -183,14 +183,14 @@
                 <TextArea fx:id="txtPrescriptions" prefRowCount="4" promptText="1. Tab. Aspirin 75mg - 1 tab daily after lunch x 30 days&#10;2. Tab. Clopidogrel 75mg - 1 tab daily x 30 days&#10;3. Tab. Atorvastatin 40mg - 1 tab at bedtime x 30 days" wrapText="true" styleClass="form-input" />
 
                 <Label text="Follow-up Plan &amp; Emergency Warning Signs:" styleClass="form-field-label" />
-                <TextArea fx:id="txtInstructions" prefRowCount="3" promptText="• Review in Cardiology OPD in 5 days.&#10;• Maintain low-sodium cardiac diet.&#10;• RED FLAGS: Immediate ED return if chest pain, severe breathlessness, or syncope recurs." wrapText="true" styleClass="form-input" />
+                <TextArea fx:id="txtInstructions" prefRowCount="3" promptText="* Review in Cardiology OPD in 5 days.&#10;* Maintain low-sodium cardiac diet.&#10;* RED FLAGS: Immediate ED return if chest pain, severe breathlessness, or syncope recurs." wrapText="true" styleClass="form-input" />
             </VBox>
 
             <!-- STEP 3: FINAL ACTIONS & PDF GENERATION -->
             <HBox alignment="CENTER_RIGHT" spacing="12.0" style="-fx-padding: 10px 0 0 0;">
-                <Button onAction="#handleGeneratePdf" styleClass="btn-secondary" text="📄 Download Discharge PDF" />
-                <Button onAction="#handleMedicalCertificate" styleClass="btn-secondary" text="🖨️ Medical Certificate" />
-                <Button onAction="#handleFinalizeDisposition" styleClass="btn-primary" text="✓ Finalize Disposition &amp; Release Bay" />
+                <Button onAction="#handleGeneratePdf" styleClass="btn-secondary" text="Download Discharge PDF" />
+                <Button onAction="#handleMedicalCertificate" styleClass="btn-secondary" text="Medical Certificate" />
+                <Button onAction="#handleFinalizeDisposition" styleClass="btn-primary" text="Finalize Disposition &amp; Release Bay" />
             </HBox>
 
         </VBox>

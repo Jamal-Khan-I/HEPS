@@ -160,6 +160,16 @@ public class DoctorWorkspaceController implements Initializable {
     }
 
     private void setupPatientListCellFactory() {
+        listPatients.skinProperty().addListener((obs, oldVal, newVal) -> {
+            Platform.runLater(() -> {
+                javafx.scene.Node hBar = listPatients.lookup(".scroll-bar:horizontal");
+                if (hBar != null) {
+                    hBar.setManaged(false);
+                    hBar.setVisible(false);
+                }
+            });
+        });
+
         listPatients.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Patient p, boolean empty) {
@@ -173,8 +183,8 @@ public class DoctorWorkspaceController implements Initializable {
                     HBox row = new HBox(10);
                     row.setAlignment(Pos.CENTER_LEFT);
                     row.getStyleClass().setAll(isSelected ? "patient-list-item-selected" : "patient-list-item");
-                    row.maxWidthProperty().bind(listPatients.widthProperty().subtract(18));
-                    row.prefWidthProperty().bind(listPatients.widthProperty().subtract(18));
+                    row.maxWidthProperty().bind(listPatients.widthProperty().subtract(28));
+                    row.prefWidthProperty().bind(listPatients.widthProperty().subtract(28));
 
                     // Avatar Circle with Priority Tint
                     StackPane avatar = new StackPane();

@@ -72,9 +72,9 @@
                     <SVGPath content="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6.4-4.8-6.4 4.8 2.4-7.2-6-4.8h7.6z" style="-fx-fill: #0D9488;" />
                     <VBox spacing="2.0" HBox.hgrow="ALWAYS">
                         <Label text="AI Clinical Intake &amp; Smart Auto-Fill" style="-fx-font-weight: 800; -fx-text-fill: #0F766E; -fx-font-size: 13.5px;" />
-                        <Label text="Optional: Type or paste what the patient feels or reports — AI automatically extracts demographics, vitals, triage level, and routes specialty." style="-fx-text-fill: #115E59; -fx-font-size: 11.5px;" />
+                        <Label text="Optional: Type or paste what the patient feels or reports - AI automatically extracts demographics, vitals, triage level, and routes specialty." style="-fx-text-fill: #115E59; -fx-font-size: 11.5px;" />
                     </VBox>
-                    <Button fx:id="btnAiAutoFill" text="✨ Auto-Fill with AI" onAction="#handleAiAutoFill" styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 7px 16px; -fx-background-color: #0D9488;" />
+                    <Button fx:id="btnAiAutoFill" text="Auto-Fill with AI" onAction="#handleAiAutoFill" styleClass="btn-primary" style="-fx-font-size: 12px; -fx-padding: 7px 16px; -fx-background-color: #0D9488;" />
                 </HBox>
                 <TextArea fx:id="txtAiNarrative" promptText="e.g. 54-year-old male arrived with severe crushing chest pain radiating to left jaw, diaphoresis, SpO2 91%, HR 112, BP 160/95. History of hypertension, allergic to penicillin." prefRowCount="2" wrapText="true" style="-fx-font-size: 12.5px; -fx-background-color: #FFFFFF; -fx-border-color: #CCFBF1; -fx-border-radius: 6px;" />
                 <HBox fx:id="boxAiStatus" visible="false" managed="false" alignment="CENTER_LEFT" spacing="8.0">
@@ -153,7 +153,7 @@
                 <Label text="Arrival" styleClass="card-title" />
                 <HBox spacing="10.0" alignment="CENTER_LEFT">
                     <Button fx:id="chipWalkIn" text="Walk-in" onAction="#handleSelectArrivalWalkIn" styleClass="btn-primary" />
-                    <Button fx:id="chipAmbulance" text="🚑 Ambulance" onAction="#handleSelectArrivalAmbulance" styleClass="btn-secondary" />
+                    <Button fx:id="chipAmbulance" text="Ambulance" onAction="#handleSelectArrivalAmbulance" styleClass="btn-secondary" />
                     <Button fx:id="chipReferred" text="Referred" onAction="#handleSelectArrivalReferred" styleClass="btn-secondary" />
                     <Button fx:id="chipPolice" text="Police" onAction="#handleSelectArrivalPolice" styleClass="btn-secondary" />
                     <Button fx:id="chipRelatives" text="Brought by relatives" onAction="#handleSelectArrivalRelatives" styleClass="btn-secondary" />
@@ -175,7 +175,7 @@
         <VBox fx:id="paneStep2" visible="false" managed="false" spacing="16.0" focusTraversable="true">
             <!-- Patient Header Banner -->
             <HBox alignment="CENTER_RIGHT">
-                <Label fx:id="lblStep2PatientBanner" text="Patient Intake · Triage Assessment"
+                <Label fx:id="lblStep2PatientBanner" text="Patient Intake - Triage Assessment"
                        style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
             </HBox>
 
@@ -332,7 +332,7 @@
                     </VBox>
                 </HBox>
 
-                <Label fx:id="lblRecSummary" text="Suggested: Cardiology · Bay 1 Resus (free) · Dr. Mehta (available)"
+                <Label fx:id="lblRecSummary" text="Suggested: Cardiology - Bay 1 Resus (free) - Dr. Mehta (available)"
                        style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0D9488;" />
             </VBox>
 
@@ -363,8 +363,8 @@
                        style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #64748B;" />
 
                 <HBox spacing="16.0" alignment="CENTER_LEFT" style="-fx-padding: 10px 0 0 0;">
-                    <Button fx:id="btnAcceptRec" text="✓ Accept recommendation" onAction="#handleAcceptRec" styleClass="btn-primary" />
-                    <Button fx:id="btnOverrideRec" text="✎ Clinical override" onAction="#handleClinicalOverride" styleClass="btn-secondary" />
+                    <Button fx:id="btnAcceptRec" text="Accept recommendation" onAction="#handleAcceptRec" styleClass="btn-primary" />
+                    <Button fx:id="btnOverrideRec" text="Clinical override" onAction="#handleClinicalOverride" styleClass="btn-secondary" />
                     <Label text="An override needs a reason and is logged." style="-fx-font-size: 12px; -fx-text-fill: #94A3B8;" />
                 </HBox>
             </VBox>

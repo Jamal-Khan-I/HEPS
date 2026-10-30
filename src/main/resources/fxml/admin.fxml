@@ -26,7 +26,7 @@
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
 
-        <Button onAction="#handleRefreshAll" styleClass="btn-secondary" text="🔄 Refresh All" />
+        <Button onAction="#handleRefreshAll" styleClass="btn-secondary" text="Refresh All" />
     </HBox>
 
     <!-- ADMIN TABPANE -->

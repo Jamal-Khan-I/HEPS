@@ -29,13 +29,13 @@
                 <Label fx:id="lblTotalBays" text="12 Total Bays" styleClass="counter-pill-text" />
             </StackPane>
             <StackPane styleClass="counter-pill" style="-fx-background-color: #FEE2E2; -fx-border-color: #FECACA;">
-                <Label fx:id="lblOccupiedBays" text="8 Occupied" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
+                <Label fx:id="lblOccupiedBays" text="0 Occupied" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
             </StackPane>
             <StackPane styleClass="counter-pill" style="-fx-background-color: #DCFCE7; -fx-border-color: #BBF7D0;">
-                <Label fx:id="lblFreeBays" text="3 Free" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #15803D;" />
+                <Label fx:id="lblFreeBays" text="12 Free" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #15803D;" />
             </StackPane>
             <StackPane styleClass="counter-pill" style="-fx-background-color: #FEF9C3; -fx-border-color: #FEF08A;">
-                <Label fx:id="lblCleaningBays" text="1 Cleaning" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #A16207;" />
+                <Label fx:id="lblCleaningBays" text="0 Cleaning" style="-fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #A16207;" />
             </StackPane>
             <Button onAction="#handleRefresh" styleClass="btn-modern-pill-secondary" text="Refresh" />
         </HBox>

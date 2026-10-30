@@ -1,5 +1,7 @@
 package com.hospital.priority.controller;
 
+import com.hospital.priority.dao.PatientDao;
+import com.hospital.priority.dao.impl.PatientDaoImpl;
 import com.hospital.priority.model.*;
 import com.hospital.priority.service.*;
 import com.hospital.priority.util.TriageTicketUtil;
@@ -73,6 +75,7 @@ public class DashboardController implements Initializable {
 
     private final QueueService queueService = QueueService.getInstance();
     private final BayService bayService = BayService.getInstance();
+    private final PatientDao patientDao = new PatientDaoImpl();
     private Patient currentNextPatient;
     private Timeline refreshTimeline;
 
@@ -93,6 +96,8 @@ public class DashboardController implements Initializable {
             private int breachCount;
             private int occupiedBays;
             private int totalBays;
+            private int inTreatmentCount;
+            private int dispositionCount;
             private Patient nextPatient;
             private List<Patient> topQueue;
 
@@ -114,6 +119,15 @@ public class DashboardController implements Initializable {
                     if (p.isSlaBreached()) breachCount++;
                 }
 
+                inTreatmentCount = 0;
+                dispositionCount = 0;
+                try {
+                    for (Patient p : patientDao.findAll()) {
+                        if (p.getStatus() == PatientStatus.IN_TREATMENT) inTreatmentCount++;
+                        else if (p.getStatus() == PatientStatus.DISCHARGED || p.getStatus() == PatientStatus.COMPLETED) dispositionCount++;
+                    }
+                } catch (Exception ignored) {}
+
                 nextPatient = queueService.peekNext();
                 return null;
             }
@@ -122,7 +136,7 @@ public class DashboardController implements Initializable {
             protected void succeeded() {
                 Platform.runLater(() -> {
                     updateKpis(waitingCount, criticalCount, breachCount, occupiedBays, totalBays);
-                    updatePipelineStrip(waitingCount);
+                    updatePipelineStrip(waitingCount, inTreatmentCount, dispositionCount);
                     updateNextPatientCard(nextPatient);
                     renderWaitingQueueRows(topQueue);
                 });
@@ -135,26 +149,26 @@ public class DashboardController implements Initializable {
     }
 
     private void updateKpis(int waiting, int critical, int breaches, int occupiedBays, int totalBays) {
-        lblKpiWaiting.setText(String.valueOf(waiting > 0 ? waiting : 6));
-        lblKpiWaitingSub.setText("avg 12 min to triage");
+        lblKpiWaiting.setText(String.valueOf(waiting));
+        lblKpiWaitingSub.setText(waiting == 0 ? "queue clear" : "in priority queue");
 
-        lblKpiCritical.setText(String.valueOf(critical > 0 ? critical : 2));
-        lblKpiCriticalSub.setText("in resus bays");
+        lblKpiCritical.setText(String.valueOf(critical));
+        lblKpiCriticalSub.setText(critical == 0 ? "resus clear" : "in resus bays");
 
-        lblKpiBreaches.setText(String.valueOf(breaches > 0 ? breaches : 1));
-        lblKpiBreachesSub.setText("2 near limit");
+        lblKpiBreaches.setText(String.valueOf(breaches));
+        lblKpiBreachesSub.setText(breaches == 0 ? "all within target" : breaches + " breached SLA");
 
-        int pct = totalBays > 0 ? (int) Math.round((double) occupiedBays / totalBays * 100) : 75;
+        int pct = (totalBays > 0 && occupiedBays > 0) ? (int) Math.round((double) occupiedBays / totalBays * 100) : 0;
         lblKpiBedUse.setText(occupiedBays + "/" + totalBays);
         lblKpiBedUseSub.setText(pct + "% occupied");
     }
 
-    private void updatePipelineStrip(int waiting) {
-        lblPipeRegistered.setText("1 Registered");
-        lblPipeTriaged.setText("2 Triaged");
+    private void updatePipelineStrip(int waiting, int inTreatment, int disposition) {
+        lblPipeRegistered.setText("0 Registered");
+        lblPipeTriaged.setText("0 Triaged");
         lblPipeWaiting.setText(waiting + " Waiting");
-        lblPipeInTreatment.setText("5 In treatment");
-        lblPipeDisposition.setText("2 Disposition");
+        lblPipeInTreatment.setText(inTreatment + " In treatment");
+        lblPipeDisposition.setText(disposition + " Disposition");
     }
 
     private void updateNextPatientCard(Patient patient) {
@@ -166,12 +180,22 @@ public class DashboardController implements Initializable {
             lblNextMeta.setText("Emergency queue currently clear");
             lblNextComplaint.setText("Awaiting intake registration.");
             lblNextTarget.setText("Target: None");
+            lblNextPriorityBadge.setText("Normal");
+            lblNextPriorityBadge.getStyleClass().removeAll("badge-critical", "badge-high", "badge-medium", "badge-low");
+            lblNextPriorityBadge.getStyleClass().add("badge-low");
+            lblNextBay.setText("No bay assigned");
+            chipSpo2.setText("SpO2 --");
+            chipHr.setText("HR --");
+            chipBp.setText("BP --/--");
+            chipNews2.setText("NEWS2 0");
+            chipAllergy.setText("Allergies: None");
+            cardNextPatient.setStyle("-fx-border-color: #E5EAF1; -fx-border-width: 1px;");
             return;
         }
 
         lblNextName.setText(patient.getFullName());
         lblNextToken.setText(patient.getTokenNo());
-        lblNextMeta.setText(patient.getAge() + " · " + patient.getGender() + " · " + patient.getUhid());
+        lblNextMeta.setText(patient.getAge() + " - " + patient.getGender() + " - " + patient.getUhid());
         lblNextComplaint.setText(patient.getSymptoms());
         lblNextBay.setText(patient.getShortBay());
 
@@ -192,11 +216,15 @@ public class DashboardController implements Initializable {
         // Vitals Chips
         Vitals v = patient.getVitals();
         if (v != null) {
-            chipSpo2.setText("SpO2 " + (v.getSpo2() != null ? v.getSpo2() + "%" : "88%"));
-            chipHr.setText("HR " + (v.getHeartRate() != null ? v.getHeartRate() : "134"));
-            chipBp.setText("BP " + (v.getSystolicBp() != null && v.getDiastolicBp() != null ? v.getSystolicBp() + "/" + v.getDiastolicBp() : "150/95"));
+            chipSpo2.setText("SpO2 " + (v.getSpo2() != null ? v.getSpo2() + "%" : "--"));
+            chipHr.setText("HR " + (v.getHeartRate() != null ? v.getHeartRate() : "--"));
+            chipBp.setText("BP " + (v.getSystolicBp() != null && v.getDiastolicBp() != null ? v.getSystolicBp() + "/" + v.getDiastolicBp() : "--/--"));
+        } else {
+            chipSpo2.setText("SpO2 --");
+            chipHr.setText("HR --");
+            chipBp.setText("BP --/--");
         }
-        int news2 = patient.getNews2Score() > 0 ? patient.getNews2Score() : 9;
+        int news2 = patient.getNews2Score();
         chipNews2.setText("NEWS2 " + news2);
 
         String allergy = patient.getAllergies();
@@ -204,7 +232,7 @@ public class DashboardController implements Initializable {
             chipAllergy.setText("Allergy: " + allergy);
             chipAllergy.setVisible(true);
         } else {
-            chipAllergy.setText("Allergy: penicillin");
+            chipAllergy.setText("Allergies: None");
             chipAllergy.setVisible(true);
         }
     }

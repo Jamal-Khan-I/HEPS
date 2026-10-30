@@ -297,13 +297,14 @@ public class MainController implements Initializable {
     public void loadView(String fxmlPath) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            loader.setCharset(java.nio.charset.StandardCharsets.UTF_8);
             Node node = loader.load();
             contentArea.getChildren().setAll(node);
-        } catch (IOException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
-            // Fallback display if view is not yet built
-            Label placeholder = new Label("Screen loading: " + fxmlPath + "\n\n" + e.getMessage());
-            placeholder.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748B;");
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            Label placeholder = new Label("Screen loading error: " + fxmlPath + "\n\n" + e.getMessage() + "\n\nRoot Cause: " + cause.toString());
+            placeholder.setStyle("-fx-font-size: 13px; -fx-text-fill: #DC2626; -fx-padding: 24px;");
             contentArea.getChildren().setAll(placeholder);
         }
     }
