@@ -125,10 +125,6 @@ public class MassCasualtyController implements Initializable {
 
     private void seedInitialVictims() {
         victimsList.clear();
-        victimsList.add(new MassCasualtyTag(MassCasualtyTag.StartTag.RED, "Unknown male, ~40s (MCI-001) - Crush injury", "Bay 1 · Resus"));
-        victimsList.add(new MassCasualtyTag(MassCasualtyTag.StartTag.YELLOW, "Priyanka D., 27 (MCI-002) - Open femur fracture", "Bay 3 · Acute"));
-        victimsList.add(new MassCasualtyTag(MassCasualtyTag.StartTag.YELLOW, "Suresh M., 52 (MCI-003) - Concussive blast injury", "Bay 4 · Obs"));
-        victimsList.add(new MassCasualtyTag(MassCasualtyTag.StartTag.GREEN, "Deepak S., 19 (MCI-004) - Superficial glass shrapnel", "Walking Holding Area"));
     }
 
     private void updateStats() {

@@ -144,19 +144,11 @@ public class DoctorWorkspaceController implements Initializable {
     }
 
     private void selectDefaultPatient() {
-        if (displayedPatients.isEmpty()) return;
-        Patient preferred = null;
-        for (Patient p : displayedPatients) {
-            if ("TK-2026-0142".equalsIgnoreCase(p.getTokenNo()) || p.getFullName().toLowerCase().contains("ramesh")) {
-                preferred = p;
-                break;
-            }
+        if (displayedPatients.isEmpty()) {
+            displayPatient(null);
+            return;
         }
-        if (preferred != null) {
-            listPatients.getSelectionModel().select(preferred);
-        } else {
-            listPatients.getSelectionModel().select(0);
-        }
+        listPatients.getSelectionModel().select(0);
     }
 
     private void setupOrderCombos() {
@@ -387,6 +379,60 @@ public class DoctorWorkspaceController implements Initializable {
     // ========================================================================
     private void displayPatient(Patient p) {
         this.selectedPatient = p;
+        if (p == null) {
+            lblInitials.setText("--");
+            avatarPane.getStyleClass().setAll("avatar-low");
+            lblPatientName.setText("No Patient Selected");
+            lblDemographics.setText("--");
+            lblPriorityBadge.setText("NONE");
+            lblPriorityBadge.getStyleClass().setAll("priority-pill-low");
+            lblAllergyTag.setText("No Allergies Reported");
+            lblAllergyTag.getStyleClass().setAll("sub-label");
+            lblWaitTreatmentStatus.setText("--");
+            lblUhid.setText("--");
+            lblToken.setText("--");
+            lblBay.setText("--");
+            lblDoctor.setText("--");
+
+            lblTileSpo2.setText("--");
+            lblTileHr.setText("--");
+            lblTileBp.setText("--");
+            lblTileNews2.setText("--");
+            lblOverviewSpo2Range.setText("SpO2: --");
+            lblOverviewHrRange.setText("HR: --");
+            chartVitalsOverview.getData().clear();
+            boxOverviewOrders.getChildren().clear();
+            Label emptyOrder = new Label("No active diagnostic orders for this patient.");
+            emptyOrder.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic; -fx-padding: 8px;");
+            boxOverviewOrders.getChildren().add(emptyOrder);
+
+            txtSubjective.clear();
+            txtObjective.clear();
+            txtAssessment.clear();
+            txtPlan.clear();
+            renderNotesHistory();
+
+            boxOrdersList.getChildren().clear();
+            Label emptyOrdersList = new Label("No active diagnostic orders for this patient.");
+            emptyOrdersList.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic; -fx-padding: 8px;");
+            boxOrdersList.getChildren().add(emptyOrdersList);
+
+            if (txtSpo2 != null) txtSpo2.clear();
+            if (txtHr != null) txtHr.clear();
+            if (txtSysBp != null) txtSysBp.clear();
+            if (txtDiaBp != null) txtDiaBp.clear();
+            if (txtRr != null) txtRr.clear();
+            if (txtTemp != null) txtTemp.clear();
+            if (txtGcs != null) txtGcs.clear();
+            if (txtPain != null) txtPain.clear();
+            if (lblNews2Live != null) {
+                lblNews2Live.setText("NEWS2: 0 · Low Risk");
+                lblNews2Live.getStyleClass().setAll("priority-pill-low");
+            }
+
+            updateJourneyStepper(null);
+            return;
+        }
 
         // Banner Avatar
         lblInitials.setText(getInitials(p.getFullName()));
@@ -414,10 +460,10 @@ public class DoctorWorkspaceController implements Initializable {
         }
 
         // Identifiers & Doctors
-        lblUhid.setText(p.getUhid() != null ? p.getUhid() : "UH-2026-000891");
+        lblUhid.setText(p.getUhid() != null ? p.getUhid() : "--");
         lblToken.setText(p.getTokenNo());
         lblBay.setText(p.getShortBay());
-        lblDoctor.setText(p.getAssignedDoctorName() != null ? p.getAssignedDoctorName() : "Dr. Arjun Mehta");
+        lblDoctor.setText(p.getAssignedDoctorName() != null ? p.getAssignedDoctorName() : "Attending Physician");
 
         // Timers & Status
         updateBannerTimers(p);
@@ -449,6 +495,10 @@ public class DoctorWorkspaceController implements Initializable {
     }
 
     private void updateBannerTimers(Patient p) {
+        if (p == null) {
+            lblWaitTreatmentStatus.setText("--");
+            return;
+        }
         if (p.getStatus() == PatientStatus.IN_TREATMENT) {
             lblWaitTreatmentStatus.setText("In treatment · " + p.getFormattedTimeInTreatment());
         } else if (p.getStatus() == PatientStatus.COMPLETED) {
@@ -459,6 +509,14 @@ public class DoctorWorkspaceController implements Initializable {
     }
 
     private void updateJourneyStepper(Patient p) {
+        if (p == null) {
+            setStepUpcoming(stepCircle1, stepCheck1, stepLabel1);
+            setStepUpcoming(stepCircle2, stepCheck2, stepLabel2);
+            setStepUpcoming(stepCircle3, stepCheck3, stepLabel3);
+            setStepUpcoming(stepCircle4, stepCheck4, stepLabel4);
+            setStepUpcoming(stepCircle5, stepCheck5, stepLabel5);
+            return;
+        }
         PatientStatus status = p.getStatus();
 
         // Steps 1, 2, 3 are complete for active doctor workspace patients
@@ -531,6 +589,11 @@ public class DoctorWorkspaceController implements Initializable {
 
     private void renderOverviewTrendChart(Patient p, Vitals v) {
         chartVitalsOverview.getData().clear();
+        if (p == null || v == null || (v.getSpo2() == null && v.getHeartRate() == null)) {
+            lblOverviewSpo2Range.setText("SpO2: --");
+            lblOverviewHrRange.setText("HR: --");
+            return;
+        }
 
         XYChart.Series<Number, Number> spo2Series = new XYChart.Series<>();
         spo2Series.setName("SpO2");
@@ -538,12 +601,11 @@ public class DoctorWorkspaceController implements Initializable {
         XYChart.Series<Number, Number> hrSeries = new XYChart.Series<>();
         hrSeries.setName("Heart Rate");
 
-        int currentSpo2 = v.getSpo2() != null ? v.getSpo2() : 94;
-        int currentHr = v.getHeartRate() != null ? v.getHeartRate() : 108;
+        int currentSpo2 = v.getSpo2() != null ? v.getSpo2() : 98;
+        int currentHr = v.getHeartRate() != null ? v.getHeartRate() : 80;
 
-        // If patient is Ramesh Kumar, exactly match Page 9: SpO2 from 88 to 94, HR from 134 to 108
-        int initialSpo2 = Math.max(70, currentSpo2 - 6);
-        int initialHr = Math.min(160, currentHr + 26);
+        int initialSpo2 = Math.max(70, currentSpo2 - 4);
+        int initialHr = Math.min(160, currentHr + 12);
 
         lblOverviewSpo2Range.setText("SpO2: " + initialSpo2 + " to " + currentSpo2 + "%");
         lblOverviewHrRange.setText("HR: " + initialHr + " to " + currentHr);
@@ -554,16 +616,16 @@ public class DoctorWorkspaceController implements Initializable {
             initialSpo2,
             initialSpo2 + 1,
             initialSpo2 + 2,
-            initialSpo2 + 4,
+            initialSpo2 + 3,
             currentSpo2 - 1,
             currentSpo2
         };
         double[] hrVals = {
             initialHr,
+            initialHr - 2,
             initialHr - 5,
-            initialHr - 11,
-            initialHr - 18,
-            initialHr - 22,
+            initialHr - 8,
+            initialHr - 10,
             currentHr
         };
 
@@ -587,12 +649,14 @@ public class DoctorWorkspaceController implements Initializable {
 
     private void renderOverviewOrders(Patient p) {
         boxOverviewOrders.getChildren().clear();
+        if (p == null) return;
         List<Order> orders = orderService.getOrdersForPatient(p.getTokenNo());
 
-        // If patient has no orders yet, seed default clinical orders matching Page 9
         if (orders.isEmpty()) {
-            seedDefaultOrdersForPatient(p);
-            orders = orderService.getOrdersForPatient(p.getTokenNo());
+            Label empty = new Label("No active diagnostic orders for this patient.");
+            empty.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic; -fx-padding: 8px;");
+            boxOverviewOrders.getChildren().add(empty);
+            return;
         }
 
         for (Order o : orders) {
@@ -627,26 +691,6 @@ public class DoctorWorkspaceController implements Initializable {
             row.getChildren().addAll(iconCircle, details, spacer, statusPill);
             boxOverviewOrders.getChildren().add(row);
         }
-    }
-
-    private void seedDefaultOrdersForPatient(Patient p) {
-        String doc = p.getAssignedDoctorName() != null ? p.getAssignedDoctorName() : "Dr. Arjun Mehta";
-        String bay = p.getShortBay();
-
-        Order o1 = orderService.createOrder(p.getPatientId(), p.getTokenNo(), p.getFullName(), bay,
-                Order.OrderType.PROCEDURE, "12-lead ECG", doc);
-        o1.setStatus(Order.OrderStatus.RESULTED);
-        o1.setOrderedAt(LocalDateTime.now().minusMinutes(14));
-
-        Order o2 = orderService.createOrder(p.getPatientId(), p.getTokenNo(), p.getFullName(), bay,
-                Order.OrderType.LAB, "Troponin I", doc);
-        o2.setStatus(Order.OrderStatus.IN_PROGRESS);
-        o2.setOrderedAt(LocalDateTime.now().minusMinutes(13));
-
-        Order o3 = orderService.createOrder(p.getPatientId(), p.getTokenNo(), p.getFullName(), bay,
-                Order.OrderType.MEDICATION, "Aspirin 300 mg, oral", doc);
-        o3.setStatus(Order.OrderStatus.ORDERED);
-        o3.setOrderedAt(LocalDateTime.now().minusMinutes(12));
     }
 
     private String getOrderSvgPath(Order.OrderType type) {

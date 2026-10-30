@@ -49,29 +49,29 @@
         <!-- STICKY PATIENT HEADER BANNER (Page 9) -->
         <VBox fx:id="patientBanner" styleClass="modern-table-card" spacing="10.0">
             <HBox alignment="CENTER_LEFT" spacing="14.0">
-                <StackPane fx:id="avatarPane" prefHeight="44.0" prefWidth="44.0" minWidth="44.0" minHeight="44.0" styleClass="avatar-critical">
-                    <Label fx:id="lblInitials" text="RK" />
+                <StackPane fx:id="avatarPane" prefHeight="44.0" prefWidth="44.0" minWidth="44.0" minHeight="44.0" styleClass="avatar-low">
+                    <Label fx:id="lblInitials" text="--" />
                 </StackPane>
 
                 <VBox spacing="4.0" HBox.hgrow="ALWAYS">
                     <!-- Line 1: Name, Demographics, Priority, Allergy, and Wait/Treatment Status -->
                     <HBox alignment="CENTER_LEFT" spacing="8.0">
-                        <Label fx:id="lblPatientName" text="Ramesh Kumar" styleClass="top-bar-title" />
-                        <Label fx:id="lblDemographics" text="58 · Male" styleClass="sub-label" />
-                        <Label fx:id="lblPriorityBadge" text="• Critical" styleClass="priority-pill-dot" />
-                        <Label fx:id="lblAllergyTag" text="Allergy: penicillin" styleClass="allergy-pill" />
+                        <Label fx:id="lblPatientName" text="No Patient Selected" styleClass="top-bar-title" />
+                        <Label fx:id="lblDemographics" text="--" styleClass="sub-label" />
+                        <Label fx:id="lblPriorityBadge" text="NONE" styleClass="priority-pill-low" />
+                        <Label fx:id="lblAllergyTag" text="No Allergies Reported" styleClass="allergy-pill" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <Label fx:id="lblWaitTreatmentStatus" text="In treatment · 14m" styleClass="caption-bold" />
+                        <Label fx:id="lblWaitTreatmentStatus" text="--" styleClass="caption-bold" />
                     </HBox>
                     <!-- Line 2: Identifiers & Disposition Button -->
                     <HBox alignment="CENTER_LEFT" spacing="6.0">
-                        <Label fx:id="lblUhid" text="UH-2026-000891" styleClass="caption-mono" />
+                        <Label fx:id="lblUhid" text="--" styleClass="caption-mono" />
                         <Label text="·" styleClass="dot-separator" />
-                        <Label fx:id="lblToken" text="TK-2026-0142" styleClass="caption-mono" />
+                        <Label fx:id="lblToken" text="--" styleClass="caption-mono" />
                         <Label text="·" styleClass="dot-separator" />
-                        <Label fx:id="lblBay" text="Bay 1 Resus" styleClass="caption-bold" />
+                        <Label fx:id="lblBay" text="--" styleClass="caption-bold" />
                         <Label text="·" styleClass="dot-separator" />
-                        <Label fx:id="lblDoctor" text="Dr. Arjun Mehta" styleClass="caption-text" />
+                        <Label fx:id="lblDoctor" text="--" styleClass="caption-text" />
                         <Region HBox.hgrow="ALWAYS" />
                         <Button onAction="#handleGoToDisposition" styleClass="btn-primary" text="Disposition &amp; discharge →" />
                     </HBox>
@@ -130,8 +130,8 @@
                                 <yAxis><NumberAxis fx:id="axisOverviewY" forceZeroInRange="false" minorTickVisible="false" /></yAxis>
                             </LineChart>
                             <HBox alignment="CENTER_LEFT" spacing="16.0">
-                                <Label fx:id="lblOverviewSpo2Range" text="SpO2: 88 to 94%" styleClass="overview-legend-spo2" />
-                                <Label fx:id="lblOverviewHrRange" text="HR: 134 to 108" styleClass="overview-legend-hr" />
+                                <Label fx:id="lblOverviewSpo2Range" text="SpO2: --" styleClass="overview-legend-spo2" />
+                                <Label fx:id="lblOverviewHrRange" text="HR: --" styleClass="overview-legend-hr" />
                             </HBox>
                         </VBox>
 
@@ -141,19 +141,19 @@
                             <GridPane hgap="10.0" vgap="10.0" VBox.vgrow="ALWAYS">
                                 <VBox styleClass="vital-metric-tile" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                     <Label text="SpO2" styleClass="vital-metric-caption" />
-                                    <Label fx:id="lblTileSpo2" text="94%" styleClass="vital-metric-value" />
+                                    <Label fx:id="lblTileSpo2" text="--" styleClass="vital-metric-value" />
                                 </VBox>
                                 <VBox styleClass="vital-metric-tile" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                     <Label text="Heart rate" styleClass="vital-metric-caption" />
-                                    <Label fx:id="lblTileHr" text="108" styleClass="vital-metric-value" />
+                                    <Label fx:id="lblTileHr" text="--" styleClass="vital-metric-value" />
                                 </VBox>
                                 <VBox styleClass="vital-metric-tile" GridPane.columnIndex="0" GridPane.rowIndex="1">
                                     <Label text="BP" styleClass="vital-metric-caption" />
-                                    <Label fx:id="lblTileBp" text="140/90" styleClass="vital-metric-value" />
+                                    <Label fx:id="lblTileBp" text="--" styleClass="vital-metric-value" />
                                 </VBox>
                                 <VBox styleClass="vital-metric-tile" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                     <Label text="NEWS2" styleClass="vital-metric-caption" />
-                                    <Label fx:id="lblTileNews2" text="6" styleClass="vital-metric-value" />
+                                    <Label fx:id="lblTileNews2" text="--" styleClass="vital-metric-value" />
                                 </VBox>
                             </GridPane>
                         </VBox>

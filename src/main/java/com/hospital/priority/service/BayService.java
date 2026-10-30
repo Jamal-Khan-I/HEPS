@@ -35,96 +35,32 @@ public class BayService {
 
     /**
      * Initializes the 12 Emergency Department bays as specified in Page 9.
+     * All bays start clean and FREE, ready for real patient admissions.
      */
     private void initializeBays() {
         bays.clear();
 
         // 1. Resus & Trauma (Critical Red Zone)
-        Bay b1 = new Bay(1, "Bay 1 · Resus", Bay.BayType.RESUS, Bay.BayStatus.OCCUPIED);
-        b1.setCurrentPatientToken("TK-0142");
-        b1.setCurrentPatientName("Ramesh Kumar");
-        b1.setCurrentPriority(EmergencyLevel.CRITICAL);
-        b1.setAssignedDoctorName("Dr. Mehta");
-        b1.setOccupiedSince(LocalDateTime.now().minusMinutes(3));
-        bays.put(1, b1);
-
-        Bay b2 = new Bay(2, "Bay 2 · Trauma", Bay.BayType.TRAUMA, Bay.BayStatus.OCCUPIED);
-        b2.setCurrentPatientToken("TK-0136");
-        b2.setCurrentPatientName("Meera Nair");
-        b2.setCurrentPriority(EmergencyLevel.CRITICAL);
-        b2.setAssignedDoctorName("Dr. Singh");
-        b2.setOccupiedSince(LocalDateTime.now().minusMinutes(21));
-        bays.put(2, b2);
+        bays.put(1, new Bay(1, "Bay 1 · Resus", Bay.BayType.RESUS, Bay.BayStatus.FREE));
+        bays.put(2, new Bay(2, "Bay 2 · Trauma", Bay.BayType.TRAUMA, Bay.BayStatus.FREE));
 
         // 2. Acute Care (Orange Zone)
-        Bay b3 = new Bay(3, "Bay 3 · Acute", Bay.BayType.ACUTE, Bay.BayStatus.FREE);
-        bays.put(3, b3);
-
-        Bay b3b = new Bay(4, "Bay 3b · Acute", Bay.BayType.ACUTE, Bay.BayStatus.OCCUPIED);
-        b3b.setCurrentPatientToken("TK-0143");
-        b3b.setCurrentPatientName("Anita Joshi");
-        b3b.setCurrentPriority(EmergencyLevel.HIGH);
-        b3b.setAssignedDoctorName("Dr. Rao");
-        b3b.setOccupiedSince(LocalDateTime.now().minusMinutes(12));
-        bays.put(4, b3b);
+        bays.put(3, new Bay(3, "Bay 3 · Acute", Bay.BayType.ACUTE, Bay.BayStatus.FREE));
+        bays.put(4, new Bay(4, "Bay 3b · Acute", Bay.BayType.ACUTE, Bay.BayStatus.FREE));
 
         // 3. Monitored Observation (Yellow Zone)
-        Bay b4 = new Bay(5, "Bay 4 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.OCCUPIED);
-        b4.setCurrentPatientToken("TK-0131");
-        b4.setCurrentPatientName("Gurpreet Singh");
-        b4.setCurrentPriority(EmergencyLevel.MEDIUM);
-        b4.setAssignedDoctorName("Dr. Miller");
-        b4.setOccupiedSince(LocalDateTime.now().minusMinutes(48));
-        bays.put(5, b4);
-
-        Bay b4b = new Bay(6, "Bay 4b · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.OCCUPIED);
-        b4b.setCurrentPatientToken("TK-0133");
-        b4b.setCurrentPatientName("Siddharth Bose");
-        b4b.setCurrentPriority(EmergencyLevel.MEDIUM);
-        b4b.setAssignedDoctorName("Dr. Miller");
-        b4b.setOccupiedSince(LocalDateTime.now().minusMinutes(33));
-        bays.put(6, b4b);
+        bays.put(5, new Bay(5, "Bay 4 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(6, new Bay(6, "Bay 4b · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
 
         // 4. Fast Track & Ambulatory (Green Zone)
-        Bay b5 = new Bay(7, "Bay 5 · Fast track", Bay.BayType.FAST_TRACK, Bay.BayStatus.OCCUPIED);
-        b5.setCurrentPatientToken("TK-0145");
-        b5.setCurrentPatientName("Tanya Kapoor");
-        b5.setCurrentPriority(EmergencyLevel.LOW);
-        b5.setAssignedDoctorName("Nurse Ana");
-        b5.setOccupiedSince(LocalDateTime.now().minusMinutes(5));
-        bays.put(7, b5);
+        bays.put(7, new Bay(7, "Bay 5 · Fast track", Bay.BayType.FAST_TRACK, Bay.BayStatus.FREE));
+        bays.put(8, new Bay(8, "Bay 6 · Ambulatory", Bay.BayType.AMBULATORY, Bay.BayStatus.FREE));
 
-        Bay b6 = new Bay(8, "Bay 6 · Ambulatory", Bay.BayType.AMBULATORY, Bay.BayStatus.CLEANING);
-        b6.setCleaningUntil(LocalDateTime.now().plusMinutes(4));
-        bays.put(8, b6);
-
-        // 5. Extended Observation Beds (Beds 7 through 12)
-        Bay b7 = new Bay(9, "Bay 7 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE);
-        bays.put(9, b7);
-
-        Bay b8 = new Bay(10, "Bed 8 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.OCCUPIED);
-        b8.setCurrentPatientToken("TK-0128");
-        b8.setCurrentPatientName("Harish Patel");
-        b8.setCurrentPriority(EmergencyLevel.HIGH);
-        b8.setAssignedDoctorName("Dr. Rao");
-        b8.setOccupiedSince(LocalDateTime.now().minusMinutes(52));
-        bays.put(10, b8);
-
-        Bay b9 = new Bay(11, "Bed 9 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.OCCUPIED);
-        b9.setCurrentPatientToken("TK-0129");
-        b9.setCurrentPatientName("Sunita Reddy");
-        b9.setCurrentPriority(EmergencyLevel.MEDIUM);
-        b9.setAssignedDoctorName("Dr. Miller");
-        b9.setOccupiedSince(LocalDateTime.now().minusMinutes(65));
-        bays.put(11, b9);
-
-        Bay b10 = new Bay(12, "Bed 10 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.OCCUPIED);
-        b10.setCurrentPatientToken("TK-0130");
-        b10.setCurrentPatientName("Farhan Akhtar");
-        b10.setCurrentPriority(EmergencyLevel.LOW);
-        b10.setAssignedDoctorName("Dr. Miller");
-        b10.setOccupiedSince(LocalDateTime.now().minusMinutes(18));
-        bays.put(12, b10);
+        // 5. Extended Observation Beds (Beds 7 through 10)
+        bays.put(9, new Bay(9, "Bay 7 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(10, new Bay(10, "Bed 8 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(11, new Bay(11, "Bed 9 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
+        bays.put(12, new Bay(12, "Bed 10 · Obs", Bay.BayType.OBSERVATION, Bay.BayStatus.FREE));
     }
 
     public synchronized List<Bay> getAllBays() {

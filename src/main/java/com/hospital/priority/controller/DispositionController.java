@@ -216,6 +216,8 @@ public class DispositionController implements Initializable {
         if (!activePatients.isEmpty()) {
             cmbPatientSelector.getSelectionModel().selectFirst();
             displayPatient(activePatients.get(0));
+        } else {
+            displayPatient(null);
         }
     }
 
@@ -244,6 +246,20 @@ public class DispositionController implements Initializable {
 
     private void displayPatient(Patient p) {
         this.selectedPatient = p;
+        if (p == null) {
+            lblInitials.setText("--");
+            lblPatientName.setText("No Patient Selected");
+            lblDemographics.setText("--");
+            lblToken.setText("--");
+            lblBayDoctor.setText("Select an active patient to process clinical disposition");
+            lblAllergyTag.setText("None");
+            lblAllergyTag.setStyle("-fx-background-color: #F8FAFC; -fx-text-fill: #64748B; -fx-font-size: 11px; -fx-padding: 3px 8px; -fx-background-radius: 6px;");
+            lblPriorityBadge.setText("NONE");
+            lblPriorityBadge.getStyleClass().setAll("badge", "badge-low");
+            txtPrescriptions.clear();
+            txtInstructions.clear();
+            return;
+        }
 
         lblInitials.setText(getInitials(p.getFullName()));
         lblPatientName.setText(p.getFullName());
@@ -251,7 +267,7 @@ public class DispositionController implements Initializable {
         lblToken.setText(p.getTokenNo());
 
         String bay = p.getAssignedBay() != null ? p.getAssignedBay() : "Bay 1 · Resus";
-        String doc = p.getAssignedDoctorName() != null ? p.getAssignedDoctorName() : "Dr. Rajesh Sharma";
+        String doc = p.getAssignedDoctorName() != null ? p.getAssignedDoctorName() : "Attending Physician";
         lblBayDoctor.setText("📍 " + bay + "  •  👨‍⚕️ " + doc + "  •  ⏱️ " + p.getFormattedWaitTime() + " in ED");
 
         // Allergy
@@ -269,18 +285,30 @@ public class DispositionController implements Initializable {
         lblPriorityBadge.setText(p.getEmergencyLevel().getDisplayName().toUpperCase());
         lblPriorityBadge.getStyleClass().setAll("priority-badge", p.getEmergencyLevel().getCssClass());
 
-        // Pre-fill prescriptions and instructions
-        txtPrescriptions.setText(
-                "1. Tab. Aspirin 75 mg - 1 tablet once daily after lunch x 30 days\n" +
-                "2. Tab. Clopidogrel 75 mg - 1 tablet once daily x 30 days\n" +
-                "3. Tab. Atorvastatin 40 mg - 1 tablet at bedtime x 30 days\n" +
-                "4. Tab. Pantoprazole 40 mg - 1 tablet once daily empty stomach x 14 days"
-        );
-        txtInstructions.setText(
-                "• Follow up in Cardiology OPD on Monday at 10:00 AM for repeat 2D-Echocardiogram.\n" +
-                "• Maintain low-salt, low-fat cardiac diet. Strict bed rest for 48 hours.\n" +
-                "• EMERGENCY RED FLAGS: Return to ED immediately if severe chest pressure, diaphoresis, shortness of breath, or radiating jaw pain recurs."
-        );
+        // Dynamic clinical prescriptions & instructions tailored to patient specialty
+        if (p.getAssignedSpecialty() == Specialty.CARDIOLOGY) {
+            txtPrescriptions.setText(
+                    "1. Tab. Aspirin 75 mg - 1 tablet once daily after lunch x 30 days\n" +
+                    "2. Tab. Clopidogrel 75 mg - 1 tablet once daily x 30 days\n" +
+                    "3. Tab. Atorvastatin 40 mg - 1 tablet at bedtime x 30 days\n" +
+                    "4. Tab. Pantoprazole 40 mg - 1 tablet once daily empty stomach x 14 days"
+            );
+            txtInstructions.setText(
+                    "• Follow up in Cardiology OPD for repeat evaluation.\n" +
+                    "• Maintain low-salt, low-fat cardiac diet.\n" +
+                    "• EMERGENCY RED FLAGS: Return to ED immediately if severe chest pain, diaphoresis, shortness of breath, or radiating pain recurs."
+            );
+        } else {
+            txtPrescriptions.setText(
+                    "1. Tab. Paracetamol 650 mg - 1 tablet SOS (as needed for pain/fever)\n" +
+                    "2. Tab. Pantoprazole 40 mg - 1 tablet once daily before breakfast x 5 days"
+            );
+            txtInstructions.setText(
+                    "• Follow up at " + (p.getAssignedSpecialty() != null ? p.getAssignedSpecialty().getDisplayName() : "General Medicine") + " OPD within 3 to 5 days.\n" +
+                    "• Rest and adequate oral hydration.\n" +
+                    "• Return to Emergency if symptoms worsen or new acute warning signs develop."
+            );
+        }
     }
 
     @FXML

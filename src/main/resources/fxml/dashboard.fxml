@@ -88,28 +88,28 @@
                 <Label fx:id="lblNextPriorityBadge" text="Critical" styleClass="badge, badge-critical" />
                 <Label fx:id="lblNextBay" text="Bay 1 · Resus" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #0F172A;" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="lblNextTarget" text="Target: immediate" style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #B91C1C;" />
+                <Label fx:id="lblNextTarget" text="Target: None" style="-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
             </HBox>
 
             <!-- Identity Row -->
             <HBox alignment="BASELINE_LEFT" spacing="10.0">
-                <Label fx:id="lblNextToken" text="TK-2026-0142" style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: #0D9488;" />
-                <Label fx:id="lblNextName" text="Ramesh Kumar" style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: #0F172A;" />
-                <Label fx:id="lblNextMeta" text="58 · Male · UH-2026-000891" style="-fx-font-size: 13px; -fx-text-fill: #64748B;" />
+                <Label fx:id="lblNextToken" text="--" style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: #0D9488;" />
+                <Label fx:id="lblNextName" text="No active emergency patients" style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: #0F172A;" />
+                <Label fx:id="lblNextMeta" text="Emergency queue currently clear" style="-fx-font-size: 13px; -fx-text-fill: #64748B;" />
             </HBox>
 
             <!-- Vitals Chips Row -->
             <HBox spacing="8.0" alignment="CENTER_LEFT">
-                <Label fx:id="chipSpo2" text="SpO2 88%" styleClass="vitals-chip, vitals-chip-critical" />
-                <Label fx:id="chipHr" text="HR 134" styleClass="vitals-chip, vitals-chip-high" />
-                <Label fx:id="chipBp" text="BP 150/95" styleClass="vitals-chip" />
-                <Label fx:id="chipNews2" text="NEWS2 9" styleClass="vitals-chip, vitals-chip-critical" />
-                <Label fx:id="chipAllergy" text="Allergy: penicillin" styleClass="vitals-chip, vitals-chip-allergy" />
+                <Label fx:id="chipSpo2" text="SpO2 --" styleClass="vitals-chip" />
+                <Label fx:id="chipHr" text="HR --" styleClass="vitals-chip" />
+                <Label fx:id="chipBp" text="BP --" styleClass="vitals-chip" />
+                <Label fx:id="chipNews2" text="NEWS2 0" styleClass="vitals-chip, vitals-chip-low" />
+                <Label fx:id="chipAllergy" text="Allergy: None" styleClass="vitals-chip, vitals-chip-allergy" />
             </HBox>
 
             <!-- Complaint & Actions Row -->
             <HBox alignment="CENTER_LEFT" spacing="12.0">
-                <Label fx:id="lblNextComplaint" text="Chest pain radiating to left arm, sweating"
+                <Label fx:id="lblNextComplaint" text="Awaiting intake registration."
                        style="-fx-font-size: 13px; -fx-text-fill: #334155;" HBox.hgrow="ALWAYS" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Button text="Print slip" onAction="#handlePrintNextSlip" styleClass="btn-secondary" />
