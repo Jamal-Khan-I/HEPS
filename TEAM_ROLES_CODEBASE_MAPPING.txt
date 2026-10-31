@@ -1,0 +1,164 @@
+========================================================================================
+             HOSPITAL EMERGENCY PRIORITY SYSTEM (HEPS) - TEAM ROLES & CODEBASE MAPPING
+========================================================================================
+
+PROJECT: Hospital Emergency Priority System (HEPS)
+ARCHITECTURE: JavaFX 21 (Desktop GUI) + Java 17 Core + MySQL 8.4 + PriorityQueue Min-Heap + Multi-Agent AI
+REPOSITORY: https://github.com/Jamal-Khan-I/HEPS
+
+----------------------------------------------------------------------------------------
+1. BETEESHIA - Frontend & JavaFX (UI/UX, Layouts & Visual Controls)
+----------------------------------------------------------------------------------------
+PRIMARY RESPONSIBILITIES:
+- Complete JavaFX UI architecture across all 14 screens.
+- Modern CSS styling system (pills, badges, color-coded priority levels, cards, steppers).
+- Responsive window layout management, animations, and clean view transitions.
+- Thermal triage slip visual design and print dialogs.
+
+KEY CODEBASE FILES TO SHOW:
+[FXML Layouts]
+- src/main/resources/fxml/register_patient.fxml
+  -> 3-Step interactive patient intake wizard (Identity -> Triage Assessment -> Decision).
+  -> Contains the clinical narrative intake area, vitals entry, and decision support cards.
+- src/main/resources/fxml/dashboard.fxml
+  -> Command Center high-level dashboard with live KPI metric cards and active patient feed.
+- src/main/resources/fxml/bay_board.fxml
+  -> 12-Bay Emergency Room visual grid with real-time status color badges and sanitization countdowns.
+- src/main/resources/fxml/doctor_workspace.fxml
+  -> Doctor clinical workstation with interactive vitals line chart (SpO2/HR trend) and SOAP notes tabs.
+- src/main/resources/fxml/main_layout.fxml
+  -> Main sidebar navigation drawer with active route indicators and live notification badges.
+- src/main/resources/fxml/patient_history.fxml
+  -> Patient Records screen with search filters, record drawer, and record deletion control.
+
+[Styling & UI Controllers]
+- src/main/resources/css/style.css
+  -> Complete application styling: CSS variables, custom modern table views, urgency badges, and clean typography.
+- src/main/java/com/hospital/priority/controller/MainController.java
+  -> Coordinates view switching, maintains screen navigation stack, and updates live sidebar badges.
+- src/main/java/com/hospital/priority/controller/DashboardController.java
+  -> Live metric card updates, visual charts, and asynchronous background polling.
+- src/main/java/com/hospital/priority/util/TriageTicketUtil.java
+  -> Renders printable thermal triage slips with simulated barcodes and QR codes.
+
+
+----------------------------------------------------------------------------------------
+2. DARWIN - AI & Intelligent Triage (Multi-Agent System & Clinical NLP)
+----------------------------------------------------------------------------------------
+PRIMARY RESPONSIBILITIES:
+- Multi-Agent clinical AI orchestration (Vitals, Acuity, Routing, Risk agents).
+- Unstructured natural language clinical narrative intake (extracting vitals, complaints, GCS, pain scores).
+- Deterministic medical guideline rule engine and disagreement consensus detection.
+- UK NHS National Early Warning Score 2 (NEWS2) calculation engine.
+
+KEY CODEBASE FILES TO SHOW:
+[AI Agent Orchestration & Natural Language Processing]
+- src/main/java/com/hospital/priority/service/ai/AIAgentOrchestrator.java
+  -> Multi-agent triage coordinator: dispatches cases across 4 specialized clinical agents,
+     synthesizes findings, computes clinical consensus, and flags disagreement with Java rules.
+- src/main/java/com/hospital/priority/service/ai/AIClientService.java
+  -> LLM clinical intake client with structured JSON schema prompting and regex post-processing.
+     Extracts SpO2, HR, BP, Temp, RR, GCS (e.g. '15 GCS'), and infers clinical pain score (0-10).
+- src/main/java/com/hospital/priority/service/ai/AIClinicalExtraction.java
+  -> Structured data transfer object representing extracted clinical entities.
+- src/main/java/com/hospital/priority/model/AIAssessmentResult.java
+  -> Model representing final AI agent consensus, confidence score, and explainability notes.
+
+[Clinical Decision Rules & Standard Medical Scores]
+- src/main/java/com/hospital/priority/service/JavaTriageRuleEngine.java
+  -> Deterministic clinical guideline engine evaluating severe hypoxia, hypertensive crises,
+     shock index, trauma red flags, and high-risk pediatric/geriatric thresholds.
+- src/main/java/com/hospital/priority/service/NEWS2Service.java
+  -> UK NHS National Early Warning Score 2 algorithm aggregating 6 physiological parameters (0-20 score).
+
+
+----------------------------------------------------------------------------------------
+3. JAMAL - Core Backend & DSA (Data Structures, Algorithms & Concurrency)
+----------------------------------------------------------------------------------------
+PRIMARY RESPONSIBILITIES:
+- Min-Heap PriorityQueue scheduling with O(log N) insertion/extraction.
+- Automatic wait-time priority escalation engine to eliminate patient starvation and satisfy SLAs.
+- Thread-safe physical bay allocation enforcing capacity constraints (zero double-booking).
+- Greedy doctor load balancing and patient state machine lifecycles.
+
+KEY CODEBASE FILES TO SHOW:
+[Data Structures & Scheduling Algorithms]
+- src/main/java/com/hospital/priority/service/QueueService.java
+  -> Java PriorityQueue (Min-Heap) core implementation.
+  -> Manages thread-safe patient enqueue/dequeue operations.
+  -> Contains the automated wait-time priority escalation engine:
+     * LOW priority waiting >= 90 mins -> Escalated to MEDIUM
+     * MEDIUM priority waiting >= 45 mins -> Escalated to HIGH
+     * HIGH priority waiting >= 20 mins -> Escalated to CRITICAL
+- src/main/java/com/hospital/priority/model/PatientPriorityComparator.java
+  -> Custom Comparator enforcing strict triage order:
+     1. Acuity level (CRITICAL > HIGH > MEDIUM > LOW)
+     2. Wait-time escalation flag
+     3. Arrival time FIFO tie-breaking
+- src/main/java/com/hospital/priority/service/DoctorRoutingService.java
+  -> Greedy specialist load-balancing algorithm matching clinical specialties with doctor workloads.
+- src/main/java/com/hospital/priority/service/BayService.java
+  -> Physical emergency room bed allocation engine managing 12 discrete bays.
+  -> Enforces zero double-booking invariant, resilient bay name normalization, and auto-fallback.
+- src/main/java/com/hospital/priority/model/Patient.java
+  -> Core OOP domain model encapsulating vitals, SLAs, duration calculations, and state flags.
+- src/main/java/com/hospital/priority/util/TokenGenerator.java
+  -> Thread-safe sequential token generator ensuring collision-free token numbering.
+
+
+----------------------------------------------------------------------------------------
+4. HARISH - Patient Workflow & Clinical Operations (Clinical Lifecycles & Encounters)
+----------------------------------------------------------------------------------------
+PRIMARY RESPONSIBILITIES:
+- Patient intake workflow and 3-step registration wizard.
+- Doctor workspace clinical operations (SOAP progress notes, vital signs tracking).
+- Diagnostic orders tracking (Laboratory, Radiology, ECG, Medications).
+- Disposition and discharge pipeline (Home, Ward admission, ICU transfer).
+- Mass casualty incident surge triage (START / SALT protocols).
+
+KEY CODEBASE FILES TO SHOW:
+[Clinical Controllers & Encounters]
+- src/main/java/com/hospital/priority/controller/RegisterPatientController.java
+  -> Full intake controller: demographic validation, quick complaint chips, AI auto-fill integration,
+     NEWS2 calculation triggers, and confirmed bay reservation.
+- src/main/java/com/hospital/priority/controller/DoctorWorkspaceController.java
+  -> Doctor clinical EHR workstation: active patient drawer, vitals trend chart, and SOAP documentation.
+- src/main/java/com/hospital/priority/controller/OrdersResultsController.java
+  -> Centralized diagnostic orders tracking: order creation, lab result status, and physician sign-off.
+- src/main/java/com/hospital/priority/controller/DispositionController.java
+  -> Clinical discharge management: discharge summaries, prescription medications, follow-up advice.
+- src/main/java/com/hospital/priority/service/TreatmentService.java
+  -> Business logic transitioning patients from WAITING -> IN_TREATMENT -> COMPLETED / DISCHARGED.
+- src/main/java/com/hospital/priority/controller/MassCasualtyController.java
+  -> Emergency disaster surge protocol implementing START / SALT disaster triage algorithms.
+
+
+----------------------------------------------------------------------------------------
+5. AJMAL - Database, Security & System Integration (MySQL, Firebase & Compliance)
+----------------------------------------------------------------------------------------
+PRIMARY RESPONSIBILITIES:
+- Relational database schema architecture and JDBC Data Access Object (DAO) layer.
+- Resilient database connection pooling with automated server auto-start recovery on port 3306.
+- Asynchronous cloud dual-store synchronization using Firebase.
+- Role-Based Access Control (RBAC), BCrypt password hashing, and HIPAA compliance audit logging.
+
+KEY CODEBASE FILES TO SHOW:
+[Database Persistence & DAO Layer]
+- src/main/java/com/hospital/priority/dao/impl/PatientDaoImpl.java
+  -> Robust JDBC persistence layer with parameterized queries, schema verification, and cascade deletion.
+- src/main/java/com/hospital/priority/dao/PatientDao.java
+  -> Data Access Object interface isolating database persistence mechanics.
+- src/main/java/com/hospital/priority/util/DBConnection.java
+  -> Connection manager with automatic MySQL server auto-start recovery on port 3306.
+- show_patient_records.bat
+  -> Interactive CLI script to directly query and display MySQL patient records in formatted tables.
+
+[Cloud Sync, Security & Compliance]
+- src/main/java/com/hospital/priority/service/FirebaseSyncService.java
+  -> Asynchronous cloud dual-store replication syncing patient admissions and updates to Firebase.
+- src/main/java/com/hospital/priority/service/AuthService.java
+  -> Security manager implementing BCrypt password hashing, session tokens, and RBAC (Admin, Doctor, Nurse).
+- src/main/java/com/hospital/priority/service/AuditService.java
+  -> Immutable compliance audit trail logging patient registrations, priority escalations, and bay transfers.
+
+========================================================================================
