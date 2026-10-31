@@ -20,6 +20,7 @@ public class AIClinicalExtraction {
     private Integer systolicBp;
     private Integer diastolicBp;
     private Integer respiratoryRate;
+    private Integer gcs;
     private Integer painScore;
     private String allergies;
     private String knownConditions;
@@ -124,6 +125,14 @@ public class AIClinicalExtraction {
 
     public void setRespiratoryRate(Integer respiratoryRate) {
         this.respiratoryRate = respiratoryRate;
+    }
+
+    public Integer getGcs() {
+        return gcs;
+    }
+
+    public void setGcs(Integer gcs) {
+        this.gcs = gcs;
     }
 
     public Integer getPainScore() {

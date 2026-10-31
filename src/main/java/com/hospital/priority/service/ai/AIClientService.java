@@ -107,7 +107,8 @@ public class AIClientService {
                     + "\"systolicBp\": integer or null,"
                     + "\"diastolicBp\": integer or null,"
                     + "\"respiratoryRate\": integer or null,"
-                    + "\"painScore\": integer (0-10) or null,"
+                    + "\"gcs\": integer (3-15, Glasgow Coma Scale, default 15 if alert or not specified),"
+                    + "\"painScore\": integer (0-10, MUST infer clinical pain score from severity, e.g. severe/radiating chest pain=8, fracture=7-9, mild=1-3, none=0),"
                     + "\"allergies\": string or \"None\","
                     + "\"knownConditions\": string or \"None\","
                     + "\"urgency\": \"CRITICAL\"|\"HIGH\"|\"MEDIUM\"|\"LOW\","
@@ -184,6 +185,7 @@ public class AIClientService {
             if (obj.has("systolicBp") && !obj.get("systolicBp").isJsonNull()) ext.setSystolicBp(obj.get("systolicBp").getAsInt());
             if (obj.has("diastolicBp") && !obj.get("diastolicBp").isJsonNull()) ext.setDiastolicBp(obj.get("diastolicBp").getAsInt());
             if (obj.has("respiratoryRate") && !obj.get("respiratoryRate").isJsonNull()) ext.setRespiratoryRate(obj.get("respiratoryRate").getAsInt());
+            if (obj.has("gcs") && !obj.get("gcs").isJsonNull()) ext.setGcs(obj.get("gcs").getAsInt());
             if (obj.has("painScore") && !obj.get("painScore").isJsonNull()) ext.setPainScore(obj.get("painScore").getAsInt());
             if (obj.has("allergies") && !obj.get("allergies").isJsonNull()) ext.setAllergies(obj.get("allergies").getAsString());
             if (obj.has("knownConditions") && !obj.get("knownConditions").isJsonNull()) ext.setKnownConditions(obj.get("knownConditions").getAsString());
@@ -211,6 +213,7 @@ public class AIClientService {
         if (ext.getChiefComplaint() == null || ext.getChiefComplaint().isEmpty()) {
             ext.setChiefComplaint(rawFallback);
         }
+        enrichExtractionWithRegex(ext, rawFallback);
         return ext;
     }
 
@@ -252,7 +255,111 @@ public class AIClientService {
             ext.setReasoning("General emergency clinical evaluation.");
         }
 
+        enrichExtractionWithRegex(ext, text);
         return ext;
+    }
+
+    private void enrichExtractionWithRegex(AIClinicalExtraction ext, String text) {
+        if (text == null || text.trim().isEmpty()) return;
+
+        // GCS (e.g. "15 GCS", "GCS 15", "GCS: 15")
+        if (ext.getGcs() == null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)(?:gcs\\s*[:=]?\\s*(\\d{1,2})|(\\d{1,2})\\s*gcs)").matcher(text);
+            if (m.find()) {
+                String val = m.group(1) != null ? m.group(1) : m.group(2);
+                try {
+                    int g = Integer.parseInt(val);
+                    if (g >= 3 && g <= 15) ext.setGcs(g);
+                } catch (Exception ignored) {}
+            }
+        }
+        if (ext.getGcs() == null) {
+            ext.setGcs(15);
+        }
+
+        // Pain score (e.g. "pain 8", "pain: 8", "8/10 pain")
+        if (ext.getPainScore() == null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)(?:pain\\s*(?:score)?\\s*[:=]?\\s*(\\d{1,2})|(\\d{1,2})\\s*(?:/\\s*10)?\\s*pain)").matcher(text);
+            if (m.find()) {
+                String val = m.group(1) != null ? m.group(1) : m.group(2);
+                try {
+                    int p = Integer.parseInt(val);
+                    if (p >= 0 && p <= 10) ext.setPainScore(p);
+                } catch (Exception ignored) {}
+            }
+        }
+        // If pain score is still null, clinically infer from patient distress / symptom keywords
+        if (ext.getPainScore() == null) {
+            String lower = text.toLowerCase();
+            if (lower.contains("severe") || lower.contains("crushing") || lower.contains("radiating") || lower.contains("unbearable")) {
+                ext.setPainScore(8);
+            } else if (lower.contains("chest pain") || lower.contains("fracture") || lower.contains("trauma") || lower.contains("laceration") || lower.contains("bleeding")) {
+                ext.setPainScore(7);
+            } else if (lower.contains("pain") || lower.contains("ache") || lower.contains("fever") || lower.contains("distress")) {
+                ext.setPainScore(5);
+            } else {
+                ext.setPainScore(0);
+            }
+        }
+
+        // SpO2 (e.g. "SpO2 91%", "91% SpO2")
+        if (ext.getSpo2() == null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)(?:spo2|o2|sat(?:uration)?)\\s*[:=]?\\s*(\\d{2,3})%?").matcher(text);
+            if (m.find()) {
+                try {
+                    int s = Integer.parseInt(m.group(1));
+                    if (s >= 50 && s <= 100) ext.setSpo2(s);
+                } catch (Exception ignored) {}
+            }
+        }
+
+        // Heart Rate (e.g. "HR 112", "pulse 112")
+        if (ext.getHeartRate() == null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)(?:hr|pulse|heart\\s*rate)\\s*[:=]?\\s*(\\d{2,3})").matcher(text);
+            if (m.find()) {
+                try {
+                    int hr = Integer.parseInt(m.group(1));
+                    if (hr >= 30 && hr <= 250) ext.setHeartRate(hr);
+                } catch (Exception ignored) {}
+            }
+        }
+
+        // Blood Pressure (e.g. "BP 160/95" or "160/95")
+        if (ext.getSystolicBp() == null || ext.getDiastolicBp() == null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)(?:bp|blood\\s*pressure)?\\s*[:=]?\\s*(\\d{2,3})\\s*/\\s*(\\d{2,3})").matcher(text);
+            if (m.find()) {
+                try {
+                    int sys = Integer.parseInt(m.group(1));
+                    int dia = Integer.parseInt(m.group(2));
+                    if (sys >= 60 && sys <= 260 && dia >= 30 && dia <= 160) {
+                        ext.setSystolicBp(sys);
+                        ext.setDiastolicBp(dia);
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+
+        // Temperature (e.g. "98.6 F", "102.4F", "37 C")
+        if (ext.getTemperature() == null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)(\\d{2,3}(?:\\.\\d+)?)\\s*(?:f|c|deg|degree|fahrenheit|celsius)").matcher(text);
+            if (m.find()) {
+                try {
+                    double t = Double.parseDouble(m.group(1));
+                    if (t >= 30.0 && t <= 110.0) ext.setTemperature(t);
+                } catch (Exception ignored) {}
+            }
+        }
+
+        // Respiratory Rate (e.g. "16/min", "16 resp", "rr 16")
+        if (ext.getRespiratoryRate() == null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)(?:rr|resp(?:iratory)?\\s*rate)?\\s*[:=]?\\s*(\\d{1,2})\\s*(?:/min|bpm|resp)").matcher(text);
+            if (m.find()) {
+                try {
+                    int rr = Integer.parseInt(m.group(1));
+                    if (rr >= 5 && rr <= 60) ext.setRespiratoryRate(rr);
+                } catch (Exception ignored) {}
+            }
+        }
     }
 }
 

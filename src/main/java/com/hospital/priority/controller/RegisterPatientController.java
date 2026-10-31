@@ -289,9 +289,21 @@ public class RegisterPatientController implements Initializable {
                 if (ext.getSystolicBp() != null) txtSysBp.setText(String.valueOf(ext.getSystolicBp()));
                 if (ext.getDiastolicBp() != null) txtDiaBp.setText(String.valueOf(ext.getDiastolicBp()));
                 if (ext.getRespiratoryRate() != null) txtRr.setText(String.valueOf(ext.getRespiratoryRate()));
+                if (ext.getGcs() != null) {
+                    txtGcs.setText(String.valueOf(ext.getGcs()));
+                    draftPatient.setGcs(ext.getGcs());
+                } else {
+                    txtGcs.setText("15");
+                    draftPatient.setGcs(15);
+                }
                 if (ext.getPainScore() != null) {
                     sliderPain.setValue(ext.getPainScore());
                     lblPainValue.setText(ext.getPainScore() + " / 10");
+                    draftPatient.setPainScore(ext.getPainScore());
+                } else {
+                    sliderPain.setValue(0);
+                    lblPainValue.setText("0 / 10");
+                    draftPatient.setPainScore(0);
                 }
                 if (ext.getChiefComplaint() != null && !ext.getChiefComplaint().isEmpty()) {
                     txtComplaint.setText(ext.getChiefComplaint());

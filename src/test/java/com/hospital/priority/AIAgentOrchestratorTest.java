@@ -5,6 +5,8 @@ import com.hospital.priority.model.EmergencyLevel;
 import com.hospital.priority.model.Specialty;
 import com.hospital.priority.model.Vitals;
 import com.hospital.priority.service.ai.AIAgentOrchestrator;
+import com.hospital.priority.service.ai.AIClientService;
+import com.hospital.priority.service.ai.AIClinicalExtraction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,5 +58,23 @@ class AIAgentOrchestratorTest {
         assertEquals(EmergencyLevel.CRITICAL, result.getFinalRecommendedLevel());
         assertTrue(result.isDisagreementDetected());
         assertTrue(result.getDisagreementNotes().contains("Java Rule Engine"));
+    }
+
+    @Test
+    @DisplayName("AI Narrative extraction correctly extracts GCS and infers clinical pain score")
+    void testClinicalNarrativeGcsAndPainExtraction() {
+        String narrative = "chest pain radiating to left jaw, diaphoresis, SpO2 91%, HR 112, BP 160/95, 98.6 F , 16/min ,15 GCS. History of hypertension, allergic to penicillin.";
+        AIClinicalExtraction ext = AIClientService.getInstance().extractClinicalNarrative(narrative);
+
+        assertNotNull(ext);
+        assertEquals(15, ext.getGcs(), "GCS should be extracted as 15");
+        assertNotNull(ext.getPainScore(), "Pain score should not be null");
+        assertTrue(ext.getPainScore() >= 7, "Severe radiating chest pain should have acute pain score >= 7");
+        assertEquals(91, ext.getSpo2(), "SpO2 should be 91%");
+        assertEquals(112, ext.getHeartRate(), "HR should be 112");
+        assertEquals(160, ext.getSystolicBp(), "Systolic BP should be 160");
+        assertEquals(95, ext.getDiastolicBp(), "Diastolic BP should be 95");
+        assertEquals(98.6, ext.getTemperature(), 0.1, "Temperature should be 98.6");
+        assertEquals(16, ext.getRespiratoryRate(), "Respiratory rate should be 16");
     }
 }
