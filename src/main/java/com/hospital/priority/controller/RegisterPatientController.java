@@ -502,9 +502,6 @@ public class RegisterPatientController implements Initializable {
                 default -> text + " acute onset with severe discomfort";
             };
             txtComplaint.setText(complaint);
-            if (txtAiNarrative != null && (txtAiNarrative.getText() == null || txtAiNarrative.getText().trim().isEmpty())) {
-                txtAiNarrative.setText(complaint);
-            }
             handleVitalsChange();
         }
     }
