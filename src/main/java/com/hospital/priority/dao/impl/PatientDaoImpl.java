@@ -637,6 +637,57 @@ public class PatientDaoImpl implements PatientDao {
         return p;
     }
 
+    @Override
+    public boolean delete(int patientId) throws DatabaseOperationException {
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) return false;
+            // Clean child records first to avoid foreign key constraints
+            try (PreparedStatement s1 = conn.prepareStatement("DELETE FROM treatment_records WHERE patient_id = ?")) {
+                s1.setInt(1, patientId);
+                s1.executeUpdate();
+            } catch (SQLException ignored) {}
+
+            try (PreparedStatement s2 = conn.prepareStatement("DELETE FROM orders WHERE patient_id = ?")) {
+                s2.setInt(1, patientId);
+                s2.executeUpdate();
+            } catch (SQLException ignored) {}
+
+            try (PreparedStatement s3 = conn.prepareStatement("DELETE FROM soap_notes WHERE patient_id = ?")) {
+                s3.setInt(1, patientId);
+                s3.executeUpdate();
+            } catch (SQLException ignored) {}
+
+            try (PreparedStatement s4 = conn.prepareStatement("DELETE FROM repeat_vitals WHERE patient_id = ?")) {
+                s4.setInt(1, patientId);
+                s4.executeUpdate();
+            } catch (SQLException ignored) {}
+
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM patients WHERE patient_id = ?")) {
+                stmt.setInt(1, patientId);
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseOperationException("Error deleting patient record: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public boolean deleteAll() throws DatabaseOperationException {
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) return false;
+            try (Statement stmt = conn.createStatement()) {
+                try { stmt.executeUpdate("DELETE FROM treatment_records"); } catch (SQLException ignored) {}
+                try { stmt.executeUpdate("DELETE FROM orders"); } catch (SQLException ignored) {}
+                try { stmt.executeUpdate("DELETE FROM soap_notes"); } catch (SQLException ignored) {}
+                try { stmt.executeUpdate("DELETE FROM repeat_vitals"); } catch (SQLException ignored) {}
+                stmt.executeUpdate("DELETE FROM patients");
+                return true;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseOperationException("Error deleting all patient records: " + e.getMessage(), e);
+        }
+    }
+
     private boolean hasColumn(ResultSet rs, String columnName) {
         try {
             ResultSetMetaData rsmd = rs.getMetaData();

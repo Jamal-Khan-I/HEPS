@@ -285,25 +285,25 @@
                 <HBox alignment="CENTER_LEFT">
                     <Label text="Clinical decision support" styleClass="card-title" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label fx:id="lblNews2ScoreBadge" text="NEWS2: 0" styleClass="badge, badge-low" style="-fx-font-size: 13px; -fx-padding: 4px 12px;" />
+                    <Label fx:id="lblNews2ScoreBadge" text="NEWS2: --" styleClass="badge, badge-low" style="-fx-font-size: 13px; -fx-padding: 4px 12px;" />
                 </HBox>
 
                 <HBox spacing="24.0">
                     <VBox spacing="4.0" HBox.hgrow="ALWAYS" style="-fx-background-color: #F8FAFC; -fx-padding: 12px; -fx-background-radius: 8px;">
                         <Label text="Rule engine" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
-                        <Label fx:id="lblStep2RuleLevel" text="Critical" style="-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: #B91C1C;" />
-                        <Label fx:id="lblStep2RuleDetail" text="SpO2 under 90%" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                        <Label fx:id="lblStep2RuleLevel" text="Pending" style="-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
+                        <Label fx:id="lblStep2RuleDetail" text="Enter vitals or complaint to evaluate rules" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
                     </VBox>
 
                     <VBox spacing="4.0" HBox.hgrow="ALWAYS" style="-fx-background-color: #F8FAFC; -fx-padding: 12px; -fx-background-radius: 8px;">
                         <Label text="AI agents" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
-                        <Label fx:id="lblStep2AiLevel" text="High" style="-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: #C2410C;" />
-                        <Label fx:id="lblStep2AiDetail" text="Possible acute coronary syndrome" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
+                        <Label fx:id="lblStep2AiLevel" text="Pending" style="-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #64748B;" />
+                        <Label fx:id="lblStep2AiDetail" text="Enter vitals or complaint for AI analysis" style="-fx-font-size: 12px; -fx-text-fill: #64748B;" />
                     </VBox>
                 </HBox>
 
                 <!-- Disagreement Detected Banner (Page 5) -->
-                <HBox fx:id="boxDisagreementBanner" alignment="CENTER_LEFT" spacing="10.0"
+                <HBox fx:id="boxDisagreementBanner" visible="false" managed="false" alignment="CENTER_LEFT" spacing="10.0"
                       style="-fx-background-color: #FEF9C3; -fx-border-color: #FDE047; -fx-border-width: 1px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px 14px;">
                     <SVGPath content="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" style="-fx-stroke: #A16207; -fx-stroke-width: 2; -fx-fill: transparent;" />
                     <Label fx:id="lblDisagreementText" text="Disagreement detected. Defaulting to the higher acuity: Critical."

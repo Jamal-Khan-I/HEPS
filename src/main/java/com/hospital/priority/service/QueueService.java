@@ -163,6 +163,13 @@ public class QueueService {
         return triageQueue.remove(patient);
     }
 
+    public synchronized boolean removeFromQueue(String tokenNo) {
+        if (tokenNo == null || tokenNo.trim().isEmpty()) {
+            return false;
+        }
+        return triageQueue.removeIf(p -> tokenNo.equalsIgnoreCase(p.getTokenNo()));
+    }
+
     /**
      * HEPS 2.0 AUTOMATIC WAIT-TIME PRIORITY ESCALATION ENGINE
      * Scans all waiting patients in the PriorityQueue.

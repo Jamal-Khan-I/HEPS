@@ -221,6 +221,39 @@ public class PatientService {
         return patientDao.search(searchTerm, level, status);
     }
 
+    public boolean deletePatient(Patient patient) {
+        if (patient == null) return false;
+        try {
+            boolean deleted = patientDao.delete(patient.getPatientId());
+            if (deleted) {
+                // Free assigned bay
+                BayService.getInstance().findBayForPatient(patient.getTokenNo()).ifPresent(Bay::markFree);
+                // Remove from in-memory PriorityQueue
+                queueService.removeFromQueue(patient);
+                queueService.removeFromQueue(patient.getTokenNo());
+            }
+            return deleted;
+        } catch (Exception e) {
+            System.err.println("Error deleting patient: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean deleteAllPatients() {
+        try {
+            boolean deleted = patientDao.deleteAll();
+            // Free all bays
+            for (Bay b : BayService.getInstance().getAllBays()) {
+                b.markFree();
+            }
+            queueService.initializeQueueFromDatabase();
+            return deleted;
+        } catch (Exception e) {
+            System.err.println("Error deleting all patients: " + e.getMessage());
+            return false;
+        }
+    }
+
     public Map<String, Object> getDashboardStatistics() throws DatabaseOperationException {
         Map<String, Object> stats = new HashMap<>();
 

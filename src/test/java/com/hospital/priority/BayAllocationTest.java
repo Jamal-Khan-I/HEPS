@@ -97,3 +97,4 @@ public class BayAllocationTest {
         assertEquals("Bay 2 - Trauma", p2.getAssignedBay());
     }
 }
+

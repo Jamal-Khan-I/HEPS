@@ -218,6 +218,8 @@ public class RegisterPatientController implements Initializable {
                 Platform.runLater(txtHr::deselect);
             }
         });
+
+        resetDecisionSupport();
     }
 
     private void initFreshPatientDraft() {
@@ -226,6 +228,7 @@ public class RegisterPatientController implements Initializable {
         generatedUhid = String.format("UH-%d-%06d", Year.now().getValue(), (int)(System.currentTimeMillis() % 900000) + 100000);
         draftPatient.setUhid(generatedUhid);
         draftPatient.setTokenNo(generatedToken);
+        resetDecisionSupport();
     }
 
     // =========================================================================
@@ -508,35 +511,83 @@ public class RegisterPatientController implements Initializable {
 
     @FXML
     public void handleVitalsChange() {
+        String spo2Text = txtSpo2 != null && txtSpo2.getText() != null ? txtSpo2.getText().trim() : "";
+        String hrText = txtHr != null && txtHr.getText() != null ? txtHr.getText().trim() : "";
+        String sysText = txtSysBp != null && txtSysBp.getText() != null ? txtSysBp.getText().trim() : "";
+        String complaint = txtComplaint != null && txtComplaint.getText() != null ? txtComplaint.getText().trim() : "";
+
+        // If no vitals have been typed yet
+        if (spo2Text.isEmpty() && hrText.isEmpty() && sysText.isEmpty()) {
+            if (!complaint.isEmpty()) {
+                // If there is a chief complaint, evaluate based on complaint with normal baseline vitals
+                Vitals baseline = new Vitals(98, 75, 98.6, 120, 80, 16);
+                updateClinicalDecisionSupport(baseline, 15);
+            } else {
+                resetDecisionSupport();
+            }
+            return;
+        }
+
         try {
-            int spo2 = Integer.parseInt(txtSpo2.getText().trim());
-            int hr = Integer.parseInt(txtHr.getText().trim());
-            double temp = Double.parseDouble(txtTemp.getText().trim());
-            int sys = Integer.parseInt(txtSysBp.getText().trim());
-            int dia = Integer.parseInt(txtDiaBp.getText().trim());
-            int rr = Integer.parseInt(txtRr.getText().trim());
-            int gcs = Integer.parseInt(txtGcs.getText().trim());
+            int spo2 = !spo2Text.isEmpty() ? Integer.parseInt(spo2Text) : 98;
+            int hr = !hrText.isEmpty() ? Integer.parseInt(hrText) : 75;
+            double temp = txtTemp != null && txtTemp.getText() != null && !txtTemp.getText().trim().isEmpty() ? Double.parseDouble(txtTemp.getText().trim()) : 98.6;
+            int sys = !sysText.isEmpty() ? Integer.parseInt(sysText) : 120;
+            int dia = txtDiaBp != null && txtDiaBp.getText() != null && !txtDiaBp.getText().trim().isEmpty() ? Integer.parseInt(txtDiaBp.getText().trim()) : 80;
+            int rr = txtRr != null && txtRr.getText() != null && !txtRr.getText().trim().isEmpty() ? Integer.parseInt(txtRr.getText().trim()) : 16;
+            int gcs = txtGcs != null && txtGcs.getText() != null && !txtGcs.getText().trim().isEmpty() ? Integer.parseInt(txtGcs.getText().trim()) : 15;
 
             Vitals v = new Vitals(spo2, hr, temp, sys, dia, rr);
             draftPatient.setVitals(v);
             draftPatient.setGcs(gcs);
 
             // Live Alert Badges
-            badgeSpo2Alert.setVisible(spo2 < 90);
-            badgeHrAlert.setVisible(hr > 130);
+            if (badgeSpo2Alert != null) badgeSpo2Alert.setVisible(!spo2Text.isEmpty() && spo2 < 90);
+            if (badgeHrAlert != null) badgeHrAlert.setVisible(!hrText.isEmpty() && hr > 130);
 
             // Compute live NEWS2 score
             int news2 = NEWS2Service.calculateScore(v, gcs);
             draftPatient.setNews2Score(news2);
-            lblNews2ScoreBadge.setText("NEWS2: " + news2);
-            lblNews2ScoreBadge.getStyleClass().removeAll("badge-critical", "badge-high", "badge-medium", "badge-low");
-            lblNews2ScoreBadge.getStyleClass().add(news2 >= 7 ? "badge-critical" : (news2 >= 5 ? "badge-high" : (news2 >= 1 ? "badge-medium" : "badge-low")));
+            if (lblNews2ScoreBadge != null) {
+                lblNews2ScoreBadge.setText("NEWS2: " + news2);
+                lblNews2ScoreBadge.getStyleClass().removeAll("badge-critical", "badge-high", "badge-medium", "badge-low");
+                lblNews2ScoreBadge.getStyleClass().add(news2 >= 7 ? "badge-critical" : (news2 >= 5 ? "badge-high" : (news2 >= 1 ? "badge-medium" : "badge-low")));
+            }
 
             // Dynamically update clinical decision support & AI consensus cards in Step 2
             updateClinicalDecisionSupport(v, gcs);
 
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            resetDecisionSupport();
         }
+    }
+
+    public void resetDecisionSupport() {
+        if (lblStep2RuleLevel != null) {
+            lblStep2RuleLevel.setText("Pending");
+            lblStep2RuleLevel.setStyle("-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #64748B;");
+        }
+        if (lblStep2RuleDetail != null) {
+            lblStep2RuleDetail.setText("Enter vitals or complaint to evaluate rules");
+        }
+        if (lblStep2AiLevel != null) {
+            lblStep2AiLevel.setText("Pending");
+            lblStep2AiLevel.setStyle("-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #64748B;");
+        }
+        if (lblStep2AiDetail != null) {
+            lblStep2AiDetail.setText("Enter vitals or complaint for AI analysis");
+        }
+        if (boxDisagreementBanner != null) {
+            boxDisagreementBanner.setVisible(false);
+            boxDisagreementBanner.setManaged(false);
+        }
+        if (lblNews2ScoreBadge != null) {
+            lblNews2ScoreBadge.setText("NEWS2: --");
+            lblNews2ScoreBadge.getStyleClass().removeAll("badge-critical", "badge-high", "badge-medium", "badge-low");
+            lblNews2ScoreBadge.getStyleClass().add("badge-low");
+        }
+        if (badgeSpo2Alert != null) badgeSpo2Alert.setVisible(false);
+        if (badgeHrAlert != null) badgeHrAlert.setVisible(false);
     }
 
     private void updateClinicalDecisionSupport(Vitals v, int gcs) {

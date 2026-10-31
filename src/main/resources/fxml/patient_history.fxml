@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
 <VBox spacing="18.0" style="-fx-padding: 0 4px 20px 0;"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -44,6 +45,13 @@
             <ComboBox fx:id="cmbStatusFilter" prefWidth="140.0" styleClass="filter-combo-pill" />
 
             <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnDeletePatient" onAction="#handleDeletePatientRecord" styleClass="btn-secondary" text="Delete"
+                    style="-fx-text-fill: #DC2626; -fx-border-color: #FECACA; -fx-background-color: #FEF2F2; -fx-font-weight: 600;">
+                <graphic>
+                    <SVGPath content="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M10 11v6 M14 11v6"
+                             style="-fx-stroke: #DC2626; -fx-stroke-width: 1.6; -fx-fill: transparent;" />
+                </graphic>
+            </Button>
             <Button onAction="#refreshHistory" styleClass="btn-secondary" text="Refresh" />
         </HBox>
 

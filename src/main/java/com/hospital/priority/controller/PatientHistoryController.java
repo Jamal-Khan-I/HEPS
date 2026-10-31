@@ -31,6 +31,7 @@ public class PatientHistoryController implements Initializable {
     @FXML private ComboBox<String> cmbLevelFilter;
     @FXML private ComboBox<String> cmbStatusFilter;
     @FXML private Button btnCompleteTreatmentAction;
+    @FXML private Button btnDeletePatient;
 
     @FXML private TableView<Patient> historyTable;
     @FXML private TableColumn<Patient, String> colToken;
@@ -205,6 +206,48 @@ public class PatientHistoryController implements Initializable {
             }
         } catch (Exception e) {
             lblDetailTreatmentNotes.setText("Error loading treatment record: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void handleDeletePatientRecord(ActionEvent event) {
+        Patient selected = historyTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Delete Patient Records");
+            alert.setHeaderText("No specific patient selected from the table.");
+            alert.setContentText("Would you like to delete all patient records, or cancel to select an individual patient?");
+            ButtonType btnDeleteAll = new ButtonType("Delete All Records", ButtonBar.ButtonData.OK_DONE);
+            ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(btnDeleteAll, btnCancel);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == btnDeleteAll) {
+                patientService.deleteAllPatients();
+                refreshHistory();
+                if (MainController.getInstance() != null) {
+                    MainController.getInstance().updateSidebarCounters();
+                }
+            }
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Deletion");
+        confirm.setHeaderText("Delete record: " + selected.getFullName() + " (" + selected.getTokenNo() + ")?");
+        confirm.setContentText("This will permanently remove the patient record and free any assigned bay. This action cannot be undone.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean ok = patientService.deletePatient(selected);
+            if (ok) {
+                refreshHistory();
+                if (MainController.getInstance() != null) {
+                    MainController.getInstance().updateSidebarCounters();
+                }
+            } else {
+                showError("Delete Failure", "Could not delete patient record from database.");
+            }
         }
     }
 

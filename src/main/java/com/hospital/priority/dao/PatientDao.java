@@ -38,4 +38,8 @@ public interface PatientDao {
     int countCompletedToday() throws DatabaseOperationException;
 
     int getMaxTokenSequence() throws DatabaseOperationException;
+
+    boolean delete(int patientId) throws DatabaseOperationException;
+
+    boolean deleteAll() throws DatabaseOperationException;
 }
